@@ -2,6 +2,14 @@ import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import {
   Home,
+  Receipt,
+  Calendar,
+  Target,
+  DollarSign,
+  User,
+  Tag,
+  PieChart,
+  Settings,
   BookOpen,
   FileText,
   BarChart3,
@@ -12,14 +20,23 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import MenuBar from "@/components/MenuBar";
 
 const navigation = [
   { name: "Panel Principal", href: "/", icon: Home },
+  { name: "Transacciones", href: "/transacciones", icon: Receipt },
+  { name: "Calendario", href: "/calendario", icon: Calendar },
+  { name: "Presupuesto", href: "/presupuesto", icon: Target },
+  { name: "Monedas", href: "/monedas", icon: DollarSign },
+  { name: "Categorías", href: "/categorias", icon: Tag },
+  { name: "Resumen", href: "/resumen", icon: PieChart },
   { name: "Libro Diario", href: "/libro-diario", icon: BookOpen },
   { name: "Libro Mayor", href: "/libro-mayor", icon: FileText },
   { name: "Balance General", href: "/balance", icon: BarChart3 },
   { name: "Estado de Resultados", href: "/resultados", icon: TrendingUp },
   { name: "Enciclopedia", href: "/enciclopedia", icon: HelpCircle },
+  { name: "Cuenta", href: "/cuenta", icon: User },
+  { name: "Configuración", href: "/configuracion", icon: Settings },
 ];
 
 export default function Layout() {
@@ -27,7 +44,9 @@ export default function Layout() {
   const location = useLocation();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex flex-col h-screen overflow-hidden bg-background">
+      <MenuBar />
+      <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <aside
         className={cn(
@@ -77,6 +96,7 @@ export default function Layout() {
       <main className="flex-1 overflow-auto">
         <Outlet />
       </main>
+      </div>
     </div>
   );
 }
