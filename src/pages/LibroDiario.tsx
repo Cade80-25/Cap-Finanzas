@@ -74,17 +74,28 @@ export default function LibroDiario() {
                     <SelectValue placeholder="Selecciona una cuenta" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="activo-corriente">Activo Corriente</SelectItem>
+                    <SelectItem value="activo-no-corriente">Activo No Corriente</SelectItem>
+                    <SelectItem value="pasivo-corriente">Pasivo Corriente</SelectItem>
+                    <SelectItem value="pasivo-no-corriente">Pasivo No Corriente</SelectItem>
+                    <SelectItem value="patrimonio">Patrimonio</SelectItem>
+                    <SelectItem value="ingresos">Ingresos</SelectItem>
+                    <SelectItem value="gastos-operativos">Gastos Operativos</SelectItem>
+                    <SelectItem value="gastos-financieros">Gastos Financieros</SelectItem>
+                    <SelectItem value="costo-ventas">Costo de Ventas</SelectItem>
                     <SelectItem value="banco">Banco</SelectItem>
                     <SelectItem value="caja">Caja</SelectItem>
-                    <SelectItem value="gastos">Gastos Varios</SelectItem>
-                    <SelectItem value="servicios">Servicios</SelectItem>
-                    <SelectItem value="ingresos">Ingresos</SelectItem>
+                    <SelectItem value="cuentas-por-cobrar">Cuentas por Cobrar</SelectItem>
+                    <SelectItem value="cuentas-por-pagar">Cuentas por Pagar</SelectItem>
+                    <SelectItem value="inventarios">Inventarios</SelectItem>
+                    <SelectItem value="depreciacion">Depreciación</SelectItem>
+                    <SelectItem value="amortizacion">Amortización</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="description">Descripción</Label>
-                <Input id="description" placeholder="Ej: Pago de renta" />
+                <Label htmlFor="description">Descripción (o escribe tu propia categoría)</Label>
+                <Input id="description" placeholder="Ej: Pago de renta, Ingreso por ventas, etc." />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">

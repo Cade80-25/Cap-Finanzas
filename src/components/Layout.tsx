@@ -17,6 +17,7 @@ import {
   HelpCircle,
   Menu,
   X,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ const navigation = [
   { name: "Balance General", href: "/balance", icon: BarChart3 },
   { name: "Estado de Resultados", href: "/resultados", icon: TrendingUp },
   { name: "Enciclopedia", href: "/enciclopedia", icon: HelpCircle },
+  { name: "Recomendaciones", href: "/recomendaciones", icon: Sparkles },
   { name: "Cuenta", href: "/cuenta", icon: User },
   { name: "Configuración", href: "/configuracion", icon: Settings },
 ];

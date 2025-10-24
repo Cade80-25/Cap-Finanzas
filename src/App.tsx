@@ -18,6 +18,7 @@ import EstadoResultados from "./pages/EstadoResultados";
 import Enciclopedia from "./pages/Enciclopedia";
 import Cuenta from "./pages/Cuenta";
 import Configuracion from "./pages/Configuracion";
+import Recomendaciones from "./pages/Recomendaciones";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="balance" element={<Balance />} />
             <Route path="resultados" element={<EstadoResultados />} />
             <Route path="enciclopedia" element={<Enciclopedia />} />
+            <Route path="recomendaciones" element={<Recomendaciones />} />
             <Route path="cuenta" element={<Cuenta />} />
             <Route path="configuracion" element={<Configuracion />} />
           </Route>

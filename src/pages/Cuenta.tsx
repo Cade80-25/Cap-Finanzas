@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Cuenta() {
   return (
@@ -157,16 +158,82 @@ export default function Cuenta() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Idioma</Label>
-                <Input defaultValue="Español (ES)" />
+                <Label htmlFor="idioma">Idioma</Label>
+                <Select defaultValue="es">
+                  <SelectTrigger id="idioma">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="es">Español</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="pt">Português</SelectItem>
+                    <SelectItem value="fr">Français</SelectItem>
+                    <SelectItem value="de">Deutsch</SelectItem>
+                    <SelectItem value="it">Italiano</SelectItem>
+                    <SelectItem value="zh">中文</SelectItem>
+                    <SelectItem value="ja">日本語</SelectItem>
+                    <SelectItem value="ko">한국어</SelectItem>
+                    <SelectItem value="ar">العربية</SelectItem>
+                    <SelectItem value="ru">Русский</SelectItem>
+                    <SelectItem value="hi">हिन्दी</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label>Moneda Principal</Label>
-                <Input defaultValue="USD ($)" />
+                <Label htmlFor="moneda">Moneda Principal</Label>
+                <Select defaultValue="USD">
+                  <SelectTrigger id="moneda">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD - Dólar Estadounidense ($)</SelectItem>
+                    <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
+                    <SelectItem value="GBP">GBP - Libra Esterlina (£)</SelectItem>
+                    <SelectItem value="JPY">JPY - Yen Japonés (¥)</SelectItem>
+                    <SelectItem value="ARS">ARS - Peso Argentino ($)</SelectItem>
+                    <SelectItem value="MXN">MXN - Peso Mexicano ($)</SelectItem>
+                    <SelectItem value="BRL">BRL - Real Brasileño (R$)</SelectItem>
+                    <SelectItem value="CAD">CAD - Dólar Canadiense ($)</SelectItem>
+                    <SelectItem value="AUD">AUD - Dólar Australiano ($)</SelectItem>
+                    <SelectItem value="CHF">CHF - Franco Suizo (Fr)</SelectItem>
+                    <SelectItem value="CNY">CNY - Yuan Chino (¥)</SelectItem>
+                    <SelectItem value="INR">INR - Rupia India (₹)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label>Zona Horaria</Label>
-                <Input defaultValue="GMT-3 (Buenos Aires)" />
+                <Label htmlFor="timezone">Zona Horaria</Label>
+                <Select defaultValue="America/Argentina/Buenos_Aires">
+                  <SelectTrigger id="timezone">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="America/New_York">GMT-5 (Nueva York)</SelectItem>
+                    <SelectItem value="America/Chicago">GMT-6 (Chicago)</SelectItem>
+                    <SelectItem value="America/Los_Angeles">GMT-8 (Los Ángeles)</SelectItem>
+                    <SelectItem value="America/Mexico_City">GMT-6 (Ciudad de México)</SelectItem>
+                    <SelectItem value="America/Argentina/Buenos_Aires">GMT-3 (Buenos Aires)</SelectItem>
+                    <SelectItem value="America/Sao_Paulo">GMT-3 (São Paulo)</SelectItem>
+                    <SelectItem value="America/Santiago">GMT-3 (Santiago)</SelectItem>
+                    <SelectItem value="America/Bogota">GMT-5 (Bogotá)</SelectItem>
+                    <SelectItem value="America/Lima">GMT-5 (Lima)</SelectItem>
+                    <SelectItem value="Europe/London">GMT+0 (Londres)</SelectItem>
+                    <SelectItem value="Europe/Paris">GMT+1 (París)</SelectItem>
+                    <SelectItem value="Europe/Berlin">GMT+1 (Berlín)</SelectItem>
+                    <SelectItem value="Europe/Madrid">GMT+1 (Madrid)</SelectItem>
+                    <SelectItem value="Europe/Rome">GMT+1 (Roma)</SelectItem>
+                    <SelectItem value="Europe/Moscow">GMT+3 (Moscú)</SelectItem>
+                    <SelectItem value="Europe/Istanbul">GMT+3 (Estambul)</SelectItem>
+                    <SelectItem value="Asia/Dubai">GMT+4 (Dubái)</SelectItem>
+                    <SelectItem value="Asia/Kolkata">GMT+5:30 (Mumbai)</SelectItem>
+                    <SelectItem value="Asia/Shanghai">GMT+8 (Shanghái)</SelectItem>
+                    <SelectItem value="Asia/Tokyo">GMT+9 (Tokio)</SelectItem>
+                    <SelectItem value="Asia/Seoul">GMT+9 (Seúl)</SelectItem>
+                    <SelectItem value="Asia/Singapore">GMT+8 (Singapur)</SelectItem>
+                    <SelectItem value="Australia/Sydney">GMT+11 (Sídney)</SelectItem>
+                    <SelectItem value="Pacific/Auckland">GMT+13 (Auckland)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>
