@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -36,8 +38,71 @@ const transactions = [
   { id: 4, date: "2025-10-17", account: "Banco", description: "Venta de Artículo", debit: 200, credit: 0 },
 ];
 
+// Sistema inteligente de validación de transacciones
+const validateTransaction = (account: string, description: string, debit: number, credit: number) => {
+  const suggestions = [];
+  
+  // Reglas de validación contable
+  const incomeKeywords = ['salario', 'venta', 'ingreso', 'cobro', 'ganancia', 'interés'];
+  const expenseKeywords = ['gasto', 'pago', 'factura', 'compra', 'servicios', 'supermercado', 'alquiler', 'renta'];
+  const assetKeywords = ['banco', 'caja', 'inventario', 'activo', 'cobrar'];
+  const liabilityKeywords = ['préstamo', 'deuda', 'pagar', 'pasivo', 'crédito'];
+  
+  const desc = description.toLowerCase();
+  
+  // Validar Ingresos
+  if (incomeKeywords.some(keyword => desc.includes(keyword))) {
+    if (!account.includes('ingreso') && debit > 0) {
+      suggestions.push({
+        message: "Detectamos un ingreso. Se recomienda registrarlo en 'Ingresos' con un Haber (crédito).",
+        suggestedAccount: "ingresos",
+        suggestedDebit: 0,
+        suggestedCredit: debit
+      });
+    }
+  }
+  
+  // Validar Gastos
+  if (expenseKeywords.some(keyword => desc.includes(keyword))) {
+    if (!account.includes('gasto') && credit > 0) {
+      suggestions.push({
+        message: "Detectamos un gasto. Se recomienda registrarlo en 'Gastos Operativos' con un Debe (débito).",
+        suggestedAccount: "gastos-operativos",
+        suggestedDebit: credit,
+        suggestedCredit: 0
+      });
+    }
+  }
+  
+  // Validar que Debe y Haber no estén ambos vacíos o ambos llenos
+  if (debit > 0 && credit > 0) {
+    suggestions.push({
+      message: "Una transacción no puede tener valores en Debe y Haber simultáneamente. Use solo uno.",
+      suggestedAccount: account,
+      suggestedDebit: debit,
+      suggestedCredit: 0
+    });
+  }
+  
+  if (debit === 0 && credit === 0) {
+    suggestions.push({
+      message: "Debe ingresar un monto en Debe o Haber.",
+      suggestedAccount: account,
+      suggestedDebit: 0,
+      suggestedCredit: 0
+    });
+  }
+  
+  return suggestions;
+};
+
 export default function LibroDiario() {
   const [open, setOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState("");
+  const [description, setDescription] = useState("");
+  const [debit, setDebit] = useState(0);
+  const [credit, setCredit] = useState(0);
+  const [validationSuggestions, setValidationSuggestions] = useState<any[]>([]);
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
@@ -69,7 +134,14 @@ export default function LibroDiario() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="account">Cuenta</Label>
-                <Select>
+                <Select 
+                  value={selectedAccount}
+                  onValueChange={(value) => {
+                    setSelectedAccount(value);
+                    const suggestions = validateTransaction(value, description, debit, credit);
+                    setValidationSuggestions(suggestions);
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona una cuenta" />
                   </SelectTrigger>
@@ -95,24 +167,107 @@ export default function LibroDiario() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="description">Descripción (o escribe tu propia categoría)</Label>
-                <Input id="description" placeholder="Ej: Pago de renta, Ingreso por ventas, etc." />
+                <Input 
+                  id="description" 
+                  placeholder="Ej: Pago de renta, Ingreso por ventas, etc."
+                  value={description}
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    const suggestions = validateTransaction(selectedAccount, e.target.value, debit, credit);
+                    setValidationSuggestions(suggestions);
+                  }}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="debit">Debe ($)</Label>
-                  <Input id="debit" type="number" placeholder="0.00" />
+                  <Input 
+                    id="debit" 
+                    type="number" 
+                    placeholder="0.00"
+                    value={debit || ""}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0;
+                      setDebit(value);
+                      const suggestions = validateTransaction(selectedAccount, description, value, credit);
+                      setValidationSuggestions(suggestions);
+                    }}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="credit">Haber ($)</Label>
-                  <Input id="credit" type="number" placeholder="0.00" />
+                  <Input 
+                    id="credit" 
+                    type="number" 
+                    placeholder="0.00"
+                    value={credit || ""}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0;
+                      setCredit(value);
+                      const suggestions = validateTransaction(selectedAccount, description, debit, value);
+                      setValidationSuggestions(suggestions);
+                    }}
+                  />
                 </div>
               </div>
+              
+              {validationSuggestions.length > 0 && (
+                <Alert className="border-warning bg-warning/10">
+                  <AlertCircle className="h-4 w-4 text-warning" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      {validationSuggestions.map((suggestion, index) => (
+                        <div key={index}>
+                          <p className="font-medium text-warning">{suggestion.message}</p>
+                          {suggestion.suggestedAccount && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="mt-2"
+                              onClick={() => {
+                                setSelectedAccount(suggestion.suggestedAccount);
+                                setDebit(suggestion.suggestedDebit);
+                                setCredit(suggestion.suggestedCredit);
+                                toast.success("Corrección aplicada automáticamente");
+                                setValidationSuggestions([]);
+                              }}
+                            >
+                              Aplicar Corrección
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>
+              <Button variant="outline" onClick={() => {
+                setOpen(false);
+                setValidationSuggestions([]);
+                setSelectedAccount("");
+                setDescription("");
+                setDebit(0);
+                setCredit(0);
+              }}>
                 Cancelar
               </Button>
-              <Button onClick={() => setOpen(false)}>Guardar</Button>
+              <Button onClick={() => {
+                if (validationSuggestions.length > 0) {
+                  toast.warning("Por favor revise las sugerencias antes de guardar");
+                } else {
+                  toast.success("Transacción registrada exitosamente");
+                  setOpen(false);
+                  setValidationSuggestions([]);
+                  setSelectedAccount("");
+                  setDescription("");
+                  setDebit(0);
+                  setCredit(0);
+                }
+              }}>
+                Guardar
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
