@@ -1,4 +1,4 @@
-import { User, Mail, Shield, Bell, Palette, Globe } from "lucide-react";
+import { User, Mail, Shield, Bell, Palette, Globe, Upload } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,53 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useRef } from "react";
+import { useTheme } from "next-themes";
+import { toast } from "sonner";
 
 export default function Cuenta() {
+  const { theme, setTheme } = useTheme();
+  const [avatarUrl, setAvatarUrl] = useState<string>("/placeholder.svg");
+  const [nombre, setNombre] = useState("Juan");
+  const [apellido, setApellido] = useState("Pérez");
+  const [email, setEmail] = useState("juan.perez@email.com");
+  const [telefono, setTelefono] = useState("+54 11 1234-5678");
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [budgetAlerts, setBudgetAlerts] = useState(true);
+  const [transactionNotifications, setTransactionNotifications] = useState(false);
+  const [idioma, setIdioma] = useState("es");
+  const [moneda, setMoneda] = useState("USD");
+  const [timezone, setTimezone] = useState("America/Argentina/Buenos_Aires");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("El archivo debe ser menor a 2MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarUrl(reader.result as string);
+        toast.success("Foto actualizada correctamente");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = () => {
+    toast.success("Cambios guardados correctamente");
+  };
+
+  const handlePasswordChange = () => {
+    toast.info("Función de cambio de contraseña en desarrollo");
+  };
+
+  const handle2FA = () => {
+    toast.info("Función de autenticación de dos factores en desarrollo");
+  };
+
   return (
     <div className="p-8 space-y-6 animate-fade-in">
       <div>
@@ -31,11 +76,23 @@ export default function Cuenta() {
           <CardContent className="space-y-6">
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src="/placeholder.svg" />
-                <AvatarFallback className="text-2xl">JD</AvatarFallback>
+                <AvatarImage src={avatarUrl} />
+                <AvatarFallback className="text-2xl">{nombre[0]}{apellido[0]}</AvatarFallback>
               </Avatar>
               <div>
-                <Button variant="outline" size="sm">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handlePhotoChange}
+                  accept="image/jpeg,image/png,image/gif"
+                  className="hidden"
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
                   Cambiar Foto
                 </Button>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -49,22 +106,40 @@ export default function Cuenta() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="nombre">Nombre</Label>
-                <Input id="nombre" defaultValue="Juan" />
+                <Input 
+                  id="nombre" 
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="apellido">Apellido</Label>
-                <Input id="apellido" defaultValue="Pérez" />
+                <Input 
+                  id="apellido" 
+                  value={apellido}
+                  onChange={(e) => setApellido(e.target.value)}
+                />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Correo Electrónico</Label>
-              <Input id="email" type="email" defaultValue="juan.perez@email.com" />
+              <Input 
+                id="email" 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="telefono">Teléfono</Label>
-              <Input id="telefono" type="tel" defaultValue="+54 11 1234-5678" />
+              <Input 
+                id="telefono" 
+                type="tel" 
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+              />
             </div>
 
             <Separator />
@@ -74,12 +149,18 @@ export default function Cuenta() {
                 <Shield className="h-5 w-5" />
                 Seguridad
               </h3>
-              <Button variant="outline">Cambiar Contraseña</Button>
-              <Button variant="outline">Configurar Autenticación de Dos Factores</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handlePasswordChange}>
+                  Cambiar Contraseña
+                </Button>
+                <Button variant="outline" onClick={handle2FA}>
+                  Configurar Autenticación de Dos Factores
+                </Button>
+              </div>
             </div>
 
             <div className="flex justify-end">
-              <Button>Guardar Cambios</Button>
+              <Button onClick={handleSave}>Guardar Cambios</Button>
             </div>
           </CardContent>
         </Card>
@@ -100,7 +181,13 @@ export default function Cuenta() {
                     Recibir notificaciones por email
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={emailNotifications}
+                  onCheckedChange={(checked) => {
+                    setEmailNotifications(checked);
+                    toast.success(checked ? "Notificaciones activadas" : "Notificaciones desactivadas");
+                  }}
+                />
               </div>
 
               <Separator />
@@ -112,7 +199,13 @@ export default function Cuenta() {
                     Avisos cuando excedas límites
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch 
+                  checked={budgetAlerts}
+                  onCheckedChange={(checked) => {
+                    setBudgetAlerts(checked);
+                    toast.success(checked ? "Alertas activadas" : "Alertas desactivadas");
+                  }}
+                />
               </div>
 
               <Separator />
@@ -124,7 +217,13 @@ export default function Cuenta() {
                     Notificar nuevas transacciones
                   </p>
                 </div>
-                <Switch />
+                <Switch 
+                  checked={transactionNotifications}
+                  onCheckedChange={(checked) => {
+                    setTransactionNotifications(checked);
+                    toast.success(checked ? "Notificaciones activadas" : "Notificaciones desactivadas");
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
@@ -144,7 +243,13 @@ export default function Cuenta() {
                     Tema oscuro para la interfaz
                   </p>
                 </div>
-                <Switch />
+                <Switch 
+                  checked={theme === "dark"}
+                  onCheckedChange={(checked) => {
+                    setTheme(checked ? "dark" : "light");
+                    toast.success(checked ? "Modo oscuro activado" : "Modo claro activado");
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
@@ -159,7 +264,13 @@ export default function Cuenta() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="idioma">Idioma</Label>
-                <Select defaultValue="es">
+                <Select 
+                  value={idioma}
+                  onValueChange={(value) => {
+                    setIdioma(value);
+                    toast.success("Idioma actualizado");
+                  }}
+                >
                   <SelectTrigger id="idioma">
                     <SelectValue />
                   </SelectTrigger>
@@ -181,19 +292,38 @@ export default function Cuenta() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="moneda">Moneda Principal</Label>
-                <Select defaultValue="USD">
+                <Select 
+                  value={moneda}
+                  onValueChange={(value) => {
+                    setMoneda(value);
+                    toast.success("Moneda actualizada");
+                  }}
+                >
                   <SelectTrigger id="moneda">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="USD">USD - Dólar Estadounidense ($)</SelectItem>
+                    <SelectItem value="CAD">CAD - Dólar Canadiense ($)</SelectItem>
+                    <SelectItem value="MXN">MXN - Peso Mexicano ($)</SelectItem>
+                    <SelectItem value="ARS">ARS - Peso Argentino ($)</SelectItem>
+                    <SelectItem value="UYU">UYU - Peso Uruguayo ($U)</SelectItem>
+                    <SelectItem value="BRL">BRL - Real Brasileño (R$)</SelectItem>
+                    <SelectItem value="CLP">CLP - Peso Chileno ($)</SelectItem>
+                    <SelectItem value="COP">COP - Peso Colombiano ($)</SelectItem>
+                    <SelectItem value="PEN">PEN - Sol Peruano (S/)</SelectItem>
+                    <SelectItem value="BOB">BOB - Boliviano (Bs.)</SelectItem>
+                    <SelectItem value="PYG">PYG - Guaraní (₲)</SelectItem>
+                    <SelectItem value="VES">VES - Bolívar (Bs.)</SelectItem>
+                    <SelectItem value="DOP">DOP - Peso Dominicano (RD$)</SelectItem>
+                    <SelectItem value="CRC">CRC - Colón Costarricense (₡)</SelectItem>
+                    <SelectItem value="GTQ">GTQ - Quetzal (Q)</SelectItem>
+                    <SelectItem value="HNL">HNL - Lempira (L)</SelectItem>
+                    <SelectItem value="NIO">NIO - Córdoba (C$)</SelectItem>
+                    <SelectItem value="PAB">PAB - Balboa (B/.)</SelectItem>
                     <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
                     <SelectItem value="GBP">GBP - Libra Esterlina (£)</SelectItem>
                     <SelectItem value="JPY">JPY - Yen Japonés (¥)</SelectItem>
-                    <SelectItem value="ARS">ARS - Peso Argentino ($)</SelectItem>
-                    <SelectItem value="MXN">MXN - Peso Mexicano ($)</SelectItem>
-                    <SelectItem value="BRL">BRL - Real Brasileño (R$)</SelectItem>
-                    <SelectItem value="CAD">CAD - Dólar Canadiense ($)</SelectItem>
                     <SelectItem value="AUD">AUD - Dólar Australiano ($)</SelectItem>
                     <SelectItem value="CHF">CHF - Franco Suizo (Fr)</SelectItem>
                     <SelectItem value="CNY">CNY - Yuan Chino (¥)</SelectItem>
@@ -203,7 +333,13 @@ export default function Cuenta() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="timezone">Zona Horaria</Label>
-                <Select defaultValue="America/Argentina/Buenos_Aires">
+                <Select 
+                  value={timezone}
+                  onValueChange={(value) => {
+                    setTimezone(value);
+                    toast.success("Zona horaria actualizada");
+                  }}
+                >
                   <SelectTrigger id="timezone">
                     <SelectValue />
                   </SelectTrigger>
@@ -212,11 +348,23 @@ export default function Cuenta() {
                     <SelectItem value="America/Chicago">GMT-6 (Chicago)</SelectItem>
                     <SelectItem value="America/Los_Angeles">GMT-8 (Los Ángeles)</SelectItem>
                     <SelectItem value="America/Mexico_City">GMT-6 (Ciudad de México)</SelectItem>
-                    <SelectItem value="America/Argentina/Buenos_Aires">GMT-3 (Buenos Aires)</SelectItem>
-                    <SelectItem value="America/Sao_Paulo">GMT-3 (São Paulo)</SelectItem>
-                    <SelectItem value="America/Santiago">GMT-3 (Santiago)</SelectItem>
+                    <SelectItem value="America/Havana">GMT-5 (La Habana)</SelectItem>
+                    <SelectItem value="America/Caracas">GMT-4 (Caracas)</SelectItem>
                     <SelectItem value="America/Bogota">GMT-5 (Bogotá)</SelectItem>
                     <SelectItem value="America/Lima">GMT-5 (Lima)</SelectItem>
+                    <SelectItem value="America/Guayaquil">GMT-5 (Quito)</SelectItem>
+                    <SelectItem value="America/La_Paz">GMT-4 (La Paz)</SelectItem>
+                    <SelectItem value="America/Santiago">GMT-3 (Santiago)</SelectItem>
+                    <SelectItem value="America/Argentina/Buenos_Aires">GMT-3 (Buenos Aires)</SelectItem>
+                    <SelectItem value="America/Montevideo">GMT-3 (Montevideo)</SelectItem>
+                    <SelectItem value="America/Asuncion">GMT-3 (Asunción)</SelectItem>
+                    <SelectItem value="America/Sao_Paulo">GMT-3 (São Paulo)</SelectItem>
+                    <SelectItem value="America/Panama">GMT-5 (Panamá)</SelectItem>
+                    <SelectItem value="America/Costa_Rica">GMT-6 (San José)</SelectItem>
+                    <SelectItem value="America/Managua">GMT-6 (Managua)</SelectItem>
+                    <SelectItem value="America/Tegucigalpa">GMT-6 (Tegucigalpa)</SelectItem>
+                    <SelectItem value="America/Guatemala">GMT-6 (Guatemala)</SelectItem>
+                    <SelectItem value="America/Santo_Domingo">GMT-4 (Santo Domingo)</SelectItem>
                     <SelectItem value="Europe/London">GMT+0 (Londres)</SelectItem>
                     <SelectItem value="Europe/Paris">GMT+1 (París)</SelectItem>
                     <SelectItem value="Europe/Berlin">GMT+1 (Berlín)</SelectItem>
