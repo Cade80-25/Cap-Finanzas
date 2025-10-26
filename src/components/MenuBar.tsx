@@ -119,7 +119,7 @@ export default function MenuBar() {
           <MenubarSeparator />
           <MenubarItem>
             <Info className="mr-2 h-4 w-4" />
-            Acerca de FinanzApp
+            Acerca de Cap Finanzas
           </MenubarItem>
         </MenubarContent>
       </MenubarMenu>

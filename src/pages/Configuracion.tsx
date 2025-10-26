@@ -12,8 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
+import { useState } from "react";
 
 export default function Configuracion() {
+  const { theme, setTheme } = useTheme();
+  const [fontSize, setFontSize] = useState("medium");
+  const [animations, setAnimations] = useState(true);
+
   const handleExport = () => {
     toast.success("Exportación iniciada", {
       description: "Tus datos se están exportando...",
@@ -56,7 +62,7 @@ export default function Configuracion() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="json">JSON (FinanzApp)</SelectItem>
+                  <SelectItem value="json">JSON (Cap Finanzas)</SelectItem>
                   <SelectItem value="csv">CSV (Excel)</SelectItem>
                   <SelectItem value="pf">Personal Finances (.pf)</SelectItem>
                   <SelectItem value="qif">Quicken (.qif)</SelectItem>
@@ -80,7 +86,7 @@ export default function Configuracion() {
 
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground">
-                <strong>Formatos compatibles:</strong> FinanzApp JSON, Personal Finances, 
+                <strong>Formatos compatibles:</strong> Cap Finanzas JSON, Personal Finances, 
                 CSV, QIF, OFX/QFX
               </p>
             </div>
@@ -159,7 +165,7 @@ export default function Configuracion() {
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <Label>Tema</Label>
-              <Select defaultValue="light">
+              <Select value={theme} onValueChange={setTheme}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -175,7 +181,10 @@ export default function Configuracion() {
 
             <div className="space-y-3">
               <Label>Tamaño de Fuente</Label>
-              <Select defaultValue="medium">
+              <Select value={fontSize} onValueChange={(value) => {
+                setFontSize(value);
+                toast.success("Tamaño de fuente actualizado");
+              }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -196,7 +205,10 @@ export default function Configuracion() {
                   Habilitar efectos de animación
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={animations} onCheckedChange={(checked) => {
+                setAnimations(checked);
+                toast.success(checked ? "Animaciones habilitadas" : "Animaciones deshabilitadas");
+              }} />
             </div>
           </CardContent>
         </Card>

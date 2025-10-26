@@ -18,6 +18,8 @@ import {
   Menu,
   X,
   Sparkles,
+  Calculator,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,7 +30,8 @@ const navigation = [
   { name: "Transacciones", href: "/transacciones", icon: Receipt },
   { name: "Calendario", href: "/calendario", icon: Calendar },
   { name: "Presupuesto", href: "/presupuesto", icon: Target },
-  { name: "Monedas", href: "/monedas", icon: DollarSign },
+  { name: "Monedas", href: "/monedas", icon: Globe },
+  { name: "Calculadora IRPF", href: "/calculadora-irpf", icon: Calculator },
   { name: "Categorías", href: "/categorias", icon: Tag },
   { name: "Resumen", href: "/resumen", icon: PieChart },
   { name: "Libro Diario", href: "/libro-diario", icon: BookOpen },
@@ -56,10 +59,10 @@ export default function Layout() {
           sidebarOpen ? "w-64" : "w-0 md:w-20"
         )}
       >
-        <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
+        <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border flex-shrink-0">
           {sidebarOpen && (
             <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              FinanzApp
+              Cap Finanzas
             </h1>
           )}
           <Button
@@ -72,7 +75,7 @@ export default function Layout() {
           </Button>
         </div>
 
-        <nav className="flex-1 space-y-1 px-2 py-4">
+        <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
             return (
