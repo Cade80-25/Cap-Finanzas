@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import MenuBar from "@/components/MenuBar";
+import GlobalSearch from "@/components/GlobalSearch";
 
 const navigation = [
   { name: "Panel Principal", href: "/", icon: Home },
@@ -51,6 +52,7 @@ export default function Layout() {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
       <MenuBar />
+      <GlobalSearch />
       <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <aside
