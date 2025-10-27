@@ -216,11 +216,19 @@ const searchableItems: SearchItem[] = [
 
 type SortType = "name" | "date" | "location";
 
-export default function GlobalSearch() {
-  const [open, setOpen] = useState(false);
+interface GlobalSearchProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export default function GlobalSearch({ open: controlledOpen, onOpenChange }: GlobalSearchProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortType>("name");
   const navigate = useNavigate();
+
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {

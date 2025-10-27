@@ -47,12 +47,13 @@ const navigation = [
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
-      <MenuBar />
-      <GlobalSearch />
+      <MenuBar onSearchClick={() => setSearchOpen(true)} />
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
       <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <aside

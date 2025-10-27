@@ -3,6 +3,7 @@ import { Plus, Search, Filter, Download, Upload, Trash2, Edit } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import ReceiptScanner from "@/components/ReceiptScanner";
 import {
   Table,
   TableBody,
@@ -40,6 +41,7 @@ const transaccionesData = [
 export default function Transacciones() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState("todos");
+  const [scannedAmount, setScannedAmount] = useState<number | null>(null);
 
   const filteredTransacciones = transaccionesData.filter((t) => {
     const matchesSearch = t.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -60,6 +62,11 @@ export default function Transacciones() {
           </p>
         </div>
         <div className="flex gap-2">
+          <ReceiptScanner 
+            onDataScanned={(data) => {
+              setScannedAmount(data.amount);
+            }} 
+          />
           <Button variant="outline" size="icon">
             <Download className="h-4 w-4" />
           </Button>
@@ -103,7 +110,18 @@ export default function Transacciones() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="monto">Monto</Label>
-                  <Input id="monto" type="number" placeholder="0.00" />
+                  <Input 
+                    id="monto" 
+                    type="number" 
+                    placeholder="0.00" 
+                    value={scannedAmount || ""}
+                    onChange={(e) => setScannedAmount(parseFloat(e.target.value) || null)}
+                  />
+                  {scannedAmount && (
+                    <p className="text-xs text-muted-foreground">
+                      ✓ Monto escaneado de factura
+                    </p>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="categoria">Categoría</Label>

@@ -7,11 +7,17 @@ import {
   MenubarShortcut,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import { Download, Upload, Settings, FileText, HelpCircle, Info, Keyboard } from "lucide-react";
+import { Download, Upload, Settings, FileText, HelpCircle, Info, Keyboard, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-export default function MenuBar() {
+interface MenuBarProps {
+  onSearchClick?: () => void;
+}
+
+export default function MenuBar({ onSearchClick }: MenuBarProps) {
   const navigate = useNavigate();
 
   const handleExport = () => {
@@ -29,7 +35,8 @@ export default function MenuBar() {
   };
 
   return (
-    <Menubar className="border-b rounded-none bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4">
+    <Menubar className="rounded-none border-0 bg-transparent">
       <MenubarMenu>
         <MenubarTrigger>Archivo</MenubarTrigger>
         <MenubarContent>
@@ -124,5 +131,21 @@ export default function MenuBar() {
         </MenubarContent>
       </MenubarMenu>
     </Menubar>
+    
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onSearchClick}
+        className="gap-2"
+      >
+        <Search className="h-4 w-4" />
+        <span className="hidden md:inline">Buscar</span>
+        <kbd className="hidden md:inline pointer-events-none h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+          <span className="text-xs">⌘</span>K
+        </kbd>
+      </Button>
+    </div>
+    </div>
   );
 }
