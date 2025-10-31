@@ -8,11 +8,19 @@
 4. Haz clic en **"Create Repository"** en Lovable
 5. ¡Listo! Tu proyecto ahora está en GitHub automáticamente
 
-## Paso 2: Descargar el Proyecto a tu Computadora
+## Paso 2: Instalar Git (Si no lo tienes)
+
+1. Ve a **https://git-scm.com/downloads**
+2. Descarga Git para Windows
+3. Ejecuta el instalador descargado
+4. En el instalador, deja todas las opciones por defecto y haz clic en "Next" hasta terminar
+5. **IMPORTANTE**: Cierra y vuelve a abrir la terminal (cmd o PowerShell) después de instalar Git
+
+## Paso 3: Descargar el Proyecto a tu Computadora
 
 1. Una vez conectado a GitHub, ve a tu repositorio en GitHub.com
 2. Haz clic en el botón verde **"Code"**
-3. Copia la URL que aparece
+3. Copia la URL que aparece (ejemplo: `https://github.com/Cade80-25/finanzas-divertidas-desktop.git`)
 4. Abre una terminal o línea de comandos en tu computadora:
    - **Windows**: Busca "cmd" o "PowerShell" en el menú inicio
    - **Mac**: Busca "Terminal" en Spotlight
@@ -20,20 +28,20 @@
 
 5. Escribe estos comandos (reemplaza TU_URL_AQUI con la URL que copiaste, SIN comillas):
 
-**IMPORTANTE**: NO copies la palabra "bash" ni las comillas. Solo los comandos.
+**IMPORTANTE**: NO copies las comillas. Solo los comandos.
 
 ```
 git clone TU_URL_AQUI
-cd cap-finanzas
+cd finanzas-divertidas-desktop
 ```
 
-**Ejemplo real**: Si tu URL es `https://github.com/tuusuario/cap-finanzas.git`, escribirías:
+**Ejemplo real con tu repositorio**:
 ```
-git clone https://github.com/tuusuario/cap-finanzas.git
-cd cap-finanzas
+git clone https://github.com/Cade80-25/finanzas-divertidas-desktop.git
+cd finanzas-divertidas-desktop
 ```
 
-## Paso 3: Instalar Dependencias
+## Paso 4: Instalar Dependencias
 
 Copia y pega estos comandos en la terminal (uno por uno, presiona Enter después de cada uno):
 
@@ -44,7 +52,7 @@ npm install
 npm install --save-dev electron electron-builder concurrently wait-on cross-env
 ```
 
-## Paso 4: Modificar package.json
+## Paso 5: Modificar package.json
 
 1. Abre el archivo `package.json` en un editor de texto (Notepad, TextEdit, o cualquier editor)
 2. Busca la sección `"scripts":` y agrega estas líneas DENTRO de esa sección:
@@ -86,7 +94,7 @@ npm install --save-dev electron electron-builder concurrently wait-on cross-env
 }
 ```
 
-## Paso 5: Probar la Aplicación en Modo Desarrollo
+## Paso 6: Probar la Aplicación en Modo Desarrollo
 
 En la terminal, escribe (sin la palabra "bash"):
 
@@ -96,7 +104,7 @@ npm run electron:dev
 
 ¡La aplicación debería abrirse como una ventana de escritorio!
 
-## Paso 6: Crear los Instaladores
+## Paso 7: Crear los Instaladores
 
 ### Para Windows:
 ```
