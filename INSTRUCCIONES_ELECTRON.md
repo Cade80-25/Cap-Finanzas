@@ -18,18 +18,28 @@
    - **Mac**: Busca "Terminal" en Spotlight
    - **Linux**: Busca "Terminal" en tus aplicaciones
 
-5. Escribe estos comandos (reemplaza `TU_URL_AQUI` con la URL que copiaste):
+5. Escribe estos comandos (reemplaza TU_URL_AQUI con la URL que copiaste, SIN comillas):
 
-```bash
+**IMPORTANTE**: NO copies la palabra "bash" ni las comillas. Solo los comandos.
+
+```
 git clone TU_URL_AQUI
+cd cap-finanzas
+```
+
+**Ejemplo real**: Si tu URL es `https://github.com/tuusuario/cap-finanzas.git`, escribirías:
+```
+git clone https://github.com/tuusuario/cap-finanzas.git
 cd cap-finanzas
 ```
 
 ## Paso 3: Instalar Dependencias
 
-Copia y pega estos comandos en la terminal (uno por uno):
+Copia y pega estos comandos en la terminal (uno por uno, presiona Enter después de cada uno):
 
-```bash
+**IMPORTANTE**: NO copies la palabra "bash". Solo los comandos.
+
+```
 npm install
 npm install --save-dev electron electron-builder concurrently wait-on cross-env
 ```
@@ -78,9 +88,9 @@ npm install --save-dev electron electron-builder concurrently wait-on cross-env
 
 ## Paso 5: Probar la Aplicación en Modo Desarrollo
 
-En la terminal, escribe:
+En la terminal, escribe (sin la palabra "bash"):
 
-```bash
+```
 npm run electron:dev
 ```
 
@@ -89,17 +99,17 @@ npm run electron:dev
 ## Paso 6: Crear los Instaladores
 
 ### Para Windows:
-```bash
+```
 npm run build:win
 ```
 
 ### Para Mac:
-```bash
+```
 npm run build:mac
 ```
 
 ### Para Linux:
-```bash
+```
 npm run build:linux
 ```
 
