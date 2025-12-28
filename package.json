@@ -1,8 +1,9 @@
 {
-  "name": "Cap-Finanzas",
+  "name": "cap-finanzas",
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -13,7 +14,7 @@
     "electron:build": "npm run build && electron-builder",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && electron-builder --mac",
-    "build:linux": "npm run build && electron-builder --linux"
+    "build:linux": "npm run build && electron-builder --linux",
     "publish": "npm run build && electron-builder --publish always"
   },
   "dependencies": {
@@ -92,7 +93,6 @@
     "typescript-eslint": "^8.38.0",
     "vite": "^5.4.19"
   },
-  "main": "electron/main.js",
   "build": {
     "appId": "com.capfinanzas.app",
     "productName": "Cap Finanzas",
@@ -120,12 +120,12 @@
         "AppImage"
       ],
       "icon": "public/favicon.ico"
-    }
-"publish": {
-  "provider": "github",
-  "owner": "TU_USUARIO_GITHUB",
-  "repo": "TU_REPOSITORIO",
-  "private": false
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Cade80-25",
+      "repo": "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",
+      "private": false
     }
   }
 }
