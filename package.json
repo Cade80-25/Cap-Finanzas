@@ -52,7 +52,7 @@
     "cmdk": "^1.1.1",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
-    "date-fns": "^3.6.0",    
+    "date-fns": "^3.6.0",
     "electron-updater": "^6.6.2",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
@@ -104,22 +104,16 @@
       "electron/**/*"
     ],
     "win": {
-      "target": [
-        "nsis"
-      ],
-      "icon": "public/favicon.ico"
+      "target": ["nsis"],
+      "icon": "public/icons/icon-final.png"
     },
     "mac": {
-      "target": [
-        "dmg"
-      ],
-      "icon": "public/favicon.ico"
+      "target": ["dmg"],
+      "icon": "public/icons/icon-final.png"
     },
     "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "icon": "public/favicon.ico"
+      "target": ["AppImage"],
+      "icon": "public/icons/icon-final.png"
     },
     "publish": {
       "provider": "github",
