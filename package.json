@@ -2,6 +2,8 @@
   "name": "Cap-Finanzas",
   "private": true,
   "version": "1.0.0",
+  "description": "Aplicación de gestión financiera personal",
+  "author": "Cap Finanzas",
   "type": "module",
   "main": "electron/main.js",
   "scripts": {
@@ -105,9 +107,7 @@
       "electron/**/*"
     ],
     "win": {
-      "target": [
-        "nsis"
-      ],
+      "target": ["nsis"],
       "icon": "icons/icon-final.ico"
     },
     "nsis": {
@@ -115,15 +115,11 @@
       "uninstallerIcon": "icons/icon-final.ico"
     },
     "mac": {
-      "target": [
-        "dmg"
-      ],
-      "icon": "favicon.ico"
+      "target": ["dmg"],
+      "icon": "icons/icon-final.png"
     },
     "linux": {
-      "target": [
-        "AppImage"
-      ],
+      "target": ["AppImage"],
       "icon": "icons/icon-final.png"
     },
     "publish": {
