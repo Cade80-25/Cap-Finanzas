@@ -97,23 +97,34 @@
     "appId": "com.capfinanzas.app",
     "productName": "Cap Finanzas",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "public"
     },
     "files": [
       "dist/**/*",
       "electron/**/*"
     ],
     "win": {
-      "target": ["nsis"],
-      "icon": "public/icons/icon-final.png"
+      "target": [
+        "nsis"
+      ],
+      "icon": "icons/icon-final.ico"
+    },
+    "nsis": {
+      "installerIcon": "icons/icon-final.ico",
+      "uninstallerIcon": "icons/icon-final.ico"
     },
     "mac": {
-      "target": ["dmg"],
-      "icon": "public/icons/icon-final.png"
+      "target": [
+        "dmg"
+      ],
+      "icon": "favicon.ico"
     },
     "linux": {
-      "target": ["AppImage"],
-      "icon": "public/icons/icon-final.png"
+      "target": [
+        "AppImage"
+      ],
+      "icon": "icons/icon-final.png"
     },
     "publish": {
       "provider": "github",
