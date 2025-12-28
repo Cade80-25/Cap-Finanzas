@@ -2,9 +2,9 @@
   "name": "Cap-Finanzas",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "description": "Aplicación de gestión financiera personal",
   "author": "Cap Finanzas",
-  "type": "module",
   "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -116,11 +116,11 @@
     },
     "mac": {
       "target": ["dmg"],
-      "icon": "icons/icon-final.ico"
+      "icon": "icons/icon-final.png"
     },
     "linux": {
       "target": ["AppImage"],
-      "icon": "icons/icon-final.ico"
+      "icon": "icons/icon-final.png"
     },
     "publish": {
       "provider": "github",
