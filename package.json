@@ -1,5 +1,5 @@
 {
-  "name": "cap-finanzas",
+  "name": "Cap-Finanzas",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -124,7 +124,7 @@
     "publish": {
       "provider": "github",
       "owner": "Cade80-25",
-      "repo": "cap-finanzas",
+      "repo": "Cap-Finanzas",
       "private": false
     }
   }
