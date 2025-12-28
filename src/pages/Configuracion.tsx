@@ -1,9 +1,10 @@
-import { Settings, Database, Bell, Shield, Download, Upload, Palette, Zap } from "lucide-react";
+import { Database, Bell, Shield, Download, Upload, Palette, Zap, RefreshCw, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -14,11 +15,23 @@ import {
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { useState } from "react";
+import { useAutoUpdater } from "@/hooks/useAutoUpdater";
 
 export default function Configuracion() {
   const { theme, setTheme } = useTheme();
   const [fontSize, setFontSize] = useState("medium");
   const [animations, setAnimations] = useState(true);
+  
+  const {
+    updateAvailable,
+    updateInfo,
+    downloading,
+    downloadProgress,
+    updateReady,
+    checkForUpdates,
+    downloadUpdate,
+    installUpdate,
+  } = useAutoUpdater();
 
   const handleExport = () => {
     toast.success("Exportación iniciada", {
@@ -265,6 +278,97 @@ export default function Configuracion() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Sección de Actualizaciones - Solo visible en Electron */}
+        {typeof window !== 'undefined' && window.electron && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5" />
+                Actualizaciones
+              </CardTitle>
+              <CardDescription>
+                Gestiona las actualizaciones de la aplicación
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!updateAvailable && !updateReady && (
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Versión actual</Label>
+                    <p className="text-xs text-muted-foreground">
+                      La aplicación está actualizada
+                    </p>
+                  </div>
+                  <Button onClick={checkForUpdates} variant="outline" size="sm">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Buscar actualizaciones
+                  </Button>
+                </div>
+              )}
+
+              {updateAvailable && !downloading && !updateReady && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-primary">¡Nueva versión disponible!</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Versión {updateInfo?.version} lista para descargar
+                      </p>
+                    </div>
+                    <Button onClick={downloadUpdate} size="sm">
+                      <Download className="h-4 w-4 mr-2" />
+                      Descargar
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {downloading && (
+                <div className="space-y-3">
+                  <div className="space-y-0.5">
+                    <Label>Descargando actualización...</Label>
+                    <p className="text-xs text-muted-foreground">
+                      {downloadProgress}% completado
+                    </p>
+                  </div>
+                  <Progress value={downloadProgress} className="h-2" />
+                </div>
+              )}
+
+              {updateReady && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="flex items-center gap-2 text-green-600">
+                        <CheckCircle className="h-4 w-4" />
+                        Actualización lista
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        La versión {updateInfo?.version} está lista para instalar
+                      </p>
+                    </div>
+                    <Button onClick={installUpdate} size="sm">
+                      Instalar y reiniciar
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Actualizaciones automáticas</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Buscar actualizaciones al iniciar
+                  </p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="lg:col-span-2">
           <CardHeader>
