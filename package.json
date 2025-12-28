@@ -116,11 +116,11 @@
     },
     "mac": {
       "target": ["dmg"],
-      "icon": "icons/icon-final.png"
+      "icon": "icons/icon-final.ico"
     },
     "linux": {
       "target": ["AppImage"],
-      "icon": "icons/icon-final.png"
+      "icon": "icons/icon-final.ico"
     },
     "publish": {
       "provider": "github",
