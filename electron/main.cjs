@@ -20,10 +20,13 @@ function createWindow() {
     win.loadURL('http://localhost:8080');
     win.webContents.openDevTools();
   } else {
-    // En producción, carga los archivos compilados
-    win.loadFile(path.join(__dirname, '../dist/index.html'));
+    // En producción, carga los archivos compilados desde la app empaquetada
+    win.loadFile(path.join(app.getAppPath(), 'dist', 'index.html'));
   }
-}
+
+  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
+    console.error('did-fail-load', { errorCode, errorDescription });
+  });
 
 app.whenReady().then(() => {
   createWindow();
