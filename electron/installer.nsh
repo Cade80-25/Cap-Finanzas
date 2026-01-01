@@ -1,14 +1,14 @@
 !macro customInstall
   ; Acceso directo al desinstalador dentro de la carpeta del programa
-  CreateShortCut "$INSTDIR\Desinstalar $^Name.lnk" "$INSTDIR\Uninstall $^Name.exe" "" "$INSTDIR\Uninstall $^Name.exe" 0
+  CreateShortCut "$INSTDIR\Desinstalar Cap Finanzas.lnk" "$INSTDIR\Uninstall Cap Finanzas.exe" "" "$INSTDIR\Uninstall Cap Finanzas.exe" 0
 
   ; Acceso directo al desinstalador en el menú Inicio
-  CreateDirectory "$SMPROGRAMS\$^Name"
-  CreateShortCut "$SMPROGRAMS\$^Name\Desinstalar $^Name.lnk" "$INSTDIR\Uninstall $^Name.exe" "" "$INSTDIR\Uninstall $^Name.exe" 0
+  CreateDirectory "$SMPROGRAMS\Cap Finanzas"
+  CreateShortCut "$SMPROGRAMS\Cap Finanzas\Desinstalar Cap Finanzas.lnk" "$INSTDIR\Uninstall Cap Finanzas.exe" "" "$INSTDIR\Uninstall Cap Finanzas.exe" 0
 !macroend
 
 !macro customUnInstall
-  Delete "$INSTDIR\Desinstalar $^Name.lnk"
-  Delete "$SMPROGRAMS\$^Name\Desinstalar $^Name.lnk"
-  RMDir "$SMPROGRAMS\$^Name"
+  Delete "$INSTDIR\Desinstalar Cap Finanzas.lnk"
+  Delete "$SMPROGRAMS\Cap Finanzas\Desinstalar Cap Finanzas.lnk"
+  RMDir "$SMPROGRAMS\Cap Finanzas"
 !macroend
