@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "main": "electron/main.js",
+  "main": "electron/main.cjs",
   "description": "Aplicación de finanzas personales y contabilidad",
   "author": "Cap Finanzas",
   "scripts": {
