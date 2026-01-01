@@ -31,12 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
-const transaccionesData = [
-  { id: 1, fecha: "2025-01-15", descripcion: "Salario Enero", categoria: "Ingresos", tipo: "Ingreso", monto: 3500, estado: "Completado" },
-  { id: 2, fecha: "2025-01-16", descripcion: "Compra Supermercado", categoria: "Alimentación", tipo: "Gasto", monto: -250, estado: "Completado" },
-  { id: 3, fecha: "2025-01-18", descripcion: "Pago Alquiler", categoria: "Vivienda", tipo: "Gasto", monto: -800, estado: "Completado" },
-  { id: 4, fecha: "2025-01-20", descripcion: "Freelance Proyecto", categoria: "Ingresos", tipo: "Ingreso", monto: 450, estado: "Pendiente" },
-];
+const transaccionesData: Array<{ id: number; fecha: string; descripcion: string; categoria: string; tipo: string; monto: number; estado: string }> = [];
 
 export default function Transacciones() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -178,49 +173,55 @@ export default function Transacciones() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Descripción</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead className="text-right">Monto</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredTransacciones.map((transaccion) => (
-                <TableRow key={transaccion.id}>
-                  <TableCell>{transaccion.fecha}</TableCell>
-                  <TableCell className="font-medium">{transaccion.descripcion}</TableCell>
-                  <TableCell>{transaccion.categoria}</TableCell>
-                  <TableCell>
-                    <Badge variant={transaccion.tipo === "Ingreso" ? "default" : "secondary"}>
-                      {transaccion.tipo}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className={`text-right font-semibold ${transaccion.monto > 0 ? "text-success" : "text-destructive"}`}>
-                    ${Math.abs(transaccion.monto).toFixed(2)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={transaccion.estado === "Completado" ? "outline" : "secondary"}>
-                      {transaccion.estado}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          {filteredTransacciones.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Descripción</TableHead>
+                  <TableHead>Categoría</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Monto</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredTransacciones.map((transaccion) => (
+                  <TableRow key={transaccion.id}>
+                    <TableCell>{transaccion.fecha}</TableCell>
+                    <TableCell className="font-medium">{transaccion.descripcion}</TableCell>
+                    <TableCell>{transaccion.categoria}</TableCell>
+                    <TableCell>
+                      <Badge variant={transaccion.tipo === "Ingreso" ? "default" : "secondary"}>
+                        {transaccion.tipo}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className={`text-right font-semibold ${transaccion.monto > 0 ? "text-success" : "text-destructive"}`}>
+                      ${Math.abs(transaccion.monto).toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={transaccion.estado === "Completado" ? "outline" : "secondary"}>
+                        {transaccion.estado}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+              No hay transacciones registradas. Agrega tu primera transacción.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -5,7 +5,6 @@ import {
   Receipt,
   Calendar,
   Target,
-  DollarSign,
   User,
   Tag,
   PieChart,
@@ -23,8 +22,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import MenuBar from "@/components/MenuBar";
-import GlobalSearch from "@/components/GlobalSearch";
 
 const navigation = [
   { name: "Panel Principal", href: "/", icon: Home },
@@ -47,14 +44,10 @@ const navigation = [
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background">
-      <MenuBar onSearchClick={() => setSearchOpen(true)} />
-      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
-      <div className="flex flex-1 overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Sidebar */}
       <aside
         className={cn(
@@ -104,7 +97,6 @@ export default function Layout() {
       <main className="flex-1 overflow-auto">
         <Outlet />
       </main>
-      </div>
     </div>
   );
 }
