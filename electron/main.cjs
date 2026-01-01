@@ -15,7 +15,8 @@ function createWindow() {
   });
 
   // En desarrollo, carga desde el servidor de Vite
-  if (process.env.NODE_ENV === 'development') {
+  // En producción, app.isPackaged será true
+  if (!app.isPackaged && process.env.NODE_ENV === 'development') {
     win.loadURL('http://localhost:8080');
     win.webContents.openDevTools();
   } else {
