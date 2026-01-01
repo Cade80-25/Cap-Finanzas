@@ -1,0 +1,18 @@
+appId: com.capfinanzas.app
+productName: Cap Finanzas
+directories:
+  output: release
+files:
+  - dist/**/*
+  - electron/**/*
+  - package.json
+win:
+  icon: public/icon-final.ico
+  target:
+    - nsis
+nsis:
+  oneClick: true
+  perMachine: false
+  allowToChangeInstallationDirectory: false
+  installerIcon: public/icon-final.ico
+  uninstallerIcon: public/icon-final.ico
