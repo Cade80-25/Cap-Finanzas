@@ -109,11 +109,17 @@
       "target": ["nsis"],
       "icon": "public/icon-final.ico"
     },
-    "nsis": {
-      "oneClick": true,
-      "installerIcon": "public/icon-final.ico",
-      "uninstallerIcon": "public/icon-final.ico"
-    },
+   "nsis": {
+  "oneClick": false,
+  "perMachine": true,
+  "allowToChangeInstallationDirectory": true,
+  "createDesktopShortcut": true,
+  "createStartMenuShortcut": true,
+  "shortcutName": "Cap Finanzas",
+  "installerIcon": "public/icon-final.ico",
+  "uninstallerIcon": "public/icon-final.ico",
+  "include": "electron/installer.nsh"
+   },
     "mac": {
       "target": ["dmg"],
       "icon": "public/icon-final.png"
