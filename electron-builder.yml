@@ -11,8 +11,12 @@ win:
   target:
     - nsis
 nsis:
-  oneClick: true
-  perMachine: false
-  allowToChangeInstallationDirectory: false
+  oneClick: false
+  perMachine: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: "Cap Finanzas"
   installerIcon: public/icon-final.ico
   uninstallerIcon: public/icon-final.ico
+  include: electron/installer.nsh
