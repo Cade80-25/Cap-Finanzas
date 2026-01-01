@@ -30,20 +30,77 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { toast } from "sonner";
 
-const transaccionesData: Array<{ id: number; fecha: string; descripcion: string; categoria: string; tipo: string; monto: number; estado: string }> = [];
+interface Transaccion {
+  id: number;
+  fecha: string;
+  descripcion: string;
+  categoria: string;
+  tipo: string;
+  monto: number;
+  estado: string;
+}
 
 export default function Transacciones() {
+  const [transacciones, setTransacciones] = useLocalStorage<Transaccion[]>("cap-finanzas-transacciones", []);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState("todos");
   const [scannedAmount, setScannedAmount] = useState<number | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    fecha: "",
+    descripcion: "",
+    tipo: "",
+    monto: "",
+    categoria: "",
+  });
 
-  const filteredTransacciones = transaccionesData.filter((t) => {
+  const filteredTransacciones = transacciones.filter((t) => {
     const matchesSearch = t.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          t.categoria.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterTipo === "todos" || t.tipo.toLowerCase() === filterTipo;
     return matchesSearch && matchesFilter;
   });
+
+  const handleSubmit = () => {
+    if (!formData.fecha || !formData.descripcion || !formData.tipo || !formData.categoria) {
+      toast.error("Por favor completa todos los campos");
+      return;
+    }
+
+    const monto = scannedAmount || parseFloat(formData.monto);
+    if (!monto || monto <= 0) {
+      toast.error("Por favor ingresa un monto válido");
+      return;
+    }
+
+    const nuevaTransaccion: Transaccion = {
+      id: Date.now(),
+      fecha: formData.fecha,
+      descripcion: formData.descripcion,
+      categoria: formData.categoria,
+      tipo: formData.tipo === "ingreso" ? "Ingreso" : "Gasto",
+      monto: formData.tipo === "ingreso" ? monto : -monto,
+      estado: "Completado",
+    };
+
+    setTransacciones([nuevaTransaccion, ...transacciones]);
+    toast.success("Transacción guardada correctamente");
+    
+    // Reset form
+    setFormData({ fecha: "", descripcion: "", tipo: "", monto: "", categoria: "" });
+    setScannedAmount(null);
+    setDialogOpen(false);
+  };
+
+  const handleDelete = (id: number) => {
+    setTransacciones(transacciones.filter(t => t.id !== id));
+    toast.success("Transacción eliminada");
+  };
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
@@ -68,7 +125,7 @@ export default function Transacciones() {
           <Button variant="outline" size="icon">
             <Upload className="h-4 w-4" />
           </Button>
-          <Dialog>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button className="shadow-soft">
                 <Plus className="h-4 w-4 mr-2" />
@@ -85,15 +142,25 @@ export default function Transacciones() {
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="fecha">Fecha</Label>
-                  <Input id="fecha" type="date" />
+                  <Input 
+                    id="fecha" 
+                    type="date" 
+                    value={formData.fecha}
+                    onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="descripcion">Descripción</Label>
-                  <Input id="descripcion" placeholder="Ej: Compra supermercado" />
+                  <Input 
+                    id="descripcion" 
+                    placeholder="Ej: Compra supermercado"
+                    value={formData.descripcion}
+                    onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="tipo">Tipo</Label>
-                  <Select>
+                  <Select value={formData.tipo} onValueChange={(value) => setFormData({ ...formData, tipo: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona tipo" />
                     </SelectTrigger>
@@ -109,8 +176,11 @@ export default function Transacciones() {
                     id="monto" 
                     type="number" 
                     placeholder="0.00" 
-                    value={scannedAmount || ""}
-                    onChange={(e) => setScannedAmount(parseFloat(e.target.value) || null)}
+                    value={scannedAmount?.toString() || formData.monto}
+                    onChange={(e) => {
+                      setFormData({ ...formData, monto: e.target.value });
+                      setScannedAmount(null);
+                    }}
                   />
                   {scannedAmount && (
                     <p className="text-xs text-muted-foreground">
@@ -120,21 +190,25 @@ export default function Transacciones() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="categoria">Categoría</Label>
-                  <Select>
+                  <Select value={formData.categoria} onValueChange={(value) => setFormData({ ...formData, categoria: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona categoría" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="alimentacion">Alimentación</SelectItem>
-                      <SelectItem value="transporte">Transporte</SelectItem>
-                      <SelectItem value="vivienda">Vivienda</SelectItem>
-                      <SelectItem value="ingresos">Ingresos</SelectItem>
+                      <SelectItem value="Alimentación">Alimentación</SelectItem>
+                      <SelectItem value="Transporte">Transporte</SelectItem>
+                      <SelectItem value="Vivienda">Vivienda</SelectItem>
+                      <SelectItem value="Salud">Salud</SelectItem>
+                      <SelectItem value="Entretenimiento">Entretenimiento</SelectItem>
+                      <SelectItem value="Salario">Salario</SelectItem>
+                      <SelectItem value="Inversiones">Inversiones</SelectItem>
+                      <SelectItem value="Otros">Otros</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">Guardar Transacción</Button>
+                <Button type="button" onClick={handleSubmit}>Guardar Transacción</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -209,7 +283,7 @@ export default function Transacciones() {
                       <Button variant="ghost" size="icon">
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(transaccion.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
