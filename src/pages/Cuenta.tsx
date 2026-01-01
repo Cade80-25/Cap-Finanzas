@@ -7,24 +7,61 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
+const STORAGE_KEY = "cap-finanzas-cuenta";
+
+interface CuentaData {
+  avatarUrl: string;
+  nombre: string;
+  apellido: string;
+  email: string;
+  telefono: string;
+  emailNotifications: boolean;
+  budgetAlerts: boolean;
+  transactionNotifications: boolean;
+  idioma: string;
+  moneda: string;
+  timezone: string;
+}
+
+const defaultData: CuentaData = {
+  avatarUrl: "/placeholder.svg",
+  nombre: "",
+  apellido: "",
+  email: "",
+  telefono: "",
+  emailNotifications: true,
+  budgetAlerts: true,
+  transactionNotifications: false,
+  idioma: "es",
+  moneda: "USD",
+  timezone: "America/Argentina/Buenos_Aires",
+};
+
+const loadData = (): CuentaData => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? { ...defaultData, ...JSON.parse(saved) } : defaultData;
+  } catch {
+    return defaultData;
+  }
+};
+
 export default function Cuenta() {
   const { theme, setTheme } = useTheme();
-  const [avatarUrl, setAvatarUrl] = useState<string>("/placeholder.svg");
-  const [nombre, setNombre] = useState("Juan");
-  const [apellido, setApellido] = useState("Pérez");
-  const [email, setEmail] = useState("juan.perez@email.com");
-  const [telefono, setTelefono] = useState("+54 11 1234-5678");
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [budgetAlerts, setBudgetAlerts] = useState(true);
-  const [transactionNotifications, setTransactionNotifications] = useState(false);
-  const [idioma, setIdioma] = useState("es");
-  const [moneda, setMoneda] = useState("USD");
-  const [timezone, setTimezone] = useState("America/Argentina/Buenos_Aires");
+  const [data, setData] = useState<CuentaData>(loadData);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const updateData = (updates: Partial<CuentaData>) => {
+    setData(prev => {
+      const newData = { ...prev, ...updates };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+      return newData;
+    });
+  };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -35,14 +72,15 @@ export default function Cuenta() {
       }
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarUrl(reader.result as string);
-        toast.success("Foto actualizada correctamente");
+        updateData({ avatarUrl: reader.result as string });
+        toast.success("Foto actualizada y guardada");
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleSave = () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     toast.success("Cambios guardados correctamente");
   };
 
@@ -76,8 +114,8 @@ export default function Cuenta() {
           <CardContent className="space-y-6">
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={avatarUrl} />
-                <AvatarFallback className="text-2xl">{nombre[0]}{apellido[0]}</AvatarFallback>
+                <AvatarImage src={data.avatarUrl} />
+                <AvatarFallback className="text-2xl">{data.nombre?.[0] || "U"}{data.apellido?.[0] || ""}</AvatarFallback>
               </Avatar>
               <div>
                 <input
@@ -108,16 +146,16 @@ export default function Cuenta() {
                 <Label htmlFor="nombre">Nombre</Label>
                 <Input 
                   id="nombre" 
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
+                  value={data.nombre}
+                  onChange={(e) => updateData({ nombre: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="apellido">Apellido</Label>
                 <Input 
                   id="apellido" 
-                  value={apellido}
-                  onChange={(e) => setApellido(e.target.value)}
+                  value={data.apellido}
+                  onChange={(e) => updateData({ apellido: e.target.value })}
                 />
               </div>
             </div>
@@ -127,8 +165,8 @@ export default function Cuenta() {
               <Input 
                 id="email" 
                 type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={data.email}
+                onChange={(e) => updateData({ email: e.target.value })}
               />
             </div>
 
@@ -137,8 +175,8 @@ export default function Cuenta() {
               <Input 
                 id="telefono" 
                 type="tel" 
-                value={telefono}
-                onChange={(e) => setTelefono(e.target.value)}
+                value={data.telefono}
+                onChange={(e) => updateData({ telefono: e.target.value })}
               />
             </div>
 
@@ -182,9 +220,9 @@ export default function Cuenta() {
                   </p>
                 </div>
                 <Switch 
-                  checked={emailNotifications}
+                  checked={data.emailNotifications}
                   onCheckedChange={(checked) => {
-                    setEmailNotifications(checked);
+                    updateData({ emailNotifications: checked });
                     toast.success(checked ? "Notificaciones activadas" : "Notificaciones desactivadas");
                   }}
                 />
@@ -200,9 +238,9 @@ export default function Cuenta() {
                   </p>
                 </div>
                 <Switch 
-                  checked={budgetAlerts}
+                  checked={data.budgetAlerts}
                   onCheckedChange={(checked) => {
-                    setBudgetAlerts(checked);
+                    updateData({ budgetAlerts: checked });
                     toast.success(checked ? "Alertas activadas" : "Alertas desactivadas");
                   }}
                 />
@@ -218,9 +256,9 @@ export default function Cuenta() {
                   </p>
                 </div>
                 <Switch 
-                  checked={transactionNotifications}
+                  checked={data.transactionNotifications}
                   onCheckedChange={(checked) => {
-                    setTransactionNotifications(checked);
+                    updateData({ transactionNotifications: checked });
                     toast.success(checked ? "Notificaciones activadas" : "Notificaciones desactivadas");
                   }}
                 />
@@ -265,9 +303,9 @@ export default function Cuenta() {
               <div className="space-y-2">
                 <Label htmlFor="idioma">Idioma</Label>
                 <Select 
-                  value={idioma}
+                  value={data.idioma}
                   onValueChange={(value) => {
-                    setIdioma(value);
+                    updateData({ idioma: value });
                     toast.success("Idioma actualizado");
                   }}
                 >
@@ -293,9 +331,9 @@ export default function Cuenta() {
               <div className="space-y-2">
                 <Label htmlFor="moneda">Moneda Principal</Label>
                 <Select 
-                  value={moneda}
+                  value={data.moneda}
                   onValueChange={(value) => {
-                    setMoneda(value);
+                    updateData({ moneda: value });
                     toast.success("Moneda actualizada");
                   }}
                 >
@@ -334,9 +372,9 @@ export default function Cuenta() {
               <div className="space-y-2">
                 <Label htmlFor="timezone">Zona Horaria</Label>
                 <Select 
-                  value={timezone}
+                  value={data.timezone}
                   onValueChange={(value) => {
-                    setTimezone(value);
+                    updateData({ timezone: value });
                     toast.success("Zona horaria actualizada");
                   }}
                 >
