@@ -16,7 +16,9 @@ function createWindow() {
 
   // En desarrollo, carga desde el servidor de Vite
   // En producción, app.isPackaged será true
-  if (!app.isPackaged && process.env.NODE_ENV === 'development') {
+  const isDev = !app.isPackaged && process.env.NODE_ENV === 'development';
+
+  if (isDev) {
     win.loadURL('http://localhost:8080');
     win.webContents.openDevTools();
   } else {
@@ -27,6 +29,9 @@ function createWindow() {
   win.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
     console.error('did-fail-load', { errorCode, errorDescription });
   });
+
+  return win;
+}
 
 app.whenReady().then(() => {
   createWindow();
