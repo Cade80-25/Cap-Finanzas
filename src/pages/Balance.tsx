@@ -10,47 +10,31 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
-const balanceData = {
-  activos: [
-    { name: "Banco", value: 5200 },
-    { name: "Caja Chica", value: 500 },
-    { name: "Cuentas por Cobrar", value: 1200 },
-  ],
-  pasivos: [
-    { name: "Préstamo Bancario", value: 3000 },
-    { name: "Cuentas por Pagar", value: 850 },
-  ],
-};
-
-const totalActivos = balanceData.activos.reduce((sum, item) => sum + item.value, 0);
-const totalPasivos = balanceData.pasivos.reduce((sum, item) => sum + item.value, 0);
-const patrimonio = totalActivos - totalPasivos;
-
-const pieChartData = [
-  { name: "Activos", value: totalActivos, color: "hsl(var(--success))" },
-  { name: "Pasivos", value: totalPasivos, color: "hsl(var(--destructive))" },
-];
-
-const barChartData = [
-  ...balanceData.activos.map(item => ({ ...item, type: "Activo" })),
-  ...balanceData.pasivos.map(item => ({ ...item, type: "Pasivo" })),
-];
-
-const distribucionActivos = balanceData.activos.map(item => ({
-  name: item.name,
-  value: item.value,
-  percentage: ((item.value / totalActivos) * 100).toFixed(1),
-}));
-
-const distribucionPasivos = balanceData.pasivos.map(item => ({
-  name: item.name,
-  value: item.value,
-  percentage: ((item.value / totalPasivos) * 100).toFixed(1),
-}));
-
-const COLORS = ["hsl(var(--primary))", "hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--destructive))"];
+type BalanceItem = { name: string; value: number };
 
 export default function Balance() {
+  // Datos vacíos - se llenarán con datos reales del usuario
+  const balanceData: { activos: BalanceItem[]; pasivos: BalanceItem[] } = {
+    activos: [],
+    pasivos: [],
+  };
+
+  const totalActivos = balanceData.activos.reduce((sum, item) => sum + item.value, 0);
+  const totalPasivos = balanceData.pasivos.reduce((sum, item) => sum + item.value, 0);
+  const patrimonio = totalActivos - totalPasivos;
+
+  const pieChartData = [
+    { name: "Activos", value: totalActivos, color: "hsl(var(--success))" },
+    { name: "Pasivos", value: totalPasivos, color: "hsl(var(--destructive))" },
+  ];
+
+  const barChartData = [
+    ...balanceData.activos.map(item => ({ ...item, type: "Activo" })),
+    ...balanceData.pasivos.map(item => ({ ...item, type: "Pasivo" })),
+  ];
+
+  const COLORS = ["hsl(var(--primary))", "hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--destructive))"];
+
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div>
@@ -94,26 +78,32 @@ export default function Balance() {
                 <CardDescription>Recursos y bienes que posees</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cuenta</TableHead>
-                      <TableHead className="text-right">Valor</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {balanceData.activos.map((item) => (
-                      <TableRow key={item.name} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell className="text-right">${item.value.toFixed(2)}</TableCell>
+                {balanceData.activos.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Cuenta</TableHead>
+                        <TableHead className="text-right">Valor</TableHead>
                       </TableRow>
-                    ))}
-                    <TableRow className="bg-success/10 font-bold">
-                      <TableCell>Total Activos</TableCell>
-                      <TableCell className="text-right text-success">${totalActivos.toFixed(2)}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {balanceData.activos.map((item) => (
+                        <TableRow key={item.name} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell className="text-right">${item.value.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-success/10 font-bold">
+                        <TableCell>Total Activos</TableCell>
+                        <TableCell className="text-right text-success">${totalActivos.toFixed(2)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="flex items-center justify-center h-[150px] text-muted-foreground">
+                    No hay activos registrados
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -123,26 +113,32 @@ export default function Balance() {
                 <CardDescription>Deudas y obligaciones</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cuenta</TableHead>
-                      <TableHead className="text-right">Valor</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {balanceData.pasivos.map((item) => (
-                      <TableRow key={item.name} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell className="text-right">${item.value.toFixed(2)}</TableCell>
+                {balanceData.pasivos.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Cuenta</TableHead>
+                        <TableHead className="text-right">Valor</TableHead>
                       </TableRow>
-                    ))}
-                    <TableRow className="bg-destructive/10 font-bold">
-                      <TableCell>Total Pasivos</TableCell>
-                      <TableCell className="text-right text-destructive">${totalPasivos.toFixed(2)}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {balanceData.pasivos.map((item) => (
+                        <TableRow key={item.name} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell className="text-right">${item.value.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-destructive/10 font-bold">
+                        <TableCell>Total Pasivos</TableCell>
+                        <TableCell className="text-right text-destructive">${totalPasivos.toFixed(2)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="flex items-center justify-center h-[150px] text-muted-foreground">
+                    No hay pasivos registrados
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -156,26 +152,32 @@ export default function Balance() {
                 <CardDescription>Distribución Activos vs Pasivos</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={pieChartData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: $${value}`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {pieChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `$${value}`} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                {totalActivos > 0 || totalPasivos > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={pieChartData.filter(d => d.value > 0)}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, value }) => `${name}: $${value}`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {pieChartData.filter(d => d.value > 0).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `$${value}`} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    No hay datos disponibles
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -185,74 +187,22 @@ export default function Balance() {
                 <CardDescription>Todas las cuentas del balance</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={barChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `$${value}`} />
-                    <Legend />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="shadow-soft border-success/20">
-              <CardHeader>
-                <CardTitle className="text-success">Distribución de Activos</CardTitle>
-                <CardDescription>Composición porcentual</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={distribucionActivos}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percentage }) => `${name}: ${percentage}%`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {distribucionActivos.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `$${value}`} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-soft border-destructive/20">
-              <CardHeader>
-                <CardTitle className="text-destructive">Distribución de Pasivos</CardTitle>
-                <CardDescription>Composición porcentual</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={distribucionPasivos}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percentage }) => `${name}: ${percentage}%`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {distribucionPasivos.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `$${value}`} />
-                  </PieChart>
-                </ResponsiveContainer>
+                {barChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={barChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+                      <YAxis />
+                      <Tooltip formatter={(value) => `$${value}`} />
+                      <Legend />
+                      <Bar dataKey="value" fill="hsl(var(--primary))" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    No hay datos disponibles
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -267,10 +217,12 @@ export default function Balance() {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-success">
-                  {(totalActivos / totalPasivos).toFixed(2)}
+                  {totalPasivos > 0 ? (totalActivos / totalPasivos).toFixed(2) : "∞"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {totalActivos / totalPasivos > 1.5 ? "Excelente" : totalActivos / totalPasivos > 1 ? "Bueno" : "Necesita mejora"}
+                  {totalPasivos === 0 ? "Sin pasivos" : 
+                   totalActivos / totalPasivos > 1.5 ? "Excelente" : 
+                   totalActivos / totalPasivos > 1 ? "Bueno" : "Necesita mejora"}
                 </p>
               </CardContent>
             </Card>
@@ -282,10 +234,12 @@ export default function Balance() {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-primary">
-                  {((totalPasivos / totalActivos) * 100).toFixed(1)}%
+                  {totalActivos > 0 ? ((totalPasivos / totalActivos) * 100).toFixed(1) : "0.0"}%
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {(totalPasivos / totalActivos) < 0.3 ? "Bajo endeudamiento" : (totalPasivos / totalActivos) < 0.5 ? "Moderado" : "Alto endeudamiento"}
+                  {totalActivos === 0 ? "Sin datos" :
+                   (totalPasivos / totalActivos) < 0.3 ? "Bajo endeudamiento" : 
+                   (totalPasivos / totalActivos) < 0.5 ? "Moderado" : "Alto endeudamiento"}
                 </p>
               </CardContent>
             </Card>
@@ -297,7 +251,7 @@ export default function Balance() {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold">
-                  {((patrimonio / totalActivos) * 100).toFixed(1)}%
+                  {totalActivos > 0 ? ((patrimonio / totalActivos) * 100).toFixed(1) : "0.0"}%
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Porcentaje de activos propios
@@ -337,7 +291,7 @@ export default function Balance() {
                     <p className="text-sm text-muted-foreground">Independencia de deudas externas</p>
                   </div>
                   <span className="text-2xl font-bold">
-                    {((patrimonio / totalActivos) * 100).toFixed(1)}%
+                    {totalActivos > 0 ? ((patrimonio / totalActivos) * 100).toFixed(1) : "0.0"}%
                   </span>
                 </div>
               </div>

@@ -4,19 +4,15 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const presupuestoData = [
-  { categoria: "Alimentación", presupuesto: 500, gastado: 320, color: "bg-blue-500" },
-  { categoria: "Transporte", presupuesto: 200, gastado: 180, color: "bg-green-500" },
-  { categoria: "Vivienda", presupuesto: 800, gastado: 800, color: "bg-orange-500" },
-  { categoria: "Entretenimiento", presupuesto: 150, gastado: 95, color: "bg-purple-500" },
-  { categoria: "Salud", presupuesto: 100, gastado: 45, color: "bg-pink-500" },
-  { categoria: "Educación", presupuesto: 250, gastado: 290, color: "bg-red-500" },
-];
+type PresupuestoItem = { categoria: string; presupuesto: number; gastado: number; color: string };
 
 export default function Presupuesto() {
+  // Datos vacíos - el usuario creará sus propios presupuestos
+  const presupuestoData: PresupuestoItem[] = [];
+
   const totalPresupuesto = presupuestoData.reduce((acc, item) => acc + item.presupuesto, 0);
   const totalGastado = presupuestoData.reduce((acc, item) => acc + item.gastado, 0);
-  const porcentajeGlobal = (totalGastado / totalPresupuesto) * 100;
+  const porcentajeGlobal = totalPresupuesto > 0 ? (totalGastado / totalPresupuesto) * 100 : 0;
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
@@ -85,46 +81,52 @@ export default function Presupuesto() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            {presupuestoData.map((item, index) => {
-              const porcentaje = (item.gastado / item.presupuesto) * 100;
-              const excedido = item.gastado > item.presupuesto;
+          {presupuestoData.length > 0 ? (
+            <div className="space-y-6">
+              {presupuestoData.map((item, index) => {
+                const porcentaje = (item.gastado / item.presupuesto) * 100;
+                const excedido = item.gastado > item.presupuesto;
 
-              return (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                      <span className="font-medium">{item.categoria}</span>
-                      {excedido && (
-                        <Badge variant="destructive" className="text-xs">
-                          <AlertCircle className="h-3 w-3 mr-1" />
-                          Excedido
-                        </Badge>
-                      )}
+                return (
+                  <div key={index} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                        <span className="font-medium">{item.categoria}</span>
+                        {excedido && (
+                          <Badge variant="destructive" className="text-xs">
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            Excedido
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">
+                          ${item.gastado.toFixed(2)} / ${item.presupuesto.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {porcentaje.toFixed(1)}%
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold">
-                        ${item.gastado.toFixed(2)} / ${item.presupuesto.toFixed(2)}
+                    <Progress 
+                      value={Math.min(porcentaje, 100)} 
+                      className={excedido ? "bg-destructive/20" : ""}
+                    />
+                    {excedido && (
+                      <p className="text-xs text-destructive">
+                        Has excedido el presupuesto en ${(item.gastado - item.presupuesto).toFixed(2)}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        {porcentaje.toFixed(1)}%
-                      </p>
-                    </div>
+                    )}
                   </div>
-                  <Progress 
-                    value={Math.min(porcentaje, 100)} 
-                    className={excedido ? "bg-destructive/20" : ""}
-                  />
-                  {excedido && (
-                    <p className="text-xs text-destructive">
-                      Has excedido el presupuesto en ${(item.gastado - item.presupuesto).toFixed(2)}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+              No hay presupuestos configurados. Crea tu primer presupuesto.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

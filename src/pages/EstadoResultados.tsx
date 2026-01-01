@@ -26,52 +26,40 @@ import {
   AreaChart,
 } from "recharts";
 
-const estadoData = {
-  ingresos: [
-    { name: "Salario", value: 5000 },
-    { name: "Ventas", value: 200 },
-    { name: "Intereses Bancarios", value: 50 },
-  ],
-  gastos: [
-    { name: "Alimentación", value: 350 },
-    { name: "Servicios", value: 120 },
-    { name: "Transporte", value: 200 },
-    { name: "Otros", value: 150 },
-  ],
-};
-
-const totalIngresos = estadoData.ingresos.reduce((sum, item) => sum + item.value, 0);
-const totalGastos = estadoData.gastos.reduce((sum, item) => sum + item.value, 0);
-const resultadoNeto = totalIngresos - totalGastos;
-
-// Datos para gráficos
-const comparacionData = [
-  { name: "Ingresos", value: totalIngresos, color: "hsl(var(--success))" },
-  { name: "Gastos", value: totalGastos, color: "hsl(var(--destructive))" },
-];
-
-const tendenciaMensual = [
-  { mes: "Ene", ingresos: 4800, gastos: 3200 },
-  { mes: "Feb", ingresos: 5100, gastos: 3400 },
-  { mes: "Mar", ingresos: 4900, gastos: 3100 },
-  { mes: "Abr", ingresos: 5300, gastos: 3600 },
-  { mes: "May", ingresos: 5000, gastos: 3300 },
-  { mes: "Jun", ingresos: 5250, gastos: 2890 },
-];
-
-const distribucionIngresos = estadoData.ingresos.map(item => ({
-  ...item,
-  percentage: ((item.value / totalIngresos) * 100).toFixed(1),
-}));
-
-const distribucionGastos = estadoData.gastos.map(item => ({
-  ...item,
-  percentage: ((item.value / totalGastos) * 100).toFixed(1),
-}));
-
-const COLORS = ["hsl(var(--primary))", "hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--destructive))", "hsl(var(--accent))"];
+type EstadoItem = { name: string; value: number };
+type TendenciaItem = { mes: string; ingresos: number; gastos: number };
 
 export default function EstadoResultados() {
+  // Datos vacíos - se llenarán con datos reales del usuario
+  const estadoData: { ingresos: EstadoItem[]; gastos: EstadoItem[] } = {
+    ingresos: [],
+    gastos: [],
+  };
+
+  const tendenciaMensual: TendenciaItem[] = [];
+
+  const totalIngresos = estadoData.ingresos.reduce((sum, item) => sum + item.value, 0);
+  const totalGastos = estadoData.gastos.reduce((sum, item) => sum + item.value, 0);
+  const resultadoNeto = totalIngresos - totalGastos;
+
+  // Datos para gráficos
+  const comparacionData = [
+    { name: "Ingresos", value: totalIngresos, color: "hsl(var(--success))" },
+    { name: "Gastos", value: totalGastos, color: "hsl(var(--destructive))" },
+  ];
+
+  const distribucionIngresos = estadoData.ingresos.map(item => ({
+    ...item,
+    percentage: totalIngresos > 0 ? ((item.value / totalIngresos) * 100).toFixed(1) : "0",
+  }));
+
+  const distribucionGastos = estadoData.gastos.map(item => ({
+    ...item,
+    percentage: totalGastos > 0 ? ((item.value / totalGastos) * 100).toFixed(1) : "0",
+  }));
+
+  const COLORS = ["hsl(var(--primary))", "hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--destructive))", "hsl(var(--accent))"];
+
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div>
@@ -116,26 +104,32 @@ export default function EstadoResultados() {
                 <CardDescription>Dinero que entra</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Concepto</TableHead>
-                      <TableHead className="text-right">Monto</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {estadoData.ingresos.map((item) => (
-                      <TableRow key={item.name} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell className="text-right">${item.value.toFixed(2)}</TableCell>
+                {estadoData.ingresos.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Concepto</TableHead>
+                        <TableHead className="text-right">Monto</TableHead>
                       </TableRow>
-                    ))}
-                    <TableRow className="bg-success/10 font-bold">
-                      <TableCell>Total Ingresos</TableCell>
-                      <TableCell className="text-right text-success">${totalIngresos.toFixed(2)}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {estadoData.ingresos.map((item) => (
+                        <TableRow key={item.name} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell className="text-right">${item.value.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-success/10 font-bold">
+                        <TableCell>Total Ingresos</TableCell>
+                        <TableCell className="text-right text-success">${totalIngresos.toFixed(2)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="flex items-center justify-center h-[150px] text-muted-foreground">
+                    No hay ingresos registrados
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -145,26 +139,32 @@ export default function EstadoResultados() {
                 <CardDescription>Dinero que sale</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Concepto</TableHead>
-                      <TableHead className="text-right">Monto</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {estadoData.gastos.map((item) => (
-                      <TableRow key={item.name} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell className="text-right">${item.value.toFixed(2)}</TableCell>
+                {estadoData.gastos.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Concepto</TableHead>
+                        <TableHead className="text-right">Monto</TableHead>
                       </TableRow>
-                    ))}
-                    <TableRow className="bg-destructive/10 font-bold">
-                      <TableCell>Total Gastos</TableCell>
-                      <TableCell className="text-right text-destructive">${totalGastos.toFixed(2)}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {estadoData.gastos.map((item) => (
+                        <TableRow key={item.name} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell className="text-right">${item.value.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-destructive/10 font-bold">
+                        <TableCell>Total Gastos</TableCell>
+                        <TableCell className="text-right text-destructive">${totalGastos.toFixed(2)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="flex items-center justify-center h-[150px] text-muted-foreground">
+                    No hay gastos registrados
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -178,20 +178,26 @@ export default function EstadoResultados() {
                 <CardDescription>Vista general del período</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={comparacionData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `$${value}`} />
-                    <Legend />
-                    <Bar dataKey="value" fill="hsl(var(--primary))">
-                      {comparacionData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                {totalIngresos > 0 || totalGastos > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={comparacionData.filter(d => d.value > 0)}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => `$${value}`} />
+                      <Legend />
+                      <Bar dataKey="value" fill="hsl(var(--primary))">
+                        {comparacionData.filter(d => d.value > 0).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    No hay datos disponibles
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -201,26 +207,32 @@ export default function EstadoResultados() {
                 <CardDescription>Distribución porcentual</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={comparacionData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: $${value}`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {comparacionData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `$${value}`} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+                {totalIngresos > 0 || totalGastos > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={comparacionData.filter(d => d.value > 0)}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, value }) => `${name}: $${value}`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {comparacionData.filter(d => d.value > 0).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `$${value}`} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    No hay datos disponibles
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -232,25 +244,31 @@ export default function EstadoResultados() {
                 <CardDescription>Detalle por fuente</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={distribucionIngresos}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percentage }) => `${name}: ${percentage}%`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {distribucionIngresos.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `$${value}`} />
-                  </PieChart>
-                </ResponsiveContainer>
+                {distribucionIngresos.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={distribucionIngresos}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percentage }) => `${name}: ${percentage}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {distribucionIngresos.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `$${value}`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    No hay ingresos registrados
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -260,25 +278,31 @@ export default function EstadoResultados() {
                 <CardDescription>Detalle por categoría</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={distribucionGastos}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percentage }) => `${name}: ${percentage}%`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {distribucionGastos.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `$${value}`} />
-                  </PieChart>
-                </ResponsiveContainer>
+                {distribucionGastos.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={distribucionGastos}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percentage }) => `${name}: ${percentage}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {distribucionGastos.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `$${value}`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                    No hay gastos registrados
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -288,32 +312,38 @@ export default function EstadoResultados() {
           <Card className="shadow-soft">
             <CardHeader>
               <CardTitle>Evolución Mensual</CardTitle>
-              <CardDescription>Tendencia de ingresos y gastos en los últimos 6 meses</CardDescription>
+              <CardDescription>Tendencia de ingresos y gastos</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={tendenciaMensual}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => `$${value}`} />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="ingresos"
-                    stroke="hsl(var(--success))"
-                    strokeWidth={3}
-                    name="Ingresos"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="gastos"
-                    stroke="hsl(var(--destructive))"
-                    strokeWidth={3}
-                    name="Gastos"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {tendenciaMensual.length > 0 ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={tendenciaMensual}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mes" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => `$${value}`} />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="ingresos"
+                      stroke="hsl(var(--success))"
+                      strokeWidth={3}
+                      name="Ingresos"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="gastos"
+                      stroke="hsl(var(--destructive))"
+                      strokeWidth={3}
+                      name="Gastos"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                  No hay datos de tendencia disponibles
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -323,33 +353,39 @@ export default function EstadoResultados() {
               <CardDescription>Diferencia entre ingresos y gastos mensual</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={tendenciaMensual}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => `$${value}`} />
-                  <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="ingresos"
-                    stackId="1"
-                    stroke="hsl(var(--success))"
-                    fill="hsl(var(--success))"
-                    fillOpacity={0.6}
-                    name="Ingresos"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="gastos"
-                    stackId="2"
-                    stroke="hsl(var(--destructive))"
-                    fill="hsl(var(--destructive))"
-                    fillOpacity={0.6}
-                    name="Gastos"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              {tendenciaMensual.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={tendenciaMensual}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mes" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => `$${value}`} />
+                    <Legend />
+                    <Area
+                      type="monotone"
+                      dataKey="ingresos"
+                      stackId="1"
+                      stroke="hsl(var(--success))"
+                      fill="hsl(var(--success))"
+                      fillOpacity={0.6}
+                      name="Ingresos"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="gastos"
+                      stackId="2"
+                      stroke="hsl(var(--destructive))"
+                      fill="hsl(var(--destructive))"
+                      fillOpacity={0.6}
+                      name="Gastos"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                  No hay datos de tendencia disponibles
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -363,10 +399,12 @@ export default function EstadoResultados() {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-success">
-                  {((resultadoNeto / totalIngresos) * 100).toFixed(1)}%
+                  {totalIngresos > 0 ? ((resultadoNeto / totalIngresos) * 100).toFixed(1) : "0.0"}%
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {((resultadoNeto / totalIngresos) * 100) > 30 ? "Excelente" : ((resultadoNeto / totalIngresos) * 100) > 15 ? "Bueno" : "Moderado"}
+                  {totalIngresos === 0 ? "Sin datos" :
+                   ((resultadoNeto / totalIngresos) * 100) > 30 ? "Excelente" : 
+                   ((resultadoNeto / totalIngresos) * 100) > 15 ? "Bueno" : "Moderado"}
                 </p>
               </CardContent>
             </Card>
@@ -378,10 +416,10 @@ export default function EstadoResultados() {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-primary">
-                  {((resultadoNeto / totalIngresos) * 100).toFixed(1)}%
+                  {totalIngresos > 0 ? ((resultadoNeto / totalIngresos) * 100).toFixed(1) : "0.0"}%
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  De cada $100 ahorras ${((resultadoNeto / totalIngresos) * 100).toFixed(0)}
+                  {totalIngresos > 0 ? `De cada $100 ahorras $${((resultadoNeto / totalIngresos) * 100).toFixed(0)}` : "Sin datos"}
                 </p>
               </CardContent>
             </Card>
@@ -393,10 +431,10 @@ export default function EstadoResultados() {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-destructive">
-                  {((totalGastos / totalIngresos) * 100).toFixed(1)}%
+                  {totalIngresos > 0 ? ((totalGastos / totalIngresos) * 100).toFixed(1) : "0.0"}%
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Gastas {((totalGastos / totalIngresos) * 100).toFixed(0)}% de tus ingresos
+                  {totalIngresos > 0 ? `Gastas ${((totalGastos / totalIngresos) * 100).toFixed(0)}% de tus ingresos` : "Sin datos"}
                 </p>
               </CardContent>
             </Card>
@@ -415,7 +453,7 @@ export default function EstadoResultados() {
                     <p className="text-sm text-muted-foreground">Promedio de ingresos</p>
                   </div>
                   <span className="text-2xl font-bold text-success">
-                    ${(totalIngresos / estadoData.ingresos.length).toFixed(2)}
+                    ${estadoData.ingresos.length > 0 ? (totalIngresos / estadoData.ingresos.length).toFixed(2) : "0.00"}
                   </span>
                 </div>
 
@@ -425,7 +463,7 @@ export default function EstadoResultados() {
                     <p className="text-sm text-muted-foreground">Promedio de gastos</p>
                   </div>
                   <span className="text-2xl font-bold text-destructive">
-                    ${(totalGastos / estadoData.gastos.length).toFixed(2)}
+                    ${estadoData.gastos.length > 0 ? (totalGastos / estadoData.gastos.length).toFixed(2) : "0.00"}
                   </span>
                 </div>
 
@@ -434,75 +472,23 @@ export default function EstadoResultados() {
                     <p className="font-medium">Punto de Equilibrio</p>
                     <p className="text-sm text-muted-foreground">Gastos necesarios vs ingresos</p>
                   </div>
-                  <span className="text-2xl font-bold text-primary">
-                    {((totalGastos / totalIngresos) * 100).toFixed(1)}%
+                  <span className={`text-2xl font-bold ${resultadoNeto >= 0 ? "text-success" : "text-destructive"}`}>
+                    {resultadoNeto >= 0 ? "Superado ✓" : "No alcanzado"}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-card border border-border">
                   <div>
                     <p className="font-medium">Proyección Anual</p>
-                    <p className="text-sm text-muted-foreground">Si continúa la tendencia</p>
+                    <p className="text-sm text-muted-foreground">Estimación basada en datos actuales</p>
                   </div>
-                  <span className="text-2xl font-bold text-success">
+                  <span className={`text-2xl font-bold ${resultadoNeto >= 0 ? "text-success" : "text-destructive"}`}>
                     ${(resultadoNeto * 12).toFixed(2)}
                   </span>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="shadow-soft border-success/20">
-              <CardHeader>
-                <CardTitle className="text-success">Análisis de Ingresos</CardTitle>
-                <CardDescription>Desglose detallado</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {distribucionIngresos.map((item, idx) => (
-                    <div key={idx} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">{item.name}</span>
-                        <span className="text-muted-foreground">{item.percentage}%</span>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-success transition-all"
-                          style={{ width: `${item.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-soft border-destructive/20">
-              <CardHeader>
-                <CardTitle className="text-destructive">Análisis de Gastos</CardTitle>
-                <CardDescription>Desglose detallado</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {distribucionGastos.map((item, idx) => (
-                    <div key={idx} className="space-y-1">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">{item.name}</span>
-                        <span className="text-muted-foreground">{item.percentage}%</span>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-destructive transition-all"
-                          style={{ width: `${item.percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
       </Tabs>
     </div>

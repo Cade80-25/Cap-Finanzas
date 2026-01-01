@@ -1,20 +1,18 @@
 import { useState } from "react";
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 
-const eventosData = [
-  { fecha: new Date(2025, 0, 15), titulo: "Salario", tipo: "ingreso", monto: 3500 },
-  { fecha: new Date(2025, 0, 20), titulo: "Pago Alquiler", tipo: "gasto", monto: 800 },
-  { fecha: new Date(2025, 0, 25), titulo: "Pago Servicios", tipo: "gasto", monto: 150 },
-  { fecha: new Date(2025, 1, 1), titulo: "Suscripción Gym", tipo: "gasto", monto: 50 },
-];
+type Evento = { fecha: Date; titulo: string; tipo: string; monto: number };
 
 export default function Calendario() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+
+  // Datos vacíos - el usuario agregará sus propios eventos
+  const eventosData: Evento[] = [];
 
   const eventosDelDia = eventosData.filter(
     (evento) =>
@@ -128,35 +126,41 @@ export default function Calendario() {
           <CardDescription>Transacciones programadas para los próximos días</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {eventosData
-              .filter((e) => e.fecha >= new Date())
-              .sort((a, b) => a.fecha.getTime() - b.fecha.getTime())
-              .map((evento, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="text-center">
-                      <div className="text-sm font-semibold">{evento.fecha.getDate()}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {evento.fecha.toLocaleDateString("es-ES", { month: "short" })}
+          {eventosData.length > 0 ? (
+            <div className="space-y-3">
+              {eventosData
+                .filter((e) => e.fecha >= new Date())
+                .sort((a, b) => a.fecha.getTime() - b.fecha.getTime())
+                .map((evento, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="text-center">
+                        <div className="text-sm font-semibold">{evento.fecha.getDate()}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {evento.fecha.toLocaleDateString("es-ES", { month: "short" })}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-medium">{evento.titulo}</p>
+                        <Badge variant={evento.tipo === "ingreso" ? "default" : "secondary"} className="text-xs">
+                          {evento.tipo}
+                        </Badge>
                       </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{evento.titulo}</p>
-                      <Badge variant={evento.tipo === "ingreso" ? "default" : "secondary"} className="text-xs">
-                        {evento.tipo}
-                      </Badge>
-                    </div>
+                    <p className={`font-bold ${evento.tipo === "ingreso" ? "text-success" : "text-destructive"}`}>
+                      {evento.tipo === "ingreso" ? "+" : "-"}${evento.monto.toFixed(2)}
+                    </p>
                   </div>
-                  <p className={`font-bold ${evento.tipo === "ingreso" ? "text-success" : "text-destructive"}`}>
-                    {evento.tipo === "ingreso" ? "+" : "-"}${evento.monto.toFixed(2)}
-                  </p>
-                </div>
-              ))}
-          </div>
+                ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No hay eventos programados</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

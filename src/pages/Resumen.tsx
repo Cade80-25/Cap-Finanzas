@@ -1,4 +1,4 @@
-import { DollarSign, TrendingUp, TrendingDown, PieChart, Calendar, Target } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Target } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -17,28 +17,18 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const datosMensuales = [
-  { mes: "Ene", ingresos: 5500, gastos: 3800 },
-  { mes: "Feb", ingresos: 6200, gastos: 4100 },
-  { mes: "Mar", ingresos: 5800, gastos: 3900 },
-  { mes: "Abr", ingresos: 6500, gastos: 4300 },
-  { mes: "May", ingresos: 7000, gastos: 4500 },
-  { mes: "Jun", ingresos: 6800, gastos: 4200 },
-];
-
-const datosCategorias = [
-  { name: "Alimentación", value: 1250, color: "hsl(var(--chart-1))" },
-  { name: "Transporte", value: 680, color: "hsl(var(--chart-2))" },
-  { name: "Vivienda", value: 2400, color: "hsl(var(--chart-3))" },
-  { name: "Entretenimiento", value: 450, color: "hsl(var(--chart-4))" },
-  { name: "Otros", value: 820, color: "hsl(var(--chart-5))" },
-];
+type DatoMensual = { mes: string; ingresos: number; gastos: number };
+type DatoCategoria = { name: string; value: number; color: string };
 
 export default function Resumen() {
+  // Datos vacíos - se llenarán con datos reales del usuario
+  const datosMensuales: DatoMensual[] = [];
+  const datosCategorias: DatoCategoria[] = [];
+
   const totalIngresos = datosMensuales.reduce((acc, item) => acc + item.ingresos, 0);
   const totalGastos = datosMensuales.reduce((acc, item) => acc + item.gastos, 0);
   const balance = totalIngresos - totalGastos;
-  const tasaAhorro = ((balance / totalIngresos) * 100).toFixed(1);
+  const tasaAhorro = totalIngresos > 0 ? ((balance / totalIngresos) * 100).toFixed(1) : "0.0";
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
@@ -59,7 +49,7 @@ export default function Resumen() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-success">${totalIngresos.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Últimos 6 meses</p>
+            <p className="text-xs text-muted-foreground mt-1">Período actual</p>
           </CardContent>
         </Card>
 
@@ -70,7 +60,7 @@ export default function Resumen() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">${totalGastos.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Últimos 6 meses</p>
+            <p className="text-xs text-muted-foreground mt-1">Período actual</p>
           </CardContent>
         </Card>
 
@@ -115,29 +105,35 @@ export default function Resumen() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={datosMensuales}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="ingresos"
-                    stroke="hsl(var(--success))"
-                    strokeWidth={2}
-                    name="Ingresos"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="gastos"
-                    stroke="hsl(var(--destructive))"
-                    strokeWidth={2}
-                    name="Gastos"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {datosMensuales.length > 0 ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={datosMensuales}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mes" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="ingresos"
+                      stroke="hsl(var(--success))"
+                      strokeWidth={2}
+                      name="Ingresos"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="gastos"
+                      stroke="hsl(var(--destructive))"
+                      strokeWidth={2}
+                      name="Gastos"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                  No hay datos disponibles para mostrar
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -151,26 +147,32 @@ export default function Resumen() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <RePieChart>
-                  <Pie
-                    data={datosCategorias}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    outerRadius={120}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {datosCategorias.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </RePieChart>
-              </ResponsiveContainer>
+              {datosCategorias.length > 0 ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <RePieChart>
+                    <Pie
+                      data={datosCategorias}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      outerRadius={120}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {datosCategorias.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </RePieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                  No hay datos disponibles para mostrar
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -184,17 +186,23 @@ export default function Resumen() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={datosMensuales}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="ingresos" fill="hsl(var(--success))" name="Ingresos" />
-                  <Bar dataKey="gastos" fill="hsl(var(--destructive))" name="Gastos" />
-                </BarChart>
-              </ResponsiveContainer>
+              {datosMensuales.length > 0 ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={datosMensuales}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="mes" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="ingresos" fill="hsl(var(--success))" name="Ingresos" />
+                    <Bar dataKey="gastos" fill="hsl(var(--destructive))" name="Gastos" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                  No hay datos disponibles para mostrar
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

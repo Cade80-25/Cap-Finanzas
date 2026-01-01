@@ -31,22 +31,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const transactions = [
-  { id: 1, date: "2025-10-20", account: "Banco", description: "Salario Mensual", debit: 5000, credit: 0 },
-  { id: 2, date: "2025-10-19", account: "Gastos Varios", description: "Supermercado", debit: 0, credit: 350 },
-  { id: 3, date: "2025-10-18", account: "Servicios", description: "Factura de Luz", debit: 0, credit: 120 },
-  { id: 4, date: "2025-10-17", account: "Banco", description: "Venta de Artículo", debit: 200, credit: 0 },
-];
+type Transaction = { id: number; date: string; account: string; description: string; debit: number; credit: number };
 
 // Sistema inteligente de validación de transacciones
 const validateTransaction = (account: string, description: string, debit: number, credit: number) => {
-  const suggestions = [];
+  const suggestions: Array<{ message: string; suggestedAccount: string; suggestedDebit: number; suggestedCredit: number }> = [];
   
   // Reglas de validación contable
   const incomeKeywords = ['salario', 'venta', 'ingreso', 'cobro', 'ganancia', 'interés'];
   const expenseKeywords = ['gasto', 'pago', 'factura', 'compra', 'servicios', 'supermercado', 'alquiler', 'renta'];
-  const assetKeywords = ['banco', 'caja', 'inventario', 'activo', 'cobrar'];
-  const liabilityKeywords = ['préstamo', 'deuda', 'pagar', 'pasivo', 'crédito'];
   
   const desc = description.toLowerCase();
   
@@ -102,7 +95,10 @@ export default function LibroDiario() {
   const [description, setDescription] = useState("");
   const [debit, setDebit] = useState(0);
   const [credit, setCredit] = useState(0);
-  const [validationSuggestions, setValidationSuggestions] = useState<any[]>([]);
+  const [validationSuggestions, setValidationSuggestions] = useState<Array<{ message: string; suggestedAccount: string; suggestedDebit: number; suggestedCredit: number }>>([]);
+
+  // Datos vacíos - el usuario agregará sus propias transacciones
+  const transactions: Transaction[] = [];
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
@@ -281,32 +277,38 @@ export default function LibroDiario() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Cuenta</TableHead>
-                <TableHead>Descripción</TableHead>
-                <TableHead className="text-right">Debe</TableHead>
-                <TableHead className="text-right">Haber</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.map((transaction) => (
-                <TableRow key={transaction.id} className="hover:bg-muted/50">
-                  <TableCell className="font-medium">{transaction.date}</TableCell>
-                  <TableCell>{transaction.account}</TableCell>
-                  <TableCell>{transaction.description}</TableCell>
-                  <TableCell className="text-right font-medium text-success">
-                    {transaction.debit > 0 ? `$${transaction.debit.toFixed(2)}` : "-"}
-                  </TableCell>
-                  <TableCell className="text-right font-medium text-destructive">
-                    {transaction.credit > 0 ? `$${transaction.credit.toFixed(2)}` : "-"}
-                  </TableCell>
+          {transactions.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Cuenta</TableHead>
+                  <TableHead>Descripción</TableHead>
+                  <TableHead className="text-right">Debe</TableHead>
+                  <TableHead className="text-right">Haber</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((transaction) => (
+                  <TableRow key={transaction.id} className="hover:bg-muted/50">
+                    <TableCell className="font-medium">{transaction.date}</TableCell>
+                    <TableCell>{transaction.account}</TableCell>
+                    <TableCell>{transaction.description}</TableCell>
+                    <TableCell className="text-right font-medium text-success">
+                      {transaction.debit > 0 ? `$${transaction.debit.toFixed(2)}` : "-"}
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-destructive">
+                      {transaction.credit > 0 ? `$${transaction.credit.toFixed(2)}` : "-"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+              No hay transacciones registradas. Agrega tu primera transacción.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
