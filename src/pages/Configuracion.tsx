@@ -14,13 +14,67 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAutoUpdater } from "@/hooks/useAutoUpdater";
+
+const STORAGE_KEY = "cap-finanzas-config";
+
+interface ConfigData {
+  fontSize: string;
+  animations: boolean;
+  pushNotifications: boolean;
+  budgetAlerts: boolean;
+  paymentReminders: boolean;
+  monthlySummary: boolean;
+  autoLock: boolean;
+  twoFactor: boolean;
+  autoBackup: boolean;
+  devMode: boolean;
+  dataLogging: boolean;
+  autoSync: boolean;
+  betaFeatures: boolean;
+  autoUpdates: boolean;
+  exportFormat: string;
+}
+
+const defaultConfig: ConfigData = {
+  fontSize: "medium",
+  animations: true,
+  pushNotifications: true,
+  budgetAlerts: true,
+  paymentReminders: true,
+  monthlySummary: false,
+  autoLock: true,
+  twoFactor: false,
+  autoBackup: true,
+  devMode: false,
+  dataLogging: false,
+  autoSync: false,
+  betaFeatures: false,
+  autoUpdates: true,
+  exportFormat: "json",
+};
+
+const loadConfig = (): ConfigData => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? { ...defaultConfig, ...JSON.parse(saved) } : defaultConfig;
+  } catch {
+    return defaultConfig;
+  }
+};
 
 export default function Configuracion() {
   const { theme, setTheme } = useTheme();
-  const [fontSize, setFontSize] = useState("medium");
-  const [animations, setAnimations] = useState(true);
+  const [config, setConfig] = useState<ConfigData>(loadConfig);
+  
+  const updateConfig = (updates: Partial<ConfigData>) => {
+    setConfig(prev => {
+      const newConfig = { ...prev, ...updates };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newConfig));
+      return newConfig;
+    });
+  };
   
   const {
     updateAvailable,
@@ -70,7 +124,7 @@ export default function Configuracion() {
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <Label>Formato de Exportación</Label>
-              <Select defaultValue="json">
+              <Select value={config.exportFormat} onValueChange={(value) => updateConfig({ exportFormat: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -124,7 +178,10 @@ export default function Configuracion() {
                   Recibir notificaciones en tiempo real
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={config.pushNotifications} onCheckedChange={(checked) => {
+                updateConfig({ pushNotifications: checked });
+                toast.success(checked ? "Notificaciones activadas" : "Notificaciones desactivadas");
+              }} />
             </div>
 
             <Separator />
@@ -136,7 +193,10 @@ export default function Configuracion() {
                   Avisar cuando excedas el 80% del límite
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={config.budgetAlerts} onCheckedChange={(checked) => {
+                updateConfig({ budgetAlerts: checked });
+                toast.success(checked ? "Alertas activadas" : "Alertas desactivadas");
+              }} />
             </div>
 
             <Separator />
@@ -148,7 +208,10 @@ export default function Configuracion() {
                   Recordar pagos pendientes
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={config.paymentReminders} onCheckedChange={(checked) => {
+                updateConfig({ paymentReminders: checked });
+                toast.success(checked ? "Recordatorios activados" : "Recordatorios desactivados");
+              }} />
             </div>
 
             <Separator />
@@ -160,7 +223,10 @@ export default function Configuracion() {
                   Enviar resumen al final del mes
                 </p>
               </div>
-              <Switch />
+              <Switch checked={config.monthlySummary} onCheckedChange={(checked) => {
+                updateConfig({ monthlySummary: checked });
+                toast.success(checked ? "Resumen mensual activado" : "Resumen mensual desactivado");
+              }} />
             </div>
           </CardContent>
         </Card>
@@ -194,8 +260,8 @@ export default function Configuracion() {
 
             <div className="space-y-3">
               <Label>Tamaño de Fuente</Label>
-              <Select value={fontSize} onValueChange={(value) => {
-                setFontSize(value);
+              <Select value={config.fontSize} onValueChange={(value) => {
+                updateConfig({ fontSize: value });
                 toast.success("Tamaño de fuente actualizado");
               }}>
                 <SelectTrigger>
@@ -218,8 +284,8 @@ export default function Configuracion() {
                   Habilitar efectos de animación
                 </p>
               </div>
-              <Switch checked={animations} onCheckedChange={(checked) => {
-                setAnimations(checked);
+              <Switch checked={config.animations} onCheckedChange={(checked) => {
+                updateConfig({ animations: checked });
                 toast.success(checked ? "Animaciones habilitadas" : "Animaciones deshabilitadas");
               }} />
             </div>
@@ -244,7 +310,10 @@ export default function Configuracion() {
                   Bloquear después de 5 minutos de inactividad
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={config.autoLock} onCheckedChange={(checked) => {
+                updateConfig({ autoLock: checked });
+                toast.success(checked ? "Bloqueo automático activado" : "Bloqueo automático desactivado");
+              }} />
             </div>
 
             <Separator />
@@ -256,7 +325,10 @@ export default function Configuracion() {
                   Seguridad adicional al iniciar sesión
                 </p>
               </div>
-              <Switch />
+              <Switch checked={config.twoFactor} onCheckedChange={(checked) => {
+                updateConfig({ twoFactor: checked });
+                toast.success(checked ? "Verificación activada" : "Verificación desactivada");
+              }} />
             </div>
 
             <Separator />
@@ -268,7 +340,10 @@ export default function Configuracion() {
                   Copia de seguridad diaria en la nube
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={config.autoBackup} onCheckedChange={(checked) => {
+                updateConfig({ autoBackup: checked });
+                toast.success(checked ? "Backup automático activado" : "Backup automático desactivado");
+              }} />
             </div>
 
             <Separator />
@@ -364,7 +439,10 @@ export default function Configuracion() {
                     Buscar actualizaciones al iniciar
                   </p>
                 </div>
-                <Switch defaultChecked />
+              <Switch checked={config.autoUpdates} onCheckedChange={(checked) => {
+                updateConfig({ autoUpdates: checked });
+                toast.success(checked ? "Actualizaciones automáticas activadas" : "Actualizaciones automáticas desactivadas");
+              }} />
               </div>
             </CardContent>
           </Card>
@@ -389,7 +467,10 @@ export default function Configuracion() {
                     Habilitar opciones avanzadas
                   </p>
                 </div>
-                <Switch />
+                <Switch checked={config.betaFeatures} onCheckedChange={(checked) => {
+                  updateConfig({ betaFeatures: checked });
+                  toast.success(checked ? "Beta features activadas" : "Beta features desactivadas");
+                }} />
               </div>
 
               <div className="flex items-center justify-between">
@@ -399,7 +480,10 @@ export default function Configuracion() {
                     Registrar actividad para debugging
                   </p>
                 </div>
-                <Switch />
+                <Switch checked={config.autoSync} onCheckedChange={(checked) => {
+                  updateConfig({ autoSync: checked });
+                  toast.success(checked ? "Sincronización activada" : "Sincronización desactivada");
+                }} />
               </div>
 
               <div className="flex items-center justify-between">
@@ -409,7 +493,10 @@ export default function Configuracion() {
                     Sincronizar con servicios externos
                   </p>
                 </div>
-                <Switch />
+                <Switch checked={config.devMode} onCheckedChange={(checked) => {
+                  updateConfig({ devMode: checked });
+                  toast.success(checked ? "Modo desarrollador activado" : "Modo desarrollador desactivado");
+                }} />
               </div>
 
               <div className="flex items-center justify-between">
@@ -419,7 +506,10 @@ export default function Configuracion() {
                     Acceder a funciones experimentales
                   </p>
                 </div>
-                <Switch />
+                <Switch checked={config.dataLogging} onCheckedChange={(checked) => {
+                  updateConfig({ dataLogging: checked });
+                  toast.success(checked ? "Logging activado" : "Logging desactivado");
+                }} />
               </div>
             </div>
 
