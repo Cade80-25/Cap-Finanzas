@@ -1,4 +1,4 @@
-import { Database, Bell, Shield, Download, Upload, Palette, Zap, RefreshCw, CheckCircle, FileText, FileSpreadsheet, File, AlertCircle, Table, Lock, Key, CloudUpload } from "lucide-react";
+import { Database, Bell, Shield, Download, Upload, Palette, Zap, RefreshCw, CheckCircle, FileText, FileSpreadsheet, File, AlertCircle, Table, Lock, Key, CloudUpload, Terminal, ScrollText, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -28,7 +28,9 @@ import { useAutoUpdater } from "@/hooks/useAutoUpdater";
 import * as XLSX from "xlsx";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSecurity } from "@/hooks/useSecurity";
+import { useAdvancedFeatures } from "@/hooks/useAdvancedFeatures";
 import { ChangePinDialog, BackupDialog, TwoFactorDialog } from "@/components/SecurityDialogs";
+import { LogsDialog, SyncDialog, ResetDialog } from "@/components/AdvancedFeaturesDialogs";
 
 const STORAGE_KEY = "cap-finanzas-config";
 
@@ -99,6 +101,11 @@ export default function Configuracion() {
   const [backupDialogOpen, setBackupDialogOpen] = useState(false);
   const [twoFactorDialogOpen, setTwoFactorDialogOpen] = useState(false);
   
+  // Advanced features dialogs state
+  const [logsDialogOpen, setLogsDialogOpen] = useState(false);
+  const [syncDialogOpen, setSyncDialogOpen] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  
   const [transactions, setTransactions] = useLocalStorage<Transaction[]>(
     "cap-finanzas-libro-diario-transactions",
     []
@@ -106,6 +113,9 @@ export default function Configuracion() {
   
   // Security hook
   const security = useSecurity();
+  
+  // Advanced features hook
+  const advanced = useAdvancedFeatures();
   
   const updateConfig = (updates: Partial<ConfigData>) => {
     setConfig(prev => {
@@ -1151,56 +1161,207 @@ export default function Configuracion() {
                 <div className="space-y-0.5">
                   <Label>Modo Desarrollador</Label>
                   <p className="text-xs text-muted-foreground">
-                    Habilitar opciones avanzadas
+                    Habilitar opciones avanzadas de depuración
                   </p>
                 </div>
-                <Switch checked={config.betaFeatures} onCheckedChange={(checked) => {
-                  updateConfig({ betaFeatures: checked });
-                  toast.success(checked ? "Modo desarrollador activado" : "Modo desarrollador desactivado");
-                }} />
+                <Switch 
+                  checked={advanced.devMode} 
+                  onCheckedChange={(checked) => {
+                    advanced.setDevMode(checked);
+                    updateConfig({ devMode: checked });
+                    toast.success(checked ? "Modo desarrollador activado" : "Modo desarrollador desactivado");
+                  }} 
+                />
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Registro de Datos</Label>
                   <p className="text-xs text-muted-foreground">
-                    Guardar logs para depuración
+                    Guardar logs para depuración ({advanced.logs.length} registros)
                   </p>
                 </div>
-                <Switch checked={config.dataLogging} onCheckedChange={(checked) => {
-                  updateConfig({ dataLogging: checked });
-                  toast.success(checked ? "Registro activado" : "Registro desactivado");
-                }} />
+                <Switch 
+                  checked={advanced.dataLogging} 
+                  onCheckedChange={(checked) => {
+                    advanced.setDataLogging(checked);
+                    updateConfig({ dataLogging: checked });
+                    toast.success(checked ? "Registro activado" : "Registro desactivado");
+                  }} 
+                />
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Sincronización Automática</Label>
+                  <Label className="flex items-center gap-2">
+                    Sincronización Automática
+                    {advanced.syncStatus === "syncing" && (
+                      <RefreshCw className="h-3 w-3 animate-spin text-primary" />
+                    )}
+                  </Label>
                   <p className="text-xs text-muted-foreground">
-                    Sincronizar datos en tiempo real
+                    {advanced.autoSync 
+                      ? `Cada ${advanced.syncInterval}s` 
+                      : "Sincronizar datos periódicamente"}
                   </p>
                 </div>
-                <Switch checked={config.autoSync} onCheckedChange={(checked) => {
-                  updateConfig({ autoSync: checked });
-                  toast.success(checked ? "Sincronización activada" : "Sincronización desactivada");
-                }} />
+                <Switch 
+                  checked={advanced.autoSync} 
+                  onCheckedChange={(checked) => {
+                    advanced.setAutoSync(checked);
+                    updateConfig({ autoSync: checked });
+                    toast.success(checked ? "Sincronización activada" : "Sincronización desactivada");
+                  }} 
+                />
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label>Funciones Beta</Label>
                   <p className="text-xs text-muted-foreground">
-                    Probar nuevas funcionalidades
+                    Probar nuevas funcionalidades experimentales
                   </p>
                 </div>
-                <Switch checked={config.devMode} onCheckedChange={(checked) => {
-                  updateConfig({ devMode: checked });
-                  toast.success(checked ? "Funciones beta activadas" : "Funciones beta desactivadas");
-                }} />
+                <Switch 
+                  checked={advanced.betaFeatures} 
+                  onCheckedChange={(checked) => {
+                    advanced.setBetaFeatures(checked);
+                    updateConfig({ betaFeatures: checked });
+                    toast.success(checked ? "Funciones beta activadas" : "Funciones beta desactivadas");
+                  }} 
+                />
               </div>
             </div>
+
+            <Separator />
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <Button 
+                variant="outline" 
+                className="justify-start gap-2"
+                onClick={() => setLogsDialogOpen(true)}
+                disabled={!advanced.dataLogging && advanced.logs.length === 0}
+              >
+                <ScrollText className="h-4 w-4" />
+                Ver Registros
+                {advanced.logs.length > 0 && (
+                  <span className="ml-auto text-xs bg-primary/10 text-primary px-1.5 rounded">
+                    {advanced.logs.length}
+                  </span>
+                )}
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="justify-start gap-2"
+                onClick={() => setSyncDialogOpen(true)}
+              >
+                <RefreshCw className={`h-4 w-4 ${advanced.syncStatus === "syncing" ? "animate-spin" : ""}`} />
+                Configurar Sincronización
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={() => setResetDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+                Restablecer Todo
+              </Button>
+            </div>
+
+            {/* Dev Mode Features */}
+            {advanced.devMode && (
+              <>
+                <Separator />
+                <div className="rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Terminal className="h-4 w-4 text-yellow-600" />
+                    <Label className="text-yellow-700">Modo Desarrollador Activo</Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Tienes acceso a funciones adicionales de depuración y diagnóstico.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        console.log("=== Cap Finanzas Debug Info ===");
+                        console.log("LocalStorage keys:", Object.keys(localStorage).filter(k => k.startsWith("cap-finanzas")));
+                        console.log("Logs:", advanced.logs);
+                        console.log("Config:", config);
+                        toast.success("Info de debug enviada a la consola");
+                      }}
+                    >
+                      Log Debug Info
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        advanced.addLog("info", "Test", "Entrada de prueba manual", { test: true });
+                        toast.success("Log de prueba creado");
+                      }}
+                      disabled={!advanced.dataLogging}
+                    >
+                      Crear Log de Prueba
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        const stats = advanced.getStats();
+                        console.log("Stats:", stats);
+                        toast.info(`Total: ${stats.totalLogs} logs, ${stats.errorCount} errores`);
+                      }}
+                    >
+                      Ver Estadísticas
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Last Sync Info */}
+            {advanced.lastSyncTime && (
+              <p className="text-xs text-muted-foreground text-center">
+                Última sincronización: {new Date(advanced.lastSyncTime).toLocaleString("es-ES", {
+                  dateStyle: "short",
+                  timeStyle: "short"
+                })}
+              </p>
+            )}
           </CardContent>
         </Card>
+
+        {/* Advanced Features Dialogs */}
+        <LogsDialog
+          open={logsDialogOpen}
+          onOpenChange={setLogsDialogOpen}
+          logs={advanced.logs}
+          onClearLogs={advanced.clearLogs}
+          onExportLogs={advanced.exportLogs}
+          stats={advanced.getStats()}
+        />
+        
+        <SyncDialog
+          open={syncDialogOpen}
+          onOpenChange={setSyncDialogOpen}
+          syncStatus={advanced.syncStatus}
+          lastSyncTime={advanced.lastSyncTime}
+          syncInterval={advanced.syncInterval}
+          autoSync={advanced.autoSync}
+          onSync={advanced.syncData}
+          onSetSyncInterval={advanced.setSyncInterval}
+        />
+        
+        <ResetDialog
+          open={resetDialogOpen}
+          onOpenChange={setResetDialogOpen}
+          onReset={advanced.resetAllData}
+        />
       </div>
     </div>
   );
