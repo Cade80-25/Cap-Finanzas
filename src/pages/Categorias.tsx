@@ -1,18 +1,7 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2, Tag, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, Tag, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -21,27 +10,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-
-type Categoria = { id: number; nombre: string; tipo: string; icono: string; color: string; transacciones: number; total: number };
+import { useAccountingData } from "@/hooks/useAccountingData";
+import { useNavigate } from "react-router-dom";
 
 export default function Categorias() {
   const [filterTipo, setFilterTipo] = useState<string>("todos");
+  const { categorias, estadoResultados } = useAccountingData();
+  const navigate = useNavigate();
 
-  // Datos vacíos - el usuario creará sus propias categorías
-  const categoriasData: Categoria[] = [];
-
-  const filteredCategorias = categoriasData.filter((cat) => {
+  const filteredCategorias = categorias.filter((cat) => {
     if (filterTipo === "todos") return true;
     return cat.tipo.toLowerCase() === filterTipo;
   });
 
-  const totalGastos = categoriasData
-    .filter((c) => c.tipo === "Gasto")
-    .reduce((acc, c) => acc + c.total, 0);
+  const totalGastos = estadoResultados.totalGastos;
+  const totalIngresos = estadoResultados.totalIngresos;
 
-  const totalIngresos = categoriasData
-    .filter((c) => c.tipo === "Ingreso")
-    .reduce((acc, c) => acc + c.total, 0);
+  const categoriasGasto = categorias.filter(c => c.tipo === "Gasto").length;
+  const categoriasIngreso = categorias.filter(c => c.tipo === "Ingreso").length;
+  const totalTransacciones = categorias.reduce((acc, c) => acc + c.transacciones, 0);
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
@@ -51,54 +38,13 @@ export default function Categorias() {
             Categorías
           </h1>
           <p className="text-muted-foreground mt-2">
-            Organiza tus transacciones en categorías personalizadas
+            Categorías generadas automáticamente desde el Libro Diario
           </p>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="shadow-soft">
-              <Plus className="h-4 w-4 mr-2" />
-              Nueva Categoría
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Nueva Categoría</DialogTitle>
-              <DialogDescription>
-                Crea una nueva categoría para organizar tus transacciones
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="nombre-cat">Nombre</Label>
-                <Input id="nombre-cat" placeholder="Ej: Compras Online" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="tipo-cat">Tipo</Label>
-                <Select>
-                  <SelectTrigger id="tipo-cat">
-                    <SelectValue placeholder="Selecciona tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ingreso">Ingreso</SelectItem>
-                    <SelectItem value="gasto">Gasto</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="icono-cat">Icono (Emoji)</Label>
-                <Input id="icono-cat" placeholder="🛒" maxLength={2} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="color-cat">Color</Label>
-                <Input id="color-cat" type="color" defaultValue="#3b82f6" />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit">Crear Categoría</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button className="shadow-soft" onClick={() => navigate("/libro-diario")}>
+          <Plus className="h-4 w-4 mr-2" />
+          Agregar en Libro Diario
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -110,7 +56,7 @@ export default function Categorias() {
           <CardContent>
             <div className="text-2xl font-bold text-success">${totalIngresos.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {categoriasData.filter((c) => c.tipo === "Ingreso").length} categorías
+              {categoriasIngreso} categorías de ingreso
             </p>
           </CardContent>
         </Card>
@@ -123,7 +69,7 @@ export default function Categorias() {
           <CardContent>
             <div className="text-2xl font-bold text-destructive">${totalGastos.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {categoriasData.filter((c) => c.tipo === "Gasto").length} categorías
+              {categoriasGasto} categorías de gasto
             </p>
           </CardContent>
         </Card>
@@ -134,9 +80,9 @@ export default function Categorias() {
             <Tag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{categoriasData.length}</div>
+            <div className="text-2xl font-bold">{categorias.length}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {categoriasData.reduce((acc, c) => acc + c.transacciones, 0)} transacciones totales
+              {totalTransacciones} transacciones totales
             </p>
           </CardContent>
         </Card>
@@ -147,7 +93,7 @@ export default function Categorias() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Lista de Categorías</CardTitle>
-              <CardDescription>Gestiona tus categorías de ingresos y gastos</CardDescription>
+              <CardDescription>Categorías activas basadas en tus transacciones del Libro Diario</CardDescription>
             </div>
             <Select value={filterTipo} onValueChange={setFilterTipo}>
               <SelectTrigger className="w-40">
@@ -157,6 +103,7 @@ export default function Categorias() {
                 <SelectItem value="todos">Todas</SelectItem>
                 <SelectItem value="ingreso">Ingresos</SelectItem>
                 <SelectItem value="gasto">Gastos</SelectItem>
+                <SelectItem value="balance">Balance</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -169,23 +116,18 @@ export default function Categorias() {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-lg ${categoria.color} flex items-center justify-center text-2xl`}>
+                        <div className={`w-12 h-12 rounded-lg ${categoria.color} flex items-center justify-center text-2xl text-white`}>
                           {categoria.icono}
                         </div>
                         <div>
                           <h3 className="font-semibold">{categoria.nombre}</h3>
-                          <Badge variant={categoria.tipo === "Ingreso" ? "default" : "secondary"} className="text-xs">
+                          <Badge 
+                            variant={categoria.tipo === "Ingreso" ? "default" : categoria.tipo === "Gasto" ? "destructive" : "secondary"} 
+                            className="text-xs"
+                          >
                             {categoria.tipo}
                           </Badge>
                         </div>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
                       </div>
                     </div>
 
@@ -196,7 +138,10 @@ export default function Categorias() {
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Total</span>
-                        <span className={`font-bold ${categoria.tipo === "Ingreso" ? "text-success" : "text-destructive"}`}>
+                        <span className={`font-bold ${
+                          categoria.tipo === "Ingreso" ? "text-success" : 
+                          categoria.tipo === "Gasto" ? "text-destructive" : ""
+                        }`}>
                           ${categoria.total.toFixed(2)}
                         </span>
                       </div>
@@ -206,8 +151,12 @@ export default function Categorias() {
               ))}
             </div>
           ) : (
-            <div className="flex items-center justify-center h-[200px] text-muted-foreground">
-              No hay categorías creadas. Crea tu primera categoría.
+            <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
+              <p>No hay categorías disponibles.</p>
+              <p className="text-sm">Registra transacciones en el Libro Diario para ver las categorías.</p>
+              <Button variant="outline" className="mt-4" onClick={() => navigate("/libro-diario")}>
+                Ir al Libro Diario
+              </Button>
             </div>
           )}
         </CardContent>
