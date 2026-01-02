@@ -1,4 +1,4 @@
-import { Database, Bell, Shield, Download, Upload, Palette, Zap, RefreshCw, CheckCircle, FileText, FileSpreadsheet, File, AlertCircle } from "lucide-react";
+import { Database, Bell, Shield, Download, Upload, Palette, Zap, RefreshCw, CheckCircle, FileText, FileSpreadsheet, File, AlertCircle, Table } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { useState, useRef } from "react";
 import { useAutoUpdater } from "@/hooks/useAutoUpdater";
+import * as XLSX from "xlsx";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 const STORAGE_KEY = "cap-finanzas-config";
@@ -179,11 +180,70 @@ export default function Configuracion() {
 
   // Función para parsear diferentes formatos de archivo
   const parseFile = async (file: File): Promise<Transaction[]> => {
-    const text = await file.text();
     const extension = file.name.split('.').pop()?.toLowerCase();
     const parsedTransactions: Transaction[] = [];
 
     try {
+      // Archivos de hojas de cálculo (Excel, ODS)
+      if (extension === "xlsx" || extension === "xls" || extension === "ods") {
+        const arrayBuffer = await file.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: "array" });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows: any[] = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        
+        // Detectar si tiene encabezado
+        const firstRow = rows[0] as string[];
+        const hasHeader = firstRow?.some((cell: any) => 
+          typeof cell === 'string' && (
+            cell.toLowerCase().includes("fecha") || 
+            cell.toLowerCase().includes("date") ||
+            cell.toLowerCase().includes("descripcion") ||
+            cell.toLowerCase().includes("monto") ||
+            cell.toLowerCase().includes("amount")
+          )
+        );
+        
+        const dataRows = hasHeader ? rows.slice(1) : rows;
+        
+        dataRows.forEach((row: any[], index: number) => {
+          if (row.length >= 2) {
+            // Intentar detectar columnas
+            let dateVal = row[0];
+            let descVal = row[1] || "";
+            let amountVal = row[2] || row[3] || 0;
+            
+            // Convertir fecha de Excel si es necesario
+            let dateStr = "";
+            if (typeof dateVal === "number") {
+              const excelDate = XLSX.SSF.parse_date_code(dateVal);
+              dateStr = `${excelDate.y}-${String(excelDate.m).padStart(2, '0')}-${String(excelDate.d).padStart(2, '0')}`;
+            } else if (typeof dateVal === "string") {
+              dateStr = parseDateString(dateVal);
+            } else {
+              dateStr = new Date().toISOString().slice(0, 10);
+            }
+            
+            const amount = parseFloat(String(amountVal).replace(/[^0-9.-]/g, '')) || 0;
+            
+            if (dateStr && (descVal || amount !== 0)) {
+              parsedTransactions.push({
+                id: Date.now() + index,
+                date: dateStr,
+                account: detectAccount(String(descVal)),
+                description: String(descVal) || "Importado Excel",
+                debit: amount > 0 ? amount : 0,
+                credit: amount < 0 ? Math.abs(amount) : 0,
+              });
+            }
+          }
+        });
+        
+        return parsedTransactions;
+      }
+      
+      // Archivos de texto
+      const text = await file.text();
+
       if (extension === "json") {
         const data = JSON.parse(text);
         if (data.transactions && Array.isArray(data.transactions)) {
@@ -198,7 +258,65 @@ export default function Configuracion() {
             credit: parseFloat(item.credit || item.haber || 0),
           }));
         }
-      } else if (extension === "csv") {
+      } else if (extension === "pfd") {
+        // Personal Finances Data format - típicamente XML o texto estructurado
+        // Intentar parsear como XML primero
+        if (text.includes("<?xml") || text.includes("<transactions>") || text.includes("<Transaction>")) {
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(text, "text/xml");
+          
+          // Buscar transacciones en diferentes estructuras XML posibles
+          const txNodes = xmlDoc.querySelectorAll("Transaction, transaction, record, entry");
+          let txIndex = 0;
+          
+          txNodes.forEach((node) => {
+            const date = node.querySelector("Date, date, fecha")?.textContent || 
+                        node.getAttribute("date") || "";
+            const desc = node.querySelector("Description, description, Memo, memo, descripcion")?.textContent ||
+                        node.getAttribute("description") || "";
+            const amount = parseFloat(
+              node.querySelector("Amount, amount, monto, Value, value")?.textContent ||
+              node.getAttribute("amount") || "0"
+            );
+            const category = node.querySelector("Category, category, Account, account")?.textContent ||
+                            node.getAttribute("category") || "";
+            
+            if (date || desc || amount !== 0) {
+              parsedTransactions.push({
+                id: Date.now() + txIndex++,
+                date: parseDateString(date) || new Date().toISOString().slice(0, 10),
+                account: detectAccount(category || desc),
+                description: desc || "Importado PFD",
+                debit: amount > 0 ? amount : 0,
+                credit: amount < 0 ? Math.abs(amount) : 0,
+              });
+            }
+          });
+        } else {
+          // Intentar parsear como texto delimitado (tab o pipe)
+          const lines = text.split("\n").filter(line => line.trim());
+          const delimiter = text.includes("\t") ? "\t" : text.includes("|") ? "|" : ",";
+          
+          lines.forEach((line, index) => {
+            if (index === 0 && (line.toLowerCase().includes("date") || line.toLowerCase().includes("fecha"))) {
+              return; // Skip header
+            }
+            const values = line.split(delimiter).map(v => v.trim());
+            if (values.length >= 2) {
+              const amount = parseFloat(values[2] || values[3] || "0");
+              parsedTransactions.push({
+                id: Date.now() + index,
+                date: parseDateString(values[0]) || new Date().toISOString().slice(0, 10),
+                account: detectAccount(values[1]),
+                description: values[1] || "Importado PFD",
+                debit: amount > 0 ? amount : 0,
+                credit: amount < 0 ? Math.abs(amount) : 0,
+              });
+            }
+          });
+        }
+      } else if (extension === "csv" || extension === "tsv" || extension === "txt") {
+        const delimiter = extension === "tsv" ? "\t" : ",";
         const lines = text.split("\n").filter(line => line.trim());
         const hasHeader = lines[0].toLowerCase().includes("fecha") || 
                           lines[0].toLowerCase().includes("date") ||
@@ -206,12 +324,12 @@ export default function Configuracion() {
         const dataLines = hasHeader ? lines.slice(1) : lines;
 
         dataLines.forEach((line, index) => {
-          const values = line.split(",").map(v => v.trim().replace(/^"|"$/g, ''));
-          if (values.length >= 3) {
+          const values = line.split(delimiter).map(v => v.trim().replace(/^"|"$/g, ''));
+          if (values.length >= 2) {
             const amount = parseFloat(values[3] || values[2] || "0");
             parsedTransactions.push({
               id: Date.now() + index,
-              date: values[0] || new Date().toISOString().slice(0, 10),
+              date: parseDateString(values[0]) || new Date().toISOString().slice(0, 10),
               account: detectAccount(values[1] || values[2] || ""),
               description: values[1] || values[2] || "Importado CSV",
               debit: amount > 0 ? amount : 0,
@@ -304,18 +422,53 @@ export default function Configuracion() {
     return "gastos-operativos";
   };
 
-  // Parsear fecha QIF
-  const parseQIFDate = (dateStr: string): string => {
-    // Formato MM/DD/YYYY o MM-DD-YYYY o M/D/YY
-    const parts = dateStr.split(/[\/\-]/);
-    if (parts.length === 3) {
-      let [month, day, year] = parts;
+  // Parsear fecha genérica
+  const parseDateString = (dateStr: string): string => {
+    if (!dateStr) return "";
+    
+    // Limpiar la cadena
+    const clean = dateStr.trim();
+    
+    // Formato ISO: YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}/.test(clean)) {
+      return clean.slice(0, 10);
+    }
+    
+    // Formato DD/MM/YYYY o DD-MM-YYYY
+    const dmyMatch = clean.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if (dmyMatch) {
+      let [, day, month, year] = dmyMatch;
       if (year.length === 2) {
         year = parseInt(year) > 50 ? `19${year}` : `20${year}`;
       }
       return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
     }
-    return new Date().toISOString().slice(0, 10);
+    
+    // Formato MM/DD/YYYY (US)
+    const mdyMatch = clean.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (mdyMatch) {
+      const [, month, day, year] = mdyMatch;
+      // Si el primer número > 12, es DD/MM/YYYY
+      if (parseInt(month) > 12) {
+        return `${year}-${day.padStart(2, '0')}-${month.padStart(2, '0')}`;
+      }
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    
+    // Intentar parsear con Date
+    try {
+      const date = new Date(clean);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().slice(0, 10);
+      }
+    } catch {}
+    
+    return "";
+  };
+
+  // Parsear fecha QIF
+  const parseQIFDate = (dateStr: string): string => {
+    return parseDateString(dateStr) || new Date().toISOString().slice(0, 10);
   };
 
   // Manejar selección de archivo
@@ -323,12 +476,12 @@ export default function Configuracion() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const validExtensions = ['json', 'csv', 'qif', 'ofx', 'qfx'];
+    const validExtensions = ['json', 'csv', 'tsv', 'txt', 'qif', 'ofx', 'qfx', 'pfd', 'xlsx', 'xls', 'ods'];
     const extension = file.name.split('.').pop()?.toLowerCase();
 
     if (!extension || !validExtensions.includes(extension)) {
       toast.error("Formato no soportado", {
-        description: "Usa archivos JSON, CSV, QIF, OFX o QFX",
+        description: "Usa archivos PFD, Excel, CSV, JSON, QIF u OFX",
       });
       return;
     }
@@ -385,7 +538,7 @@ export default function Configuracion() {
         type="file"
         ref={fileInputRef}
         onChange={handleFileSelect}
-        accept=".json,.csv,.qif,.ofx,.qfx"
+        accept=".json,.csv,.tsv,.txt,.qif,.ofx,.qfx,.pfd,.xlsx,.xls,.ods"
         className="hidden"
       />
 
@@ -502,7 +655,35 @@ export default function Configuracion() {
 
             <div className="space-y-3">
               <Label className="text-sm font-medium">Formatos de Importación Soportados</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                  <File className="h-4 w-4 text-indigo-500" />
+                  <div>
+                    <p className="text-sm font-medium">PFD</p>
+                    <p className="text-xs text-muted-foreground">Personal Finances</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                  <Table className="h-4 w-4 text-green-600" />
+                  <div>
+                    <p className="text-sm font-medium">XLSX/XLS</p>
+                    <p className="text-xs text-muted-foreground">Microsoft Excel</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                  <FileSpreadsheet className="h-4 w-4 text-orange-500" />
+                  <div>
+                    <p className="text-sm font-medium">ODS</p>
+                    <p className="text-xs text-muted-foreground">LibreOffice</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                  <FileSpreadsheet className="h-4 w-4 text-green-500" />
+                  <div>
+                    <p className="text-sm font-medium">CSV/TSV</p>
+                    <p className="text-xs text-muted-foreground">Texto delimitado</p>
+                  </div>
+                </div>
                 <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
                   <FileText className="h-4 w-4 text-blue-500" />
                   <div>
@@ -511,24 +692,10 @@ export default function Configuracion() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-                  <FileSpreadsheet className="h-4 w-4 text-green-500" />
-                  <div>
-                    <p className="text-sm font-medium">CSV</p>
-                    <p className="text-xs text-muted-foreground">Excel, Bancos</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
                   <File className="h-4 w-4 text-purple-500" />
                   <div>
-                    <p className="text-sm font-medium">QIF</p>
-                    <p className="text-xs text-muted-foreground">Quicken</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-                  <File className="h-4 w-4 text-orange-500" />
-                  <div>
-                    <p className="text-sm font-medium">OFX/QFX</p>
-                    <p className="text-xs text-muted-foreground">Bancos USA</p>
+                    <p className="text-sm font-medium">QIF/OFX</p>
+                    <p className="text-xs text-muted-foreground">Quicken, Bancos</p>
                   </div>
                 </div>
               </div>
