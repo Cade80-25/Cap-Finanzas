@@ -6,47 +6,76 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { useAccountingData } from "@/hooks/useAccountingData";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+
+interface PresupuestoItem {
+  id: number;
+  nombre: string;
+  tipo: string;
+  presupuestado: number;
+  actual: number;
+  icono: string;
+}
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  
-  // Datos vacíos para mostrar estado inicial
-  const recentTransactions: Array<{ id: number; description: string; amount: number; type: string; date: string }> = [];
-  const monthlyData: Array<{ mes: string; ingresos: number; gastos: number }> = [];
-  const categoryData: Array<{ name: string; value: number; color: string }> = [];
-  const budgetAlerts: Array<{ category: string; spent: number; budget: number; percentage: number }> = [];
+  const { totales, resumenMensual, datosCategorias, transaccionesRecientes, estadoResultados } = useAccountingData();
+  const [presupuestoData] = useLocalStorage<PresupuestoItem[]>("cap-finanzas-presupuesto", []);
+
+  // Calcular alertas de presupuesto
+  const budgetAlerts = presupuestoData
+    .filter(p => p.presupuestado > 0)
+    .map(p => {
+      // Buscar gastos relacionados
+      const gastoRelacionado = estadoResultados.gastos.find(g => 
+        g.name.toLowerCase().includes(p.nombre.toLowerCase()) ||
+        p.nombre.toLowerCase().includes(g.name.toLowerCase())
+      );
+      const spent = gastoRelacionado?.value || 0;
+      const percentage = Math.round((spent / p.presupuestado) * 100);
+      return {
+        category: p.nombre,
+        spent,
+        budget: p.presupuestado,
+        percentage,
+      };
+    })
+    .filter(a => a.percentage >= 70)
+    .sort((a, b) => b.percentage - a.percentage)
+    .slice(0, 3);
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div>
         <h1 className="text-3xl font-bold mb-2">Panel Principal</h1>
         <p className="text-muted-foreground">
-          Resumen general de tus finanzas personales
+          Resumen general de tus finanzas (datos desde Libro Diario)
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Balance Total"
-          value="$0.00"
+          value={`$${totales.balance.toFixed(2)}`}
           icon={Wallet}
           variant="default"
         />
         <StatCard
           title="Ingresos del Mes"
-          value="$0.00"
+          value={`$${totales.ingresosDelMes.toFixed(2)}`}
           icon={TrendingUp}
           variant="success"
         />
         <StatCard
           title="Gastos del Mes"
-          value="$0.00"
+          value={`$${totales.gastosDelMes.toFixed(2)}`}
           icon={TrendingDown}
           variant="destructive"
         />
         <StatCard
           title="Ahorros"
-          value="$0.00"
+          value={`$${totales.ahorros.toFixed(2)}`}
           icon={PiggyBank}
           variant="success"
         />
@@ -59,9 +88,9 @@ export default function Dashboard() {
             <CardDescription>Comparativa de los últimos meses</CardDescription>
           </CardHeader>
           <CardContent>
-            {monthlyData.length > 0 ? (
+            {resumenMensual.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={monthlyData}>
+                <BarChart data={resumenMensual}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="mes" className="text-xs" />
                   <YAxis className="text-xs" />
@@ -71,6 +100,7 @@ export default function Dashboard() {
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "8px"
                     }}
+                    formatter={(value) => `$${Number(value).toFixed(2)}`}
                   />
                   <Legend />
                   <Bar dataKey="ingresos" fill="hsl(var(--success))" name="Ingresos" radius={[8, 8, 0, 0]} />
@@ -78,8 +108,11 @@ export default function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-[250px] text-muted-foreground">
-                No hay datos disponibles
+              <div className="flex flex-col items-center justify-center h-[250px] text-muted-foreground">
+                <p>No hay datos disponibles</p>
+                <Button variant="link" onClick={() => navigate("/libro-diario")}>
+                  Ir al Libro Diario
+                </Button>
               </div>
             )}
           </CardContent>
@@ -88,14 +121,14 @@ export default function Dashboard() {
         <Card className="shadow-soft">
           <CardHeader>
             <CardTitle>Gastos por Categoría</CardTitle>
-            <CardDescription>Distribución del mes actual</CardDescription>
+            <CardDescription>Distribución del período</CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
-            {categoryData.length > 0 ? (
+            {datosCategorias.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
-                    data={categoryData}
+                    data={datosCategorias}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -103,7 +136,7 @@ export default function Dashboard() {
                     paddingAngle={5}
                     dataKey="value"
                   >
-                    {categoryData.map((entry, index) => (
+                    {datosCategorias.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -113,6 +146,7 @@ export default function Dashboard() {
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "8px"
                     }}
+                    formatter={(value) => `$${Number(value).toFixed(2)}`}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -130,13 +164,13 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle>Transacciones Recientes</CardTitle>
             <CardDescription>
-              Últimas transacciones registradas
+              Últimas transacciones del Libro Diario
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {recentTransactions.length > 0 ? (
+            {transaccionesRecientes.length > 0 ? (
               <div className="space-y-4">
-                {recentTransactions.map((transaction) => (
+                {transaccionesRecientes.map((transaction) => (
                   <div
                     key={transaction.id}
                     className="flex items-center justify-between p-3 rounded-lg bg-gradient-card border border-border hover-scale"
@@ -160,9 +194,9 @@ export default function Dashboard() {
                 No hay transacciones registradas
               </div>
             )}
-            <Button variant="outline" className="w-full mt-4" onClick={() => navigate("/transacciones")}>
+            <Button variant="outline" className="w-full mt-4" onClick={() => navigate("/libro-diario")}>
               <ArrowUpRight className="h-4 w-4 mr-2" />
-              Ver Todas
+              Ir al Libro Diario
             </Button>
           </CardContent>
         </Card>
@@ -190,14 +224,14 @@ export default function Dashboard() {
                     </div>
                     <Progress value={Math.min(alert.percentage, 100)} className="h-2" />
                     <p className="text-xs text-muted-foreground">
-                      ${alert.spent} de ${alert.budget}
+                      ${alert.spent.toFixed(2)} de ${alert.budget.toFixed(2)}
                     </p>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="flex items-center justify-center h-[100px] text-muted-foreground">
-                No hay alertas de presupuesto
+                {presupuestoData.length === 0 ? "Configura tu presupuesto" : "Sin alertas de presupuesto"}
               </div>
             )}
             <Button variant="outline" className="w-full mt-4" onClick={() => navigate("/presupuesto")}>
