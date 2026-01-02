@@ -1,18 +1,88 @@
-import { Target, TrendingUp, AlertCircle, CheckCircle } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Target, TrendingUp, AlertCircle, CheckCircle, Plus } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
-type PresupuestoItem = { categoria: string; presupuesto: number; gastado: number; color: string };
+type PresupuestoItem = {
+  categoria: string;
+  presupuesto: number;
+  gastado: number;
+  color: string;
+};
 
 export default function Presupuesto() {
-  // Datos vacíos - el usuario creará sus propios presupuestos
-  const presupuestoData: PresupuestoItem[] = [];
+  const [open, setOpen] = useState(false);
+  const [categoria, setCategoria] = useState("");
+  const [presupuesto, setPresupuesto] = useState<string>("");
+  const [gastado, setGastado] = useState<string>("");
+
+  const [presupuestoData, setPresupuestoData] = useLocalStorage<PresupuestoItem[]>(
+    "cap-finanzas-presupuesto",
+    []
+  );
 
   const totalPresupuesto = presupuestoData.reduce((acc, item) => acc + item.presupuesto, 0);
   const totalGastado = presupuestoData.reduce((acc, item) => acc + item.gastado, 0);
   const porcentajeGlobal = totalPresupuesto > 0 ? (totalGastado / totalPresupuesto) * 100 : 0;
+
+  const resetForm = () => {
+    setCategoria("");
+    setPresupuesto("");
+    setGastado("");
+  };
+
+  const handleCreate = () => {
+    const p = Number(presupuesto);
+    const g = gastado === "" ? 0 : Number(gastado);
+
+    if (!categoria.trim()) {
+      toast.error("Escribe una categoría");
+      return;
+    }
+    if (!Number.isFinite(p) || p <= 0) {
+      toast.error("Ingresa un presupuesto válido");
+      return;
+    }
+    if (!Number.isFinite(g) || g < 0) {
+      toast.error("Ingresa un gasto válido");
+      return;
+    }
+
+    setPresupuestoData((prev) => [
+      ...prev,
+      {
+        categoria: categoria.trim(),
+        presupuesto: p,
+        gastado: g,
+        color: "bg-primary",
+      },
+    ]);
+
+    toast.success("Presupuesto creado");
+    setOpen(false);
+    resetForm();
+  };
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
@@ -25,10 +95,72 @@ export default function Presupuesto() {
             Administra y monitorea tus límites de gastos
           </p>
         </div>
-        <Button className="shadow-soft">
-          <Target className="h-4 w-4 mr-2" />
-          Nuevo Presupuesto
-        </Button>
+
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button className="shadow-soft">
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Presupuesto
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Nuevo Presupuesto</DialogTitle>
+              <DialogDescription>
+                Crea un presupuesto por categoría (por ejemplo: Alquiler, Comida, Transporte)
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="categoria">Categoría</Label>
+                <Input
+                  id="categoria"
+                  value={categoria}
+                  onChange={(e) => setCategoria(e.target.value)}
+                  placeholder="Ej: Alquiler"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="presupuesto">Presupuesto ($)</Label>
+                <Input
+                  id="presupuesto"
+                  type="number"
+                  inputMode="decimal"
+                  value={presupuesto}
+                  onChange={(e) => setPresupuesto(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="gastado">Gastado ($) (opcional)</Label>
+                <Input
+                  id="gastado"
+                  type="number"
+                  inputMode="decimal"
+                  value={gastado}
+                  onChange={(e) => setGastado(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setOpen(false);
+                  resetForm();
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button onClick={handleCreate}>Guardar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -63,11 +195,17 @@ export default function Presupuesto() {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${totalPresupuesto - totalGastado >= 0 ? "text-success" : "text-destructive"}`}>
+            <div
+              className={`text-2xl font-bold ${
+                totalPresupuesto - totalGastado >= 0 ? "text-success" : "text-destructive"
+              }`}
+            >
               ${(totalPresupuesto - totalGastado).toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {totalPresupuesto - totalGastado >= 0 ? "Dentro del presupuesto" : "Presupuesto excedido"}
+              {totalPresupuesto - totalGastado >= 0
+                ? "Dentro del presupuesto"
+                : "Presupuesto excedido"}
             </p>
           </CardContent>
         </Card>
@@ -104,13 +242,11 @@ export default function Presupuesto() {
                         <p className="font-semibold">
                           ${item.gastado.toFixed(2)} / ${item.presupuesto.toFixed(2)}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {porcentaje.toFixed(1)}%
-                        </p>
+                        <p className="text-xs text-muted-foreground">{porcentaje.toFixed(1)}%</p>
                       </div>
                     </div>
-                    <Progress 
-                      value={Math.min(porcentaje, 100)} 
+                    <Progress
+                      value={Math.min(porcentaje, 100)}
                       className={excedido ? "bg-destructive/20" : ""}
                     />
                     {excedido && (

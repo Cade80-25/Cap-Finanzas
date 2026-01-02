@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import {
   Table,
   TableBody,
@@ -91,14 +92,81 @@ const validateTransaction = (account: string, description: string, debit: number
 
 export default function LibroDiario() {
   const [open, setOpen] = useState(false);
+  const [date, setDate] = useState("");
   const [selectedAccount, setSelectedAccount] = useState("");
   const [description, setDescription] = useState("");
-  const [debit, setDebit] = useState(0);
-  const [credit, setCredit] = useState(0);
-  const [validationSuggestions, setValidationSuggestions] = useState<Array<{ message: string; suggestedAccount: string; suggestedDebit: number; suggestedCredit: number }>>([]);
+  const [debit, setDebit] = useState<number>(0);
+  const [credit, setCredit] = useState<number>(0);
+  const [validationSuggestions, setValidationSuggestions] = useState<
+    Array<{
+      message: string;
+      suggestedAccount: string;
+      suggestedDebit: number;
+      suggestedCredit: number;
+    }>
+  >([]);
 
-  // Datos vacíos - el usuario agregará sus propias transacciones
-  const transactions: Transaction[] = [];
+  const [transactions, setTransactions] = useLocalStorage<Transaction[]>(
+    "cap-finanzas-libro-diario-transactions",
+    []
+  );
+
+  const resetForm = () => {
+    setValidationSuggestions([]);
+    setSelectedAccount("");
+    setDescription("");
+    setDebit(0);
+    setCredit(0);
+  };
+
+  const hasBlockingError = (d: number, c: number) => (d === 0 && c === 0) || (d > 0 && c > 0);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (nextOpen) {
+      setDate((prev) => prev || new Date().toISOString().slice(0, 10));
+    }
+  };
+
+  const handleSave = () => {
+    if (!date) {
+      toast.error("Selecciona una fecha");
+      return;
+    }
+    if (!selectedAccount) {
+      toast.error("Selecciona una cuenta");
+      return;
+    }
+    if (!description.trim()) {
+      toast.error("Escribe una descripción");
+      return;
+    }
+    if (hasBlockingError(debit, credit)) {
+      toast.error(
+        debit > 0 && credit > 0
+          ? "Usa solo Debe o Haber (no ambos)"
+          : "Ingresa un monto en Debe o Haber"
+      );
+      return;
+    }
+
+    const newTx: Transaction = {
+      id: Date.now(),
+      date,
+      account: selectedAccount,
+      description: description.trim(),
+      debit,
+      credit,
+    };
+
+    setTransactions((prev) =>
+      [...prev, newTx].sort((a, b) => a.date.localeCompare(b.date))
+    );
+
+    toast.success("Transacción registrada exitosamente");
+    setOpen(false);
+    resetForm();
+  };
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
@@ -109,7 +177,7 @@ export default function LibroDiario() {
             Registro cronológico de todas las transacciones
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-primary shadow-soft">
               <Plus className="h-4 w-4 mr-2" />
@@ -126,7 +194,12 @@ export default function LibroDiario() {
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="date">Fecha</Label>
-                <Input id="date" type="date" />
+                <Input
+                  id="date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="account">Cuenta</Label>
@@ -239,29 +312,16 @@ export default function LibroDiario() {
               )}
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                setOpen(false);
-                setValidationSuggestions([]);
-                setSelectedAccount("");
-                setDescription("");
-                setDebit(0);
-                setCredit(0);
-              }}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setOpen(false);
+                  resetForm();
+                }}
+              >
                 Cancelar
               </Button>
-              <Button onClick={() => {
-                if (validationSuggestions.length > 0) {
-                  toast.warning("Por favor revise las sugerencias antes de guardar");
-                } else {
-                  toast.success("Transacción registrada exitosamente");
-                  setOpen(false);
-                  setValidationSuggestions([]);
-                  setSelectedAccount("");
-                  setDescription("");
-                  setDebit(0);
-                  setCredit(0);
-                }
-              }}>
+              <Button onClick={handleSave}>
                 Guardar
               </Button>
             </DialogFooter>

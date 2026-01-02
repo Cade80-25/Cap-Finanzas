@@ -1,5 +1,6 @@
 import {
   Menubar,
+  MenubarCheckboxItem,
   MenubarContent,
   MenubarItem,
   MenubarMenu,
@@ -7,7 +8,19 @@ import {
   MenubarShortcut,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import { Download, Upload, Settings, FileText, HelpCircle, Info, Keyboard, Search, PanelLeft, PanelLeftClose } from "lucide-react";
+import {
+  Download,
+  Upload,
+  Settings,
+  FileText,
+  HelpCircle,
+  Info,
+  Keyboard,
+  Search,
+  PanelLeft,
+  PanelLeftClose,
+} from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -20,6 +33,9 @@ interface MenuBarProps {
 
 export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible }: MenuBarProps) {
   const navigate = useNavigate();
+  const isElectron =
+    typeof window !== "undefined" && typeof (window as any).electron !== "undefined";
+  const [nativeMenuVisible, setNativeMenuVisible] = useState(false);
 
   const handleExport = () => {
     toast.success("Exportar datos", {
@@ -35,6 +51,15 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
     navigate("/configuracion");
   };
 
+  const handleNativeMenuToggle = (visible: boolean) => {
+    setNativeMenuVisible(visible);
+    try {
+      (window as any).electron?.setNativeMenuVisible?.(visible);
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-2">
       <div className="flex items-center">
@@ -43,10 +68,14 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
           variant="ghost"
           size="icon"
           onClick={onToggleSidebar}
-          className="mr-2"
+          className="mr-2 h-9 w-9"
           title={sidebarVisible ? "Ocultar panel lateral" : "Mostrar panel lateral"}
         >
-          {sidebarVisible ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
+          {sidebarVisible ? (
+            <PanelLeftClose className="h-5 w-5" />
+          ) : (
+            <PanelLeft className="h-5 w-5" />
+          )}
         </Button>
 
         <Menubar className="rounded-none border-0 bg-transparent">
@@ -78,33 +107,32 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
             </MenubarContent>
           </MenubarMenu>
 
-          <MenubarMenu>
-            <MenubarTrigger>Vista</MenubarTrigger>
-            <MenubarContent>
-              <MenubarItem onClick={() => navigate("/")}>
-                Panel Principal
-              </MenubarItem>
-              <MenubarItem onClick={() => navigate("/transacciones")}>
-                Transacciones
-              </MenubarItem>
-              <MenubarItem onClick={() => navigate("/resumen")}>
-                Resumen
-              </MenubarItem>
-              <MenubarSeparator />
-              <MenubarItem onClick={() => navigate("/libro-diario")}>
-                Libro Diario
-              </MenubarItem>
-              <MenubarItem onClick={() => navigate("/libro-mayor")}>
-                Libro Mayor
-              </MenubarItem>
-              <MenubarItem onClick={() => navigate("/balance")}>
-                Balance General
-              </MenubarItem>
-              <MenubarItem onClick={() => navigate("/resultados")}>
-                Estado de Resultados
-              </MenubarItem>
-            </MenubarContent>
-          </MenubarMenu>
+            <MenubarMenu>
+              <MenubarTrigger>Vista</MenubarTrigger>
+              <MenubarContent>
+                <MenubarItem onClick={() => navigate("/")}>Panel Principal</MenubarItem>
+                <MenubarItem onClick={() => navigate("/transacciones")}>Transacciones</MenubarItem>
+                <MenubarItem onClick={() => navigate("/resumen")}>Resumen</MenubarItem>
+                <MenubarSeparator />
+
+                {isElectron && (
+                  <>
+                    <MenubarCheckboxItem
+                      checked={nativeMenuVisible}
+                      onCheckedChange={handleNativeMenuToggle}
+                    >
+                      Mostrar menú del sistema
+                    </MenubarCheckboxItem>
+                    <MenubarSeparator />
+                  </>
+                )}
+
+                <MenubarItem onClick={() => navigate("/libro-diario")}>Libro Diario</MenubarItem>
+                <MenubarItem onClick={() => navigate("/libro-mayor")}>Libro Mayor</MenubarItem>
+                <MenubarItem onClick={() => navigate("/balance")}>Balance General</MenubarItem>
+                <MenubarItem onClick={() => navigate("/resultados")}>Estado de Resultados</MenubarItem>
+              </MenubarContent>
+            </MenubarMenu>
 
           <MenubarMenu>
             <MenubarTrigger>Herramientas</MenubarTrigger>

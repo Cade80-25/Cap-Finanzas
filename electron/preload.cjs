@@ -3,6 +3,11 @@ const { contextBridge, ipcRenderer } = require('electron');
 // Expone APIs seguras al proceso de renderizado si es necesario
 contextBridge.exposeInMainWorld('electron', {
   platform: process.platform,
+
+  // Native menu (File/Edit/View/...)
+  setNativeMenuVisible: (visible) => ipcRenderer.send('set-native-menu-visible', visible),
+  toggleNativeMenu: () => ipcRenderer.send('toggle-native-menu'),
+
   // Auto-updater API
   checkForUpdates: () => ipcRenderer.send('check-for-updates'),
   downloadUpdate: () => ipcRenderer.send('download-update'),
