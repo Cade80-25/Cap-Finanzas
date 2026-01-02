@@ -24,6 +24,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { NotificationCenter } from "@/components/NotificationCenter";
 
 interface MenuBarProps {
   onSearchClick?: () => void;
@@ -187,6 +188,9 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
             <span className="text-xs">⌘</span>K
           </kbd>
         </Button>
+        
+        {/* Centro de Notificaciones */}
+        <NotificationCenter />
       </div>
     </div>
   );
