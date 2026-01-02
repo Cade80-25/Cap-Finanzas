@@ -14,18 +14,17 @@ import {
   BarChart3,
   TrendingUp,
   HelpCircle,
-  Menu,
   X,
   Sparkles,
   Calculator,
   Globe,
-  PanelLeftClose,
-  PanelLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import MenuBar from "@/components/MenuBar";
 import GlobalSearch from "@/components/GlobalSearch";
+import { LockScreen } from "@/components/LockScreen";
+import { useSecurity } from "@/hooks/useSecurity";
 
 const navigation = [
   { name: "Panel Principal", href: "/", icon: Home },
@@ -50,6 +49,12 @@ export default function Layout() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
+  const { isLocked, unlock, hasMasterPin } = useSecurity();
+
+  // Show lock screen if app is locked
+  if (isLocked && hasMasterPin) {
+    return <LockScreen onUnlock={unlock} />;
+  }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">

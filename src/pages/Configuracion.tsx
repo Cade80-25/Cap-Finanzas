@@ -1,4 +1,4 @@
-import { Database, Bell, Shield, Download, Upload, Palette, Zap, RefreshCw, CheckCircle, FileText, FileSpreadsheet, File, AlertCircle, Table } from "lucide-react";
+import { Database, Bell, Shield, Download, Upload, Palette, Zap, RefreshCw, CheckCircle, FileText, FileSpreadsheet, File, AlertCircle, Table, Lock, Key, CloudUpload } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -27,6 +27,8 @@ import { useState, useRef } from "react";
 import { useAutoUpdater } from "@/hooks/useAutoUpdater";
 import * as XLSX from "xlsx";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useSecurity } from "@/hooks/useSecurity";
+import { ChangePinDialog, BackupDialog, TwoFactorDialog } from "@/components/SecurityDialogs";
 
 const STORAGE_KEY = "cap-finanzas-config";
 
@@ -92,10 +94,18 @@ export default function Configuracion() {
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  // Security dialogs state
+  const [changePinOpen, setChangePinOpen] = useState(false);
+  const [backupDialogOpen, setBackupDialogOpen] = useState(false);
+  const [twoFactorDialogOpen, setTwoFactorDialogOpen] = useState(false);
+  
   const [transactions, setTransactions] = useLocalStorage<Transaction[]>(
     "cap-finanzas-libro-diario-transactions",
     []
   );
+  
+  // Security hook
+  const security = useSecurity();
   
   const updateConfig = (updates: Partial<ConfigData>) => {
     setConfig(prev => {
@@ -854,18 +864,71 @@ export default function Configuracion() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* PIN Status */}
+            <div className="rounded-lg bg-muted/50 p-3 flex items-center gap-3">
+              <div className={`p-2 rounded-full ${security.hasMasterPin ? 'bg-green-500/20' : 'bg-yellow-500/20'}`}>
+                {security.hasMasterPin ? (
+                  <Lock className="h-4 w-4 text-green-600" />
+                ) : (
+                  <Key className="h-4 w-4 text-yellow-600" />
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  {security.hasMasterPin ? "PIN de seguridad configurado" : "Sin PIN de seguridad"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {security.hasMasterPin 
+                    ? "Tu aplicación está protegida" 
+                    : "Configura un PIN para proteger tus datos"}
+                </p>
+              </div>
+            </div>
+
+            <Separator />
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Bloqueo Automático</Label>
                 <p className="text-xs text-muted-foreground">
-                  Bloquear después de 5 minutos de inactividad
+                  Bloquear después de {security.autoLockMinutes} minutos de inactividad
                 </p>
               </div>
-              <Switch checked={config.autoLock} onCheckedChange={(checked) => {
-                updateConfig({ autoLock: checked });
-                toast.success(checked ? "Bloqueo automático activado" : "Bloqueo automático desactivado");
-              }} />
+              <Switch 
+                checked={security.autoLockEnabled} 
+                onCheckedChange={(checked) => {
+                  security.setAutoLock(checked);
+                  updateConfig({ autoLock: checked });
+                  toast.success(checked ? "Bloqueo automático activado" : "Bloqueo automático desactivado");
+                }} 
+                disabled={!security.hasMasterPin}
+              />
             </div>
+
+            {security.autoLockEnabled && security.hasMasterPin && (
+              <div className="pl-4 space-y-2">
+                <Label className="text-xs">Tiempo de inactividad</Label>
+                <Select 
+                  value={String(security.autoLockMinutes)} 
+                  onValueChange={(value) => {
+                    security.setAutoLockMinutes(parseInt(value));
+                    toast.success(`Bloqueo configurado a ${value} minutos`);
+                  }}
+                >
+                  <SelectTrigger className="h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 minuto</SelectItem>
+                    <SelectItem value="3">3 minutos</SelectItem>
+                    <SelectItem value="5">5 minutos</SelectItem>
+                    <SelectItem value="10">10 minutos</SelectItem>
+                    <SelectItem value="15">15 minutos</SelectItem>
+                    <SelectItem value="30">30 minutos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <Separator />
 
@@ -876,10 +939,13 @@ export default function Configuracion() {
                   Seguridad adicional al iniciar sesión
                 </p>
               </div>
-              <Switch checked={config.twoFactor} onCheckedChange={(checked) => {
-                updateConfig({ twoFactor: checked });
-                toast.success(checked ? "Verificación activada" : "Verificación desactivada");
-              }} />
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setTwoFactorDialogOpen(true)}
+              >
+                {security.twoFactorEnabled ? "Configurado" : "Configurar"}
+              </Button>
             </div>
 
             <Separator />
@@ -888,22 +954,92 @@ export default function Configuracion() {
               <div className="space-y-0.5">
                 <Label>Backup Automático</Label>
                 <p className="text-xs text-muted-foreground">
-                  Copia de seguridad diaria en la nube
+                  Copia de seguridad local diaria
                 </p>
               </div>
-              <Switch checked={config.autoBackup} onCheckedChange={(checked) => {
-                updateConfig({ autoBackup: checked });
-                toast.success(checked ? "Backup automático activado" : "Backup automático desactivado");
-              }} />
+              <Switch 
+                checked={security.autoBackupEnabled} 
+                onCheckedChange={(checked) => {
+                  security.setAutoBackup(checked);
+                  updateConfig({ autoBackup: checked });
+                  toast.success(checked ? "Backup automático activado" : "Backup automático desactivado");
+                }} 
+              />
             </div>
+
+            {security.lastBackupDate && (
+              <div className="pl-4 text-xs text-muted-foreground">
+                Último backup: {new Date(security.lastBackupDate).toLocaleDateString("es-ES", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit"
+                })}
+              </div>
+            )}
 
             <Separator />
 
-            <Button variant="outline" className="w-full">
-              Cambiar Contraseña Maestra
-            </Button>
+            <div className="grid gap-2">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start gap-2"
+                onClick={() => setChangePinOpen(true)}
+              >
+                <Key className="h-4 w-4" />
+                {security.hasMasterPin ? "Cambiar PIN de Seguridad" : "Configurar PIN de Seguridad"}
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-start gap-2"
+                onClick={() => setBackupDialogOpen(true)}
+              >
+                <CloudUpload className="h-4 w-4" />
+                Gestionar Backups
+              </Button>
+
+              {security.hasMasterPin && (
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start gap-2"
+                  onClick={() => {
+                    security.lock();
+                    toast.success("Aplicación bloqueada");
+                  }}
+                >
+                  <Lock className="h-4 w-4" />
+                  Bloquear Ahora
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
+
+        {/* Security Dialogs */}
+        <ChangePinDialog
+          open={changePinOpen}
+          onOpenChange={setChangePinOpen}
+          hasMasterPin={security.hasMasterPin}
+          onVerifyPin={security.verifyPin}
+          onSetPin={security.setMasterPin}
+        />
+        
+        <BackupDialog
+          open={backupDialogOpen}
+          onOpenChange={setBackupDialogOpen}
+          lastBackupDate={security.lastBackupDate}
+          onExportBackup={security.exportBackup}
+          onImportBackup={security.importBackup}
+        />
+        
+        <TwoFactorDialog
+          open={twoFactorDialogOpen}
+          onOpenChange={setTwoFactorDialogOpen}
+          enabled={security.twoFactorEnabled}
+          onToggle={security.setTwoFactor}
+        />
 
         {/* Sección de Actualizaciones - Solo visible en Electron */}
         {typeof window !== 'undefined' && window.electron && (
