@@ -16,19 +16,13 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
-type DatoMensual = { mes: string; ingresos: number; gastos: number };
-type DatoCategoria = { name: string; value: number; color: string };
+import { useAccountingData } from "@/hooks/useAccountingData";
 
 export default function Resumen() {
-  // Datos vacíos - se llenarán con datos reales del usuario
-  const datosMensuales: DatoMensual[] = [];
-  const datosCategorias: DatoCategoria[] = [];
+  const { estadoResultados, resumenMensual, datosCategorias } = useAccountingData();
 
-  const totalIngresos = datosMensuales.reduce((acc, item) => acc + item.ingresos, 0);
-  const totalGastos = datosMensuales.reduce((acc, item) => acc + item.gastos, 0);
-  const balance = totalIngresos - totalGastos;
-  const tasaAhorro = totalIngresos > 0 ? ((balance / totalIngresos) * 100).toFixed(1) : "0.0";
+  const { totalIngresos, totalGastos, resultadoNeto } = estadoResultados;
+  const tasaAhorro = totalIngresos > 0 ? ((resultadoNeto / totalIngresos) * 100).toFixed(1) : "0.0";
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
@@ -37,7 +31,7 @@ export default function Resumen() {
           Resumen Financiero
         </h1>
         <p className="text-muted-foreground mt-2">
-          Visualización completa de tu situación financiera
+          Visualización completa de tu situación financiera (desde Libro Diario)
         </p>
       </div>
 
@@ -70,8 +64,8 @@ export default function Resumen() {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${balance >= 0 ? "text-success" : "text-destructive"}`}>
-              ${balance.toFixed(2)}
+            <div className={`text-2xl font-bold ${resultadoNeto >= 0 ? "text-success" : "text-destructive"}`}>
+              ${resultadoNeto.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Ingresos - Gastos</p>
           </CardContent>
@@ -105,13 +99,13 @@ export default function Resumen() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {datosMensuales.length > 0 ? (
+              {resumenMensual.length > 0 ? (
                 <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={datosMensuales}>
+                  <LineChart data={resumenMensual}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="mes" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
                     <Legend />
                     <Line
                       type="monotone"
@@ -131,7 +125,7 @@ export default function Resumen() {
                 </ResponsiveContainer>
               ) : (
                 <div className="flex items-center justify-center h-[400px] text-muted-foreground">
-                  No hay datos disponibles para mostrar
+                  No hay datos disponibles. Agrega transacciones en el Libro Diario.
                 </div>
               )}
             </CardContent>
@@ -164,13 +158,13 @@ export default function Resumen() {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
                     <Legend />
                   </RePieChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="flex items-center justify-center h-[400px] text-muted-foreground">
-                  No hay datos disponibles para mostrar
+                  No hay datos de gastos disponibles
                 </div>
               )}
             </CardContent>
@@ -186,13 +180,13 @@ export default function Resumen() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {datosMensuales.length > 0 ? (
+              {resumenMensual.length > 0 ? (
                 <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={datosMensuales}>
+                  <BarChart data={resumenMensual}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="mes" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
                     <Legend />
                     <Bar dataKey="ingresos" fill="hsl(var(--success))" name="Ingresos" />
                     <Bar dataKey="gastos" fill="hsl(var(--destructive))" name="Gastos" />
@@ -200,7 +194,7 @@ export default function Resumen() {
                 </ResponsiveContainer>
               ) : (
                 <div className="flex items-center justify-center h-[400px] text-muted-foreground">
-                  No hay datos disponibles para mostrar
+                  No hay datos disponibles
                 </div>
               )}
             </CardContent>

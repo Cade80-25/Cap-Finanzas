@@ -25,22 +25,12 @@ import {
   Area,
   AreaChart,
 } from "recharts";
-
-type EstadoItem = { name: string; value: number };
-type TendenciaItem = { mes: string; ingresos: number; gastos: number };
+import { useAccountingData } from "@/hooks/useAccountingData";
 
 export default function EstadoResultados() {
-  // Datos vacíos - se llenarán con datos reales del usuario
-  const estadoData: { ingresos: EstadoItem[]; gastos: EstadoItem[] } = {
-    ingresos: [],
-    gastos: [],
-  };
+  const { estadoResultados, resumenMensual } = useAccountingData();
 
-  const tendenciaMensual: TendenciaItem[] = [];
-
-  const totalIngresos = estadoData.ingresos.reduce((sum, item) => sum + item.value, 0);
-  const totalGastos = estadoData.gastos.reduce((sum, item) => sum + item.value, 0);
-  const resultadoNeto = totalIngresos - totalGastos;
+  const { ingresos, gastos, totalIngresos, totalGastos, resultadoNeto } = estadoResultados;
 
   // Datos para gráficos
   const comparacionData = [
@@ -48,12 +38,12 @@ export default function EstadoResultados() {
     { name: "Gastos", value: totalGastos, color: "hsl(var(--destructive))" },
   ];
 
-  const distribucionIngresos = estadoData.ingresos.map(item => ({
+  const distribucionIngresos = ingresos.map(item => ({
     ...item,
     percentage: totalIngresos > 0 ? ((item.value / totalIngresos) * 100).toFixed(1) : "0",
   }));
 
-  const distribucionGastos = estadoData.gastos.map(item => ({
+  const distribucionGastos = gastos.map(item => ({
     ...item,
     percentage: totalGastos > 0 ? ((item.value / totalGastos) * 100).toFixed(1) : "0",
   }));
@@ -65,7 +55,7 @@ export default function EstadoResultados() {
       <div>
         <h1 className="text-3xl font-bold mb-2">Estado de Resultados</h1>
         <p className="text-muted-foreground">
-          Análisis completo de ingresos, gastos y rentabilidad
+          Análisis completo de ingresos, gastos y rentabilidad (desde Libro Diario)
         </p>
       </div>
 
@@ -104,7 +94,7 @@ export default function EstadoResultados() {
                 <CardDescription>Dinero que entra</CardDescription>
               </CardHeader>
               <CardContent>
-                {estadoData.ingresos.length > 0 ? (
+                {ingresos.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -113,7 +103,7 @@ export default function EstadoResultados() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {estadoData.ingresos.map((item) => (
+                      {ingresos.map((item) => (
                         <TableRow key={item.name} className="hover:bg-muted/50">
                           <TableCell className="font-medium">{item.name}</TableCell>
                           <TableCell className="text-right">${item.value.toFixed(2)}</TableCell>
@@ -139,7 +129,7 @@ export default function EstadoResultados() {
                 <CardDescription>Dinero que sale</CardDescription>
               </CardHeader>
               <CardContent>
-                {estadoData.gastos.length > 0 ? (
+                {gastos.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -148,7 +138,7 @@ export default function EstadoResultados() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {estadoData.gastos.map((item) => (
+                      {gastos.map((item) => (
                         <TableRow key={item.name} className="hover:bg-muted/50">
                           <TableCell className="font-medium">{item.name}</TableCell>
                           <TableCell className="text-right">${item.value.toFixed(2)}</TableCell>
@@ -184,7 +174,7 @@ export default function EstadoResultados() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
-                      <Tooltip formatter={(value) => `$${value}`} />
+                      <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
                       <Legend />
                       <Bar dataKey="value" fill="hsl(var(--primary))">
                         {comparacionData.filter(d => d.value > 0).map((entry, index) => (
@@ -215,7 +205,7 @@ export default function EstadoResultados() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, value }) => `${name}: $${value}`}
+                        label={({ name, value }) => `${name}: $${Number(value).toFixed(2)}`}
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
@@ -224,7 +214,7 @@ export default function EstadoResultados() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => `$${value}`} />
+                      <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
                       <Legend />
                     </PieChart>
                   </ResponsiveContainer>
@@ -257,11 +247,11 @@ export default function EstadoResultados() {
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {distribucionIngresos.map((entry, index) => (
+                        {distribucionIngresos.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => `$${value}`} />
+                      <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
@@ -291,11 +281,11 @@ export default function EstadoResultados() {
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {distribucionGastos.map((entry, index) => (
+                        {distribucionGastos.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => `$${value}`} />
+                      <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
@@ -315,13 +305,13 @@ export default function EstadoResultados() {
               <CardDescription>Tendencia de ingresos y gastos</CardDescription>
             </CardHeader>
             <CardContent>
-              {tendenciaMensual.length > 0 ? (
+              {resumenMensual.length > 0 ? (
                 <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={tendenciaMensual}>
+                  <LineChart data={resumenMensual}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="mes" />
                     <YAxis />
-                    <Tooltip formatter={(value) => `$${value}`} />
+                    <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
                     <Legend />
                     <Line
                       type="monotone"
@@ -353,13 +343,13 @@ export default function EstadoResultados() {
               <CardDescription>Diferencia entre ingresos y gastos mensual</CardDescription>
             </CardHeader>
             <CardContent>
-              {tendenciaMensual.length > 0 ? (
+              {resumenMensual.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={tendenciaMensual}>
+                  <AreaChart data={resumenMensual}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="mes" />
                     <YAxis />
-                    <Tooltip formatter={(value) => `$${value}`} />
+                    <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
                     <Legend />
                     <Area
                       type="monotone"
@@ -424,17 +414,19 @@ export default function EstadoResultados() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-soft bg-gradient-card border-border">
+            <Card className="shadow-soft bg-gradient-destructive/10 border-destructive/20">
               <CardHeader>
-                <CardTitle>Ratio de Gastos</CardTitle>
-                <CardDescription>Eficiencia en gastos</CardDescription>
+                <CardTitle className="text-destructive">Ratio de Gastos</CardTitle>
+                <CardDescription>Relación gastos/ingresos</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-destructive">
                   {totalIngresos > 0 ? ((totalGastos / totalIngresos) * 100).toFixed(1) : "0.0"}%
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {totalIngresos > 0 ? `Gastas ${((totalGastos / totalIngresos) * 100).toFixed(0)}% de tus ingresos` : "Sin datos"}
+                  {totalIngresos === 0 ? "Sin datos" :
+                   ((totalGastos / totalIngresos) * 100) < 70 ? "Controlado" : 
+                   ((totalGastos / totalIngresos) * 100) < 90 ? "Moderado" : "Elevado"}
                 </p>
               </CardContent>
             </Card>
@@ -442,48 +434,38 @@ export default function EstadoResultados() {
 
           <Card className="shadow-soft">
             <CardHeader>
-              <CardTitle>Métricas de Rentabilidad</CardTitle>
-              <CardDescription>Indicadores financieros clave</CardDescription>
+              <CardTitle>Proyecciones y Análisis</CardTitle>
+              <CardDescription>Métricas adicionales</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-card border border-border">
                   <div>
-                    <p className="font-medium">Ingreso Promedio por Fuente</p>
-                    <p className="text-sm text-muted-foreground">Promedio de ingresos</p>
+                    <p className="font-medium">Ingreso Promedio Mensual</p>
+                    <p className="text-sm text-muted-foreground">Basado en datos actuales</p>
                   </div>
                   <span className="text-2xl font-bold text-success">
-                    ${estadoData.ingresos.length > 0 ? (totalIngresos / estadoData.ingresos.length).toFixed(2) : "0.00"}
+                    ${resumenMensual.length > 0 ? (totalIngresos / resumenMensual.length).toFixed(2) : "0.00"}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-card border border-border">
                   <div>
-                    <p className="font-medium">Gasto Promedio por Categoría</p>
-                    <p className="text-sm text-muted-foreground">Promedio de gastos</p>
+                    <p className="font-medium">Gasto Promedio Mensual</p>
+                    <p className="text-sm text-muted-foreground">Basado en datos actuales</p>
                   </div>
                   <span className="text-2xl font-bold text-destructive">
-                    ${estadoData.gastos.length > 0 ? (totalGastos / estadoData.gastos.length).toFixed(2) : "0.00"}
+                    ${resumenMensual.length > 0 ? (totalGastos / resumenMensual.length).toFixed(2) : "0.00"}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-card border border-border">
                   <div>
-                    <p className="font-medium">Punto de Equilibrio</p>
-                    <p className="text-sm text-muted-foreground">Gastos necesarios vs ingresos</p>
+                    <p className="font-medium">Ahorro Promedio Mensual</p>
+                    <p className="text-sm text-muted-foreground">Proyección basada en histórico</p>
                   </div>
-                  <span className={`text-2xl font-bold ${resultadoNeto >= 0 ? "text-success" : "text-destructive"}`}>
-                    {resultadoNeto >= 0 ? "Superado ✓" : "No alcanzado"}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-card border border-border">
-                  <div>
-                    <p className="font-medium">Proyección Anual</p>
-                    <p className="text-sm text-muted-foreground">Estimación basada en datos actuales</p>
-                  </div>
-                  <span className={`text-2xl font-bold ${resultadoNeto >= 0 ? "text-success" : "text-destructive"}`}>
-                    ${(resultadoNeto * 12).toFixed(2)}
+                  <span className={`text-2xl font-bold ${resultadoNeto >= 0 ? 'text-success' : 'text-destructive'}`}>
+                    ${resumenMensual.length > 0 ? (resultadoNeto / resumenMensual.length).toFixed(2) : "0.00"}
                   </span>
                 </div>
               </div>

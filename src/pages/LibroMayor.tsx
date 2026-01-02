@@ -8,47 +8,49 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const accounts: Array<{
-  name: string;
-  transactions: Array<{ date: string; description: string; debit: number; credit: number; balance: number }>;
-  total: number;
-}> = [];
+import { useAccountingData } from "@/hooks/useAccountingData";
 
 export default function LibroMayor() {
+  const { libroMayor } = useAccountingData();
+
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div>
         <h1 className="text-3xl font-bold mb-2">Libro Mayor</h1>
         <p className="text-muted-foreground">
-          Movimientos agrupados por cuenta contable
+          Movimientos agrupados por cuenta contable (desde Libro Diario)
         </p>
       </div>
 
-      {accounts.length > 0 ? (
-        <Tabs defaultValue={accounts[0]?.name} className="space-y-4">
-          <TabsList className="bg-muted">
-            {accounts.map((account) => (
-              <TabsTrigger key={account.name} value={account.name} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                {account.name}
+      {libroMayor.length > 0 ? (
+        <Tabs defaultValue={libroMayor[0]?.name} className="space-y-4">
+          <TabsList className="bg-muted flex-wrap h-auto gap-1">
+            {libroMayor.map((account) => (
+              <TabsTrigger 
+                key={account.name} 
+                value={account.name} 
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                {account.label}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {accounts.map((account) => (
+          {libroMayor.map((account) => (
             <TabsContent key={account.name} value={account.name}>
               <Card className="shadow-soft">
                 <CardHeader>
-                  <CardTitle>{account.name}</CardTitle>
+                  <CardTitle>{account.label}</CardTitle>
                   <CardDescription>
                     Movimientos de la cuenta - Balance:{" "}
                     <span
                       className={`font-bold ${
-                        account.total >= 0 ? "text-success" : "text-destructive"
+                        account.balance >= 0 ? "text-success" : "text-destructive"
                       }`}
                     >
-                      ${Math.abs(account.total).toFixed(2)}
+                      ${Math.abs(account.balance).toFixed(2)}
                     </span>
+                    {" "}| Total Debe: ${account.totalDebit.toFixed(2)} | Total Haber: ${account.totalCredit.toFixed(2)}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -88,7 +90,7 @@ export default function LibroMayor() {
       ) : (
         <Card className="shadow-soft">
           <CardContent className="flex items-center justify-center h-[200px] text-muted-foreground">
-            No hay cuentas registradas. Agrega transacciones para ver el libro mayor.
+            No hay cuentas registradas. Agrega transacciones en el Libro Diario para ver el Libro Mayor.
           </CardContent>
         </Card>
       )}
