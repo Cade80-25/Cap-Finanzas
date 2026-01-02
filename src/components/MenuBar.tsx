@@ -62,8 +62,9 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
   };
 
   return (
-    <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-2">
-      <div className="flex items-center">
+    <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-2 relative">
+      {/* Left section: Toggle + Menu */}
+      <div className="flex items-center flex-1">
         {/* Botón para mostrar/ocultar sidebar */}
         <Button
           variant="ghost"
@@ -174,8 +175,18 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
           </MenubarMenu>
         </Menubar>
       </div>
+
+      {/* Center section: App Name */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <div className="px-4 py-1 rounded-md bg-primary/8 border border-primary/10">
+          <h1 className="text-sm font-semibold tracking-wide bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            Cap Finanzas
+          </h1>
+        </div>
+      </div>
     
-      <div className="flex items-center gap-2">
+      {/* Right section: Search + Notifications */}
+      <div className="flex items-center gap-2 flex-1 justify-end">
         <Button
           variant="outline"
           size="sm"
