@@ -6,13 +6,18 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
+    autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.cjs')
     },
-    icon: path.join(__dirname, '../public/icon-final.ico')
+    // Usamos PNG aquí para evitar problemas de render (icono cortado) en algunos Windows
+    icon: path.join(__dirname, '../public/icon-final.png')
   });
+
+  // Oculta el menú nativo (File/Edit/View/...) por defecto, pero permite mostrarlo luego
+  win.setMenuBarVisibility(false);
 
   // En desarrollo, carga desde el servidor de Vite
   // En producción, app.isPackaged será true
@@ -95,6 +100,25 @@ ipcMain.on('download-update', () => {
 
 ipcMain.on('install-update', () => {
   autoUpdater.quitAndInstall();
+});
+
+// Native menu controls
+function setNativeMenuVisible(visible) {
+  const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
+  if (!win) return;
+  win.setAutoHideMenuBar(!visible);
+  win.setMenuBarVisibility(!!visible);
+}
+
+ipcMain.on('set-native-menu-visible', (_event, visible) => {
+  setNativeMenuVisible(!!visible);
+});
+
+ipcMain.on('toggle-native-menu', () => {
+  const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
+  if (!win) return;
+  const nextVisible = !win.isMenuBarVisible();
+  setNativeMenuVisible(nextVisible);
 });
 
 // Check for updates on app start (only in production)
