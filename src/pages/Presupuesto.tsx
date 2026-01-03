@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Target, TrendingUp, AlertCircle, CheckCircle, Plus } from "lucide-react";
+import { Target, TrendingUp, AlertCircle, CheckCircle, Plus, Trash2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -21,60 +21,92 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useAccountingData } from "@/hooks/useAccountingData";
 
 type PresupuestoItem = {
+  id: string;
   categoria: string;
+  cuentaAsociada: string;
   presupuesto: number;
-  gastado: number;
   color: string;
 };
 
 export default function Presupuesto() {
   const [open, setOpen] = useState(false);
   const [categoria, setCategoria] = useState("");
+  const [cuentaAsociada, setCuentaAsociada] = useState("");
   const [presupuesto, setPresupuesto] = useState<string>("");
-  const [gastado, setGastado] = useState<string>("");
+
+  const { estadoResultados, ACCOUNT_CATEGORIES } = useAccountingData();
 
   const [presupuestoData, setPresupuestoData] = useLocalStorage<PresupuestoItem[]>(
-    "cap-finanzas-presupuesto",
+    "cap-finanzas-presupuesto-v2",
     []
   );
 
-  const totalPresupuesto = presupuestoData.reduce((acc, item) => acc + item.presupuesto, 0);
-  const totalGastado = presupuestoData.reduce((acc, item) => acc + item.gastado, 0);
+  // Calcular gastos reales por cada presupuesto
+  const presupuestosConGastos = presupuestoData.map((item) => {
+    // Buscar el gasto real en estadoResultados
+    const gastoReal = estadoResultados.gastos.find((g) => {
+      const categoria = Object.entries(ACCOUNT_CATEGORIES).find(
+        ([key, val]) => val.label === g.name
+      );
+      return categoria?.[0] === item.cuentaAsociada;
+    });
+    
+    return {
+      ...item,
+      gastado: gastoReal?.value || 0,
+    };
+  });
+
+  const totalPresupuesto = presupuestosConGastos.reduce((acc, item) => acc + item.presupuesto, 0);
+  const totalGastado = presupuestosConGastos.reduce((acc, item) => acc + item.gastado, 0);
   const porcentajeGlobal = totalPresupuesto > 0 ? (totalGastado / totalPresupuesto) * 100 : 0;
+
+  // Cuentas de tipo gasto disponibles
+  const cuentasGasto = Object.entries(ACCOUNT_CATEGORIES)
+    .filter(([_, val]) => val.type === "gasto")
+    .map(([key, val]) => ({ value: key, label: val.label }));
 
   const resetForm = () => {
     setCategoria("");
+    setCuentaAsociada("");
     setPresupuesto("");
-    setGastado("");
   };
 
   const handleCreate = () => {
     const p = Number(presupuesto);
-    const g = gastado === "" ? 0 : Number(gastado);
 
     if (!categoria.trim()) {
-      toast.error("Escribe una categoría");
+      toast.error("Escribe un nombre para el presupuesto");
+      return;
+    }
+    if (!cuentaAsociada) {
+      toast.error("Selecciona una cuenta de gastos");
       return;
     }
     if (!Number.isFinite(p) || p <= 0) {
       toast.error("Ingresa un presupuesto válido");
       return;
     }
-    if (!Number.isFinite(g) || g < 0) {
-      toast.error("Ingresa un gasto válido");
-      return;
-    }
 
     setPresupuestoData((prev) => [
       ...prev,
       {
+        id: Date.now().toString(),
         categoria: categoria.trim(),
+        cuentaAsociada,
         presupuesto: p,
-        gastado: g,
         color: "bg-primary",
       },
     ]);
@@ -82,6 +114,11 @@ export default function Presupuesto() {
     toast.success("Presupuesto creado");
     setOpen(false);
     resetForm();
+  };
+
+  const handleDelete = (id: string) => {
+    setPresupuestoData((prev) => prev.filter((item) => item.id !== id));
+    toast.success("Presupuesto eliminado");
   };
 
   return (
@@ -92,7 +129,7 @@ export default function Presupuesto() {
             Presupuesto
           </h1>
           <p className="text-muted-foreground mt-2">
-            Administra y monitorea tus límites de gastos
+            Administra límites de gastos vinculados al Libro Diario
           </p>
         </div>
 
@@ -107,41 +144,48 @@ export default function Presupuesto() {
             <DialogHeader>
               <DialogTitle>Nuevo Presupuesto</DialogTitle>
               <DialogDescription>
-                Crea un presupuesto por categoría (por ejemplo: Alquiler, Comida, Transporte)
+                Crea un presupuesto vinculado a una cuenta de gastos del Libro Diario
               </DialogDescription>
             </DialogHeader>
 
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="categoria">Categoría</Label>
+                <Label htmlFor="categoria">Nombre del Presupuesto</Label>
                 <Input
                   id="categoria"
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
-                  placeholder="Ej: Alquiler"
+                  placeholder="Ej: Gastos del hogar"
                 />
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="presupuesto">Presupuesto ($)</Label>
+                <Label htmlFor="cuenta">Cuenta de Gastos Asociada</Label>
+                <Select value={cuentaAsociada} onValueChange={setCuentaAsociada}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona una cuenta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cuentasGasto.map((cuenta) => (
+                      <SelectItem key={cuenta.value} value={cuenta.value}>
+                        {cuenta.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  El gasto real se calculará automáticamente desde el Libro Diario
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="presupuesto">Límite de Presupuesto ($)</Label>
                 <Input
                   id="presupuesto"
                   type="number"
                   inputMode="decimal"
                   value={presupuesto}
                   onChange={(e) => setPresupuesto(e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="gastado">Gastado ($) (opcional)</Label>
-                <Input
-                  id="gastado"
-                  type="number"
-                  inputMode="decimal"
-                  value={gastado}
-                  onChange={(e) => setGastado(e.target.value)}
                   placeholder="0.00"
                 />
               </div>
@@ -171,7 +215,7 @@ export default function Presupuesto() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${totalPresupuesto.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Para este mes</p>
+            <p className="text-xs text-muted-foreground mt-1">Límite establecido</p>
           </CardContent>
         </Card>
 
@@ -182,9 +226,9 @@ export default function Presupuesto() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">${totalGastado.toFixed(2)}</div>
-            <Progress value={porcentajeGlobal} className="mt-2" />
+            <Progress value={Math.min(porcentajeGlobal, 100)} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">
-              {porcentajeGlobal.toFixed(1)}% del presupuesto
+              {porcentajeGlobal.toFixed(1)}% del presupuesto (desde Libro Diario)
             </p>
           </CardContent>
         </Card>
@@ -215,22 +259,26 @@ export default function Presupuesto() {
         <CardHeader>
           <CardTitle>Presupuesto por Categoría</CardTitle>
           <CardDescription>
-            Monitorea el uso de tu presupuesto en cada categoría
+            Los gastos se calculan automáticamente desde el Libro Diario
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {presupuestoData.length > 0 ? (
+          {presupuestosConGastos.length > 0 ? (
             <div className="space-y-6">
-              {presupuestoData.map((item, index) => {
+              {presupuestosConGastos.map((item) => {
                 const porcentaje = (item.gastado / item.presupuesto) * 100;
                 const excedido = item.gastado > item.presupuesto;
+                const cuentaLabel = ACCOUNT_CATEGORIES[item.cuentaAsociada]?.label || item.cuentaAsociada;
 
                 return (
-                  <div key={index} className="space-y-2">
+                  <div key={item.id} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                        <span className="font-medium">{item.categoria}</span>
+                        <div>
+                          <span className="font-medium">{item.categoria}</span>
+                          <p className="text-xs text-muted-foreground">{cuentaLabel}</p>
+                        </div>
                         {excedido && (
                           <Badge variant="destructive" className="text-xs">
                             <AlertCircle className="h-3 w-3 mr-1" />
@@ -238,11 +286,21 @@ export default function Presupuesto() {
                           </Badge>
                         )}
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold">
-                          ${item.gastado.toFixed(2)} / ${item.presupuesto.toFixed(2)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{porcentaje.toFixed(1)}%</p>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="font-semibold">
+                            ${item.gastado.toFixed(2)} / ${item.presupuesto.toFixed(2)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{porcentaje.toFixed(1)}%</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(item.id)}
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                     <Progress
@@ -259,8 +317,10 @@ export default function Presupuesto() {
               })}
             </div>
           ) : (
-            <div className="flex items-center justify-center h-[200px] text-muted-foreground">
-              No hay presupuestos configurados. Crea tu primer presupuesto.
+            <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
+              <Target className="h-12 w-12 mb-4 opacity-50" />
+              <p>No hay presupuestos configurados</p>
+              <p className="text-sm">Crea un presupuesto vinculado al Libro Diario</p>
             </div>
           )}
         </CardContent>

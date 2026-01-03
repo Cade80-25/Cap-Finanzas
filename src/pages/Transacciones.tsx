@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Plus, Search, Filter, Download, Upload, Trash2, Edit } from "lucide-react";
+import { Search, Filter, Download, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import ReceiptScanner from "@/components/ReceiptScanner";
 import {
   Table,
   TableBody,
@@ -13,16 +12,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -30,77 +19,64 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { toast } from "sonner";
-
-interface Transaccion {
-  id: number;
-  fecha: string;
-  descripcion: string;
-  categoria: string;
-  tipo: string;
-  monto: number;
-  estado: string;
-}
+import { useAccountingData } from "@/hooks/useAccountingData";
+import { useNavigate } from "react-router-dom";
 
 export default function Transacciones() {
-  const [transacciones, setTransacciones] = useLocalStorage<Transaccion[]>("cap-finanzas-transacciones", []);
+  const navigate = useNavigate();
+  const { transactions, ACCOUNT_CATEGORIES } = useAccountingData();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState("todos");
-  const [scannedAmount, setScannedAmount] = useState<number | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  
-  // Form state
-  const [formData, setFormData] = useState({
-    fecha: "",
-    descripcion: "",
-    tipo: "",
-    monto: "",
-    categoria: "",
+
+  // Transformar transacciones del libro diario al formato de visualización
+  const transaccionesFormateadas = transactions.map((tx) => {
+    const category = ACCOUNT_CATEGORIES[tx.account];
+    const isIngreso = category?.type === "ingreso";
+    const isGasto = category?.type === "gasto";
+    
+    let tipo = "Otro";
+    let monto = 0;
+    
+    if (isIngreso) {
+      tipo = "Ingreso";
+      monto = tx.credit - tx.debit;
+    } else if (isGasto) {
+      tipo = "Gasto";
+      monto = -(tx.debit - tx.credit);
+    } else {
+      // Para activos, pasivos, patrimonio
+      monto = tx.debit - tx.credit;
+      tipo = tx.debit > 0 ? "Débito" : "Crédito";
+    }
+
+    return {
+      id: tx.id,
+      fecha: tx.date,
+      descripcion: tx.description,
+      categoria: category?.label || tx.account,
+      tipo,
+      monto,
+      cuenta: tx.account,
+    };
   });
 
-  const filteredTransacciones = transacciones.filter((t) => {
+  const filteredTransacciones = transaccionesFormateadas.filter((t) => {
     const matchesSearch = t.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          t.categoria.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterTipo === "todos" || t.tipo.toLowerCase() === filterTipo;
+    const matchesFilter = filterTipo === "todos" || 
+      (filterTipo === "ingreso" && t.tipo === "Ingreso") ||
+      (filterTipo === "gasto" && t.tipo === "Gasto");
     return matchesSearch && matchesFilter;
-  });
+  }).sort((a, b) => b.fecha.localeCompare(a.fecha));
 
-  const handleSubmit = () => {
-    if (!formData.fecha || !formData.descripcion || !formData.tipo || !formData.categoria) {
-      toast.error("Por favor completa todos los campos");
-      return;
-    }
-
-    const monto = scannedAmount || parseFloat(formData.monto);
-    if (!monto || monto <= 0) {
-      toast.error("Por favor ingresa un monto válido");
-      return;
-    }
-
-    const nuevaTransaccion: Transaccion = {
-      id: Date.now(),
-      fecha: formData.fecha,
-      descripcion: formData.descripcion,
-      categoria: formData.categoria,
-      tipo: formData.tipo === "ingreso" ? "Ingreso" : "Gasto",
-      monto: formData.tipo === "ingreso" ? monto : -monto,
-      estado: "Completado",
-    };
-
-    setTransacciones([nuevaTransaccion, ...transacciones]);
-    toast.success("Transacción guardada correctamente");
-    
-    // Reset form
-    setFormData({ fecha: "", descripcion: "", tipo: "", monto: "", categoria: "" });
-    setScannedAmount(null);
-    setDialogOpen(false);
-  };
-
-  const handleDelete = (id: number) => {
-    setTransacciones(transacciones.filter(t => t.id !== id));
-    toast.success("Transacción eliminada");
-  };
+  // Calcular totales
+  const totalIngresos = transaccionesFormateadas
+    .filter(t => t.tipo === "Ingreso")
+    .reduce((sum, t) => sum + t.monto, 0);
+  
+  const totalGastos = transaccionesFormateadas
+    .filter(t => t.tipo === "Gasto")
+    .reduce((sum, t) => sum + Math.abs(t.monto), 0);
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
@@ -110,109 +86,46 @@ export default function Transacciones() {
             Transacciones
           </h1>
           <p className="text-muted-foreground mt-2">
-            Gestiona todas tus transacciones financieras
+            Vista de todas las transacciones del Libro Diario
           </p>
         </div>
         <div className="flex gap-2">
-          <ReceiptScanner 
-            onDataScanned={(data) => {
-              setScannedAmount(data.amount);
-            }} 
-          />
           <Button variant="outline" size="icon">
             <Download className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon">
-            <Upload className="h-4 w-4" />
+          <Button className="shadow-soft" onClick={() => navigate("/libro-diario")}>
+            <ArrowUpRight className="h-4 w-4 mr-2" />
+            Ir al Libro Diario
           </Button>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="shadow-soft">
-                <Plus className="h-4 w-4 mr-2" />
-                Nueva Transacción
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Nueva Transacción</DialogTitle>
-                <DialogDescription>
-                  Registra una nueva transacción en el sistema
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="fecha">Fecha</Label>
-                  <Input 
-                    id="fecha" 
-                    type="date" 
-                    value={formData.fecha}
-                    onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="descripcion">Descripción</Label>
-                  <Input 
-                    id="descripcion" 
-                    placeholder="Ej: Compra supermercado"
-                    value={formData.descripcion}
-                    onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="tipo">Tipo</Label>
-                  <Select value={formData.tipo} onValueChange={(value) => setFormData({ ...formData, tipo: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ingreso">Ingreso</SelectItem>
-                      <SelectItem value="gasto">Gasto</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="monto">Monto</Label>
-                  <Input 
-                    id="monto" 
-                    type="number" 
-                    placeholder="0.00" 
-                    value={scannedAmount?.toString() || formData.monto}
-                    onChange={(e) => {
-                      setFormData({ ...formData, monto: e.target.value });
-                      setScannedAmount(null);
-                    }}
-                  />
-                  {scannedAmount && (
-                    <p className="text-xs text-muted-foreground">
-                      ✓ Monto escaneado de factura
-                    </p>
-                  )}
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="categoria">Categoría</Label>
-                  <Select value={formData.categoria} onValueChange={(value) => setFormData({ ...formData, categoria: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Alimentación">Alimentación</SelectItem>
-                      <SelectItem value="Transporte">Transporte</SelectItem>
-                      <SelectItem value="Vivienda">Vivienda</SelectItem>
-                      <SelectItem value="Salud">Salud</SelectItem>
-                      <SelectItem value="Entretenimiento">Entretenimiento</SelectItem>
-                      <SelectItem value="Salario">Salario</SelectItem>
-                      <SelectItem value="Inversiones">Inversiones</SelectItem>
-                      <SelectItem value="Otros">Otros</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" onClick={handleSubmit}>Guardar Transacción</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </div>
+      </div>
+
+      {/* Resumen */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Transacciones</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{transactions.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Ingresos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-success">${totalIngresos.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Gastos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-destructive">${totalGastos.toFixed(2)}</div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -220,7 +133,7 @@ export default function Transacciones() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Lista de Transacciones</CardTitle>
-              <CardDescription>Busca y filtra tus transacciones</CardDescription>
+              <CardDescription>Datos sincronizados con el Libro Diario</CardDescription>
             </div>
             <div className="flex gap-2">
               <div className="relative">
@@ -253,11 +166,9 @@ export default function Transacciones() {
                 <TableRow>
                   <TableHead>Fecha</TableHead>
                   <TableHead>Descripción</TableHead>
-                  <TableHead>Categoría</TableHead>
+                  <TableHead>Cuenta</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead className="text-right">Monto</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -267,33 +178,23 @@ export default function Transacciones() {
                     <TableCell className="font-medium">{transaccion.descripcion}</TableCell>
                     <TableCell>{transaccion.categoria}</TableCell>
                     <TableCell>
-                      <Badge variant={transaccion.tipo === "Ingreso" ? "default" : "secondary"}>
+                      <Badge variant={transaccion.tipo === "Ingreso" ? "default" : transaccion.tipo === "Gasto" ? "secondary" : "outline"}>
                         {transaccion.tipo}
                       </Badge>
                     </TableCell>
                     <TableCell className={`text-right font-semibold ${transaccion.monto > 0 ? "text-success" : "text-destructive"}`}>
-                      ${Math.abs(transaccion.monto).toFixed(2)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={transaccion.estado === "Completado" ? "outline" : "secondary"}>
-                        {transaccion.estado}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(transaccion.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {transaccion.monto > 0 ? "+" : ""}${Math.abs(transaccion.monto).toFixed(2)}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           ) : (
-            <div className="flex items-center justify-center h-[200px] text-muted-foreground">
-              No hay transacciones registradas. Agrega tu primera transacción.
+            <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
+              <p>No hay transacciones registradas</p>
+              <Button variant="link" onClick={() => navigate("/libro-diario")}>
+                Agregar transacciones en el Libro Diario
+              </Button>
             </div>
           )}
         </CardContent>

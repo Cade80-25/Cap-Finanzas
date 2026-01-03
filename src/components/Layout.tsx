@@ -18,6 +18,8 @@ import {
   Sparkles,
   Calculator,
   Globe,
+  Bell,
+  Book,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,8 @@ const navigation = [
   { name: "Estado de Resultados", href: "/resultados", icon: TrendingUp },
   { name: "Enciclopedia", href: "/enciclopedia", icon: HelpCircle },
   { name: "Recomendaciones", href: "/recomendaciones", icon: Sparkles },
+  { name: "Manual de Usuario", href: "/manual", icon: Book },
+  { name: "Notificaciones", href: "/notificaciones", icon: Bell },
   { name: "Cuenta", href: "/cuenta", icon: User },
   { name: "Configuración", href: "/configuracion", icon: Settings },
 ];
