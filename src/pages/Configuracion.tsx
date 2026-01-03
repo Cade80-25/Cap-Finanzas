@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { useState, useRef } from "react";
 import { useAutoUpdater } from "@/hooks/useAutoUpdater";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSecurity } from "@/hooks/useSecurity";
 import { useAdvancedFeatures } from "@/hooks/useAdvancedFeatures";
@@ -207,12 +207,19 @@ export default function Configuracion() {
       // Archivos de hojas de cálculo (Excel, ODS)
       if (extension === "xlsx" || extension === "xls" || extension === "ods") {
         const arrayBuffer = await file.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer, { type: "array" });
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows: any[] = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(arrayBuffer);
+        const firstSheet = workbook.worksheets[0];
+        
+        if (!firstSheet) return parsedTransactions;
+        
+        const rows: any[][] = [];
+        firstSheet.eachRow((row) => {
+          rows.push(row.values as any[]);
+        });
         
         // Detectar si tiene encabezado
-        const firstRow = rows[0] as string[];
+        const firstRow = rows[0] as any[];
         const hasHeader = firstRow?.some((cell: any) => 
           typeof cell === 'string' && (
             cell.toLowerCase().includes("fecha") || 
@@ -227,16 +234,20 @@ export default function Configuracion() {
         
         dataRows.forEach((row: any[], index: number) => {
           if (row.length >= 2) {
-            // Intentar detectar columnas
-            let dateVal = row[0];
-            let descVal = row[1] || "";
-            let amountVal = row[2] || row[3] || 0;
+            // ExcelJS row.values tiene índice 1-based, el primer elemento es undefined
+            const cells = row.slice(1);
+            let dateVal = cells[0];
+            let descVal = cells[1] || "";
+            let amountVal = cells[2] || cells[3] || 0;
             
-            // Convertir fecha de Excel si es necesario
+            // Convertir fecha
             let dateStr = "";
-            if (typeof dateVal === "number") {
-              const excelDate = XLSX.SSF.parse_date_code(dateVal);
-              dateStr = `${excelDate.y}-${String(excelDate.m).padStart(2, '0')}-${String(excelDate.d).padStart(2, '0')}`;
+            if (dateVal instanceof Date) {
+              dateStr = dateVal.toISOString().slice(0, 10);
+            } else if (typeof dateVal === "number") {
+              // Excel serial date
+              const date = new Date((dateVal - 25569) * 86400 * 1000);
+              dateStr = date.toISOString().slice(0, 10);
             } else if (typeof dateVal === "string") {
               dateStr = parseDateString(dateVal);
             } else {
