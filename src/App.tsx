@@ -20,6 +20,8 @@ import Cuenta from "./pages/Cuenta";
 import Configuracion from "./pages/Configuracion";
 import Recomendaciones from "./pages/Recomendaciones";
 import CalculadoraIRPF from "./pages/CalculadoraIRPF";
+import Notificaciones from "./pages/Notificaciones";
+import Manual from "./pages/Manual";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "next-themes";
 import { useNotificationGenerator } from "./hooks/useNotificationGenerator";
@@ -65,6 +67,8 @@ const App = () => (
                 <Route path="resultados" element={<EstadoResultados />} />
                 <Route path="enciclopedia" element={<Enciclopedia />} />
                 <Route path="recomendaciones" element={<Recomendaciones />} />
+                <Route path="notificaciones" element={<Notificaciones />} />
+                <Route path="manual" element={<Manual />} />
                 <Route path="cuenta" element={<Cuenta />} />
                 <Route path="configuracion" element={<Configuracion />} />
               </Route>

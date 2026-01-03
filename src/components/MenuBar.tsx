@@ -19,12 +19,15 @@ import {
   Search,
   PanelLeft,
   PanelLeftClose,
+  Bell,
+  Book,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { NotificationCenter } from "@/components/NotificationCenter";
+import { Badge } from "@/components/ui/badge";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface MenuBarProps {
   onSearchClick?: () => void;
@@ -34,6 +37,7 @@ interface MenuBarProps {
 
 export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible }: MenuBarProps) {
   const navigate = useNavigate();
+  const { unreadCount } = useNotifications();
   const isElectron =
     typeof window !== "undefined" && typeof (window as any).electron !== "undefined";
   const [nativeMenuVisible, setNativeMenuVisible] = useState(false);
@@ -62,9 +66,9 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
   };
 
   return (
-    <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-2 relative">
+    <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-2 h-12">
       {/* Left section: Toggle + Menu */}
-      <div className="flex items-center flex-1">
+      <div className="flex items-center">
         {/* Botón para mostrar/ocultar sidebar */}
         <Button
           variant="ghost"
@@ -109,32 +113,32 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
             </MenubarContent>
           </MenubarMenu>
 
-            <MenubarMenu>
-              <MenubarTrigger>Vista</MenubarTrigger>
-              <MenubarContent>
-                <MenubarItem onClick={() => navigate("/")}>Panel Principal</MenubarItem>
-                <MenubarItem onClick={() => navigate("/transacciones")}>Transacciones</MenubarItem>
-                <MenubarItem onClick={() => navigate("/resumen")}>Resumen</MenubarItem>
-                <MenubarSeparator />
+          <MenubarMenu>
+            <MenubarTrigger>Vista</MenubarTrigger>
+            <MenubarContent>
+              <MenubarItem onClick={() => navigate("/")}>Panel Principal</MenubarItem>
+              <MenubarItem onClick={() => navigate("/transacciones")}>Transacciones</MenubarItem>
+              <MenubarItem onClick={() => navigate("/resumen")}>Resumen</MenubarItem>
+              <MenubarSeparator />
 
-                {isElectron && (
-                  <>
-                    <MenubarCheckboxItem
-                      checked={nativeMenuVisible}
-                      onCheckedChange={handleNativeMenuToggle}
-                    >
-                      Mostrar menú del sistema
-                    </MenubarCheckboxItem>
-                    <MenubarSeparator />
-                  </>
-                )}
+              {isElectron && (
+                <>
+                  <MenubarCheckboxItem
+                    checked={nativeMenuVisible}
+                    onCheckedChange={handleNativeMenuToggle}
+                  >
+                    Mostrar menú del sistema
+                  </MenubarCheckboxItem>
+                  <MenubarSeparator />
+                </>
+              )}
 
-                <MenubarItem onClick={() => navigate("/libro-diario")}>Libro Diario</MenubarItem>
-                <MenubarItem onClick={() => navigate("/libro-mayor")}>Libro Mayor</MenubarItem>
-                <MenubarItem onClick={() => navigate("/balance")}>Balance General</MenubarItem>
-                <MenubarItem onClick={() => navigate("/resultados")}>Estado de Resultados</MenubarItem>
-              </MenubarContent>
-            </MenubarMenu>
+              <MenubarItem onClick={() => navigate("/libro-diario")}>Libro Diario</MenubarItem>
+              <MenubarItem onClick={() => navigate("/libro-mayor")}>Libro Mayor</MenubarItem>
+              <MenubarItem onClick={() => navigate("/balance")}>Balance General</MenubarItem>
+              <MenubarItem onClick={() => navigate("/resultados")}>Estado de Resultados</MenubarItem>
+            </MenubarContent>
+          </MenubarMenu>
 
           <MenubarMenu>
             <MenubarTrigger>Herramientas</MenubarTrigger>
@@ -158,6 +162,10 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
           <MenubarMenu>
             <MenubarTrigger>Ayuda</MenubarTrigger>
             <MenubarContent>
+              <MenubarItem onClick={() => navigate("/manual")}>
+                <Book className="mr-2 h-4 w-4" />
+                Manual de Usuario
+              </MenubarItem>
               <MenubarItem onClick={() => navigate("/enciclopedia")}>
                 <HelpCircle className="mr-2 h-4 w-4" />
                 Enciclopedia
@@ -177,16 +185,14 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
       </div>
 
       {/* Center section: App Name */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-        <div className="px-4 py-1 rounded-md bg-primary/8 border border-primary/10">
-          <h1 className="text-sm font-semibold tracking-wide bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Cap Finanzas
-          </h1>
-        </div>
+      <div className="flex-1 flex justify-center">
+        <span className="text-sm font-semibold tracking-wide bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          Cap Finanzas
+        </span>
       </div>
     
       {/* Right section: Search + Notifications */}
-      <div className="flex items-center gap-2 flex-1 justify-end">
+      <div className="flex items-center gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -200,8 +206,23 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
           </kbd>
         </Button>
         
-        {/* Centro de Notificaciones */}
-        <NotificationCenter />
+        {/* Botón de Notificaciones - navega a la página */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          onClick={() => navigate("/notificaciones")}
+        >
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <Badge
+              variant="destructive"
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            >
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </Badge>
+          )}
+        </Button>
       </div>
     </div>
   );
