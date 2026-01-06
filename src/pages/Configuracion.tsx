@@ -22,6 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
 import { useState, useRef } from "react";
 import { useAutoUpdater } from "@/hooks/useAutoUpdater";
 import ExcelJS from "exceljs";
