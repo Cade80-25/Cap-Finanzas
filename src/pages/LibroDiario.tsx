@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useJournalTransactions, type JournalTransaction } from "@/hooks/useJournalTransactions";
 import {
   Table,
   TableBody,
@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type Transaction = { id: number; date: string; account: string; description: string; debit: number; credit: number };
+type Transaction = JournalTransaction;
 
 // Sistema inteligente de validación de transacciones
 const validateTransaction = (account: string, description: string, debit: number, credit: number) => {
@@ -106,10 +106,7 @@ export default function LibroDiario() {
     }>
   >([]);
 
-  const [transactions, setTransactions] = useLocalStorage<Transaction[]>(
-    "cap-finanzas-libro-diario-transactions",
-    []
-  );
+  const { transactions, setTransactions } = useJournalTransactions();
 
   const resetForm = () => {
     setValidationSuggestions([]);

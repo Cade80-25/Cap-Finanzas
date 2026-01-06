@@ -29,16 +29,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useAccountingData } from "@/hooks/useAccountingData";
+import { useBudgets, type BudgetItem } from "@/hooks/useBudgets";
 
-type PresupuestoItem = {
-  id: string;
-  categoria: string;
-  cuentaAsociada: string;
-  presupuesto: number;
-  color: string;
-};
+type PresupuestoItem = BudgetItem;
 
 export default function Presupuesto() {
   const [open, setOpen] = useState(false);
@@ -48,10 +42,7 @@ export default function Presupuesto() {
 
   const { estadoResultados, ACCOUNT_CATEGORIES } = useAccountingData();
 
-  const [presupuestoData, setPresupuestoData] = useLocalStorage<PresupuestoItem[]>(
-    "cap-finanzas-presupuesto-v2",
-    []
-  );
+  const { budgets: presupuestoData, setBudgets: setPresupuestoData } = useBudgets();
 
   // Calcular gastos reales por cada presupuesto
   const presupuestosConGastos = presupuestoData.map((item) => {

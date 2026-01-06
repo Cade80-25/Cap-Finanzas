@@ -22,11 +22,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { useTheme } from "next-themes";
 import { useState, useRef } from "react";
 import { useAutoUpdater } from "@/hooks/useAutoUpdater";
 import ExcelJS from "exceljs";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useJournalTransactions } from "@/hooks/useJournalTransactions";
+import { useBudgets } from "@/hooks/useBudgets";
 import { useSecurity } from "@/hooks/useSecurity";
 import { useAdvancedFeatures } from "@/hooks/useAdvancedFeatures";
 import { ChangePinDialog, BackupDialog, TwoFactorDialog } from "@/components/SecurityDialogs";
@@ -106,10 +106,8 @@ export default function Configuracion() {
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   
-  const [transactions, setTransactions] = useLocalStorage<Transaction[]>(
-    "cap-finanzas-libro-diario-transactions",
-    []
-  );
+  const { budgets } = useBudgets();
+  const { transactions, setTransactions } = useJournalTransactions();
   
   // Security hook
   const security = useSecurity();
@@ -138,13 +136,12 @@ export default function Configuracion() {
 
   // Función para exportar datos
   const handleExport = () => {
-    const allData = {
-      version: "1.0",
-      exportDate: new Date().toISOString(),
-      transactions,
-      presupuesto: JSON.parse(localStorage.getItem("cap-finanzas-presupuesto") || "[]"),
-      transacciones: JSON.parse(localStorage.getItem("cap-finanzas-transacciones") || "[]"),
-    };
+     const allData = {
+       version: "1.0",
+       exportDate: new Date().toISOString(),
+       transactions,
+       presupuesto: budgets,
+     };
 
     let content: string;
     let filename: string;

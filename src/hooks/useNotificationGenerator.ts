@@ -1,19 +1,12 @@
 import { useEffect, useRef } from "react";
-import { useLocalStorage } from "./useLocalStorage";
 import { useNotifications } from "./useNotifications";
 import { useAccountingData } from "./useAccountingData";
-
-interface PresupuestoItem {
-  categoria: string;
-  presupuesto: number;
-  gastado: number;
-  color: string;
-}
+import { useBudgets } from "./useBudgets";
 
 export function useNotificationGenerator() {
   const { addNotification, settings } = useNotifications();
-  const { estadoResultados, totales } = useAccountingData();
-  const [presupuestoData] = useLocalStorage<PresupuestoItem[]>("cap-finanzas-presupuesto", []);
+  const { estadoResultados, ACCOUNT_CATEGORIES } = useAccountingData();
+  const { budgets: presupuestoData } = useBudgets();
   const lastCheckRef = useRef<string>("");
 
   useEffect(() => {
@@ -26,12 +19,25 @@ export function useNotificationGenerator() {
 
     // Verificar alertas de presupuesto
     presupuestoData.forEach((item) => {
-      const porcentaje = item.presupuesto > 0 ? (item.gastado / item.presupuesto) * 100 : 0;
+      const cuentaLabel = item.cuentaAsociada
+        ? ACCOUNT_CATEGORIES[item.cuentaAsociada]?.label
+        : undefined;
+
+      const gastoRelacionado = cuentaLabel
+        ? estadoResultados.gastos.find((g) => g.name === cuentaLabel)
+        : estadoResultados.gastos.find((g) => {
+            const a = g.name.toLowerCase();
+            const b = item.categoria.toLowerCase();
+            return a.includes(b) || b.includes(a);
+          });
+
+      const gastado = gastoRelacionado?.value || 0;
+      const porcentaje = item.presupuesto > 0 ? (gastado / item.presupuesto) * 100 : 0;
 
       if (porcentaje >= 100) {
         addNotification({
           title: `¡Presupuesto excedido!`,
-          message: `Has excedido el presupuesto de "${item.categoria}" por $${(item.gastado - item.presupuesto).toFixed(2)}`,
+          message: `Has excedido el presupuesto de "${item.categoria}" por $${(gastado - item.presupuesto).toFixed(2)}`,
           type: "error",
           category: "presupuesto",
         });

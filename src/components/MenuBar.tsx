@@ -88,7 +88,7 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
           <MenubarMenu>
             <MenubarTrigger>Archivo</MenubarTrigger>
             <MenubarContent>
-              <MenubarItem onClick={() => navigate("/transacciones")}>
+              <MenubarItem onClick={() => navigate("/libro-diario")}>
                 <FileText className="mr-2 h-4 w-4" />
                 Nueva Transacción
                 <MenubarShortcut>⌘N</MenubarShortcut>

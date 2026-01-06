@@ -147,12 +147,23 @@ export function useSecurity() {
       const backup = JSON.parse(backupJson);
       if (!backup.data) return false;
       
+      const storageKeyMap: Record<string, string> = {
+        // backups antiguos
+        transactions: "cap-finanzas-libro-diario-transactions",
+        transacciones: "cap-finanzas-libro-diario-transactions",
+        // actuales
+        presupuesto: "cap-finanzas-presupuesto",
+        config: "cap-finanzas-config",
+        cuenta: "cap-finanzas-cuenta",
+        categorias: "cap-finanzas-categorias",
+      };
+
       Object.entries(backup.data).forEach(([key, value]) => {
-        if (value) {
-          localStorage.setItem(`cap-finanzas-${key}`, value as string);
-        }
+        if (!value) return;
+        const storageKey = storageKeyMap[key] ?? `cap-finanzas-${key}`;
+        localStorage.setItem(storageKey, value as string);
       });
-      
+
       return true;
     } catch {
       return false;

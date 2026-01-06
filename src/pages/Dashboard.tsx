@@ -7,41 +7,47 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { useAccountingData } from "@/hooks/useAccountingData";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-
-interface PresupuestoItem {
-  id: number;
-  nombre: string;
-  tipo: string;
-  presupuestado: number;
-  actual: number;
-  icono: string;
-}
+import { useBudgets } from "@/hooks/useBudgets";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { totales, resumenMensual, datosCategorias, transaccionesRecientes, estadoResultados } = useAccountingData();
-  const [presupuestoData] = useLocalStorage<PresupuestoItem[]>("cap-finanzas-presupuesto", []);
+  const {
+    totales,
+    resumenMensual,
+    datosCategorias,
+    transaccionesRecientes,
+    estadoResultados,
+    ACCOUNT_CATEGORIES,
+  } = useAccountingData();
+  const { budgets: presupuestoData } = useBudgets();
 
-  // Calcular alertas de presupuesto
+  // Calcular alertas de presupuesto (desde Presupuesto + Libro Diario)
   const budgetAlerts = presupuestoData
-    .filter(p => p.presupuestado > 0)
-    .map(p => {
-      // Buscar gastos relacionados
-      const gastoRelacionado = estadoResultados.gastos.find(g => 
-        g.name.toLowerCase().includes(p.nombre.toLowerCase()) ||
-        p.nombre.toLowerCase().includes(g.name.toLowerCase())
-      );
+    .filter((p) => p.presupuesto > 0)
+    .map((p) => {
+      const cuentaLabel = p.cuentaAsociada
+        ? ACCOUNT_CATEGORIES[p.cuentaAsociada]?.label
+        : undefined;
+
+      const gastoRelacionado = cuentaLabel
+        ? estadoResultados.gastos.find((g) => g.name === cuentaLabel)
+        : estadoResultados.gastos.find((g) => {
+            const a = g.name.toLowerCase();
+            const b = p.categoria.toLowerCase();
+            return a.includes(b) || b.includes(a);
+          });
+
       const spent = gastoRelacionado?.value || 0;
-      const percentage = Math.round((spent / p.presupuestado) * 100);
+      const percentage = p.presupuesto > 0 ? Math.round((spent / p.presupuesto) * 100) : 0;
+
       return {
-        category: p.nombre,
+        category: p.categoria,
         spent,
-        budget: p.presupuestado,
+        budget: p.presupuesto,
         percentage,
       };
     })
-    .filter(a => a.percentage >= 70)
+    .filter((a) => a.percentage >= 70)
     .sort((a, b) => b.percentage - a.percentage)
     .slice(0, 3);
 
