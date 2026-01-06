@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useLocalStorage } from "./useLocalStorage";
+import { useJournalTransactions } from "./useJournalTransactions";
 
 // Tipo de transacción del Libro Diario
 export type Transaction = {
@@ -32,10 +32,7 @@ const ACCOUNT_CATEGORIES: Record<string, { type: "activo" | "pasivo" | "patrimon
 };
 
 export function useAccountingData() {
-  const [transactions] = useLocalStorage<Transaction[]>(
-    "cap-finanzas-libro-diario-transactions",
-    []
-  );
+  const { transactions } = useJournalTransactions();
 
   // Libro Mayor: agrupar transacciones por cuenta
   const libroMayor = useMemo(() => {
