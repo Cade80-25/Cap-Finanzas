@@ -16,6 +16,9 @@ const JOURNAL_KEY = "cap-finanzas-libro-diario-transactions";
 const LEGACY_KEYS = [
   "cap-finanzas-transacciones",
   "cap-finanzas-transactions",
+  "transactions",
+  "finanzas-transacciones",
+  "libro-diario-transactions",
 ];
 
 function asNumber(v: unknown): number {
