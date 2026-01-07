@@ -230,11 +230,29 @@ export function useAccountingData() {
       .map((tx) => {
         const category = ACCOUNT_CATEGORIES[tx.account];
         const isIngreso = category?.type === "ingreso";
+        const isGasto = category?.type === "gasto";
+        
+        // Ingresos: credit positivo, Gastos: debit como negativo
+        let amount = 0;
+        let type: "income" | "expense" = "expense";
+        
+        if (isIngreso) {
+          amount = tx.credit - tx.debit; // Ingresos son créditos (positivos)
+          type = "income";
+        } else if (isGasto) {
+          amount = -(tx.debit - tx.credit); // Gastos son débitos (negativos)
+          type = "expense";
+        } else {
+          // Para otras cuentas (activos, pasivos, etc.)
+          amount = tx.debit - tx.credit;
+          type = tx.credit > tx.debit ? "income" : "expense";
+        }
+
         return {
           id: tx.id,
           description: tx.description,
-          amount: isIngreso ? tx.credit : -tx.debit,
-          type: isIngreso ? "income" : "expense",
+          amount,
+          type,
           date: tx.date,
         };
       });
