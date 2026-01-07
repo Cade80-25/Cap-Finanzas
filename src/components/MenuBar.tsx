@@ -19,14 +19,12 @@ import {
   Search,
   PanelLeft,
   PanelLeftClose,
-  Bell,
   Book,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useNotifications } from "@/hooks/useNotifications";
 
 interface MenuBarProps {
   onSearchClick?: () => void;
@@ -36,7 +34,6 @@ interface MenuBarProps {
 
 export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible }: MenuBarProps) {
   const navigate = useNavigate();
-  const { unreadCount } = useNotifications();
   const isElectron =
     typeof window !== "undefined" && typeof (window as any).electron !== "undefined";
   const [nativeMenuVisible, setNativeMenuVisible] = useState(false);
@@ -190,8 +187,8 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
         </span>
       </div>
     
-      {/* Right section: Search + Notifications */}
-      <div className="flex items-center gap-2 pr-1">
+      {/* Right section: Search */}
+      <div className="flex items-center gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -203,21 +200,6 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
           <kbd className="hidden md:inline pointer-events-none h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
             <span className="text-xs">⌘</span>K
           </kbd>
-        </Button>
-        
-        {/* Botón de Notificaciones - navega a la página */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative h-9 w-9"
-          onClick={() => navigate("/notificaciones")}
-        >
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute top-0.5 right-0.5 h-4 min-w-4 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
-          )}
         </Button>
       </div>
     </div>
