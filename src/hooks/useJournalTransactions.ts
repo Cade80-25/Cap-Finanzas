@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 
 export type JournalTransaction = {
@@ -10,15 +10,19 @@ export type JournalTransaction = {
   credit: number;
 };
 
-const JOURNAL_KEY = "cap-finanzas-libro-diario-transactions";
+// KEY ÚNICA Y DEFINITIVA para todas las transacciones
+const JOURNAL_KEY = "cap-finanzas-journal";
 
-// Keys legacy que aparecieron en versiones anteriores o en backups
+// Keys legacy para migración automática
 const LEGACY_KEYS = [
+  "cap-finanzas-libro-diario-transactions",
   "cap-finanzas-transacciones",
   "cap-finanzas-transactions",
   "transactions",
   "finanzas-transacciones",
   "libro-diario-transactions",
+  "journal-transactions",
+  "diario-transacciones",
 ];
 
 function asNumber(v: unknown): number {
@@ -60,41 +64,76 @@ function normalizeTransaction(raw: any, index: number): JournalTransaction | nul
   };
 }
 
+// Función para obtener transacciones directamente de localStorage
+function getStoredTransactions(): JournalTransaction[] {
+  // Primero intentar la key principal
+  const mainData = localStorage.getItem(JOURNAL_KEY);
+  if (mainData) {
+    try {
+      const parsed = JSON.parse(mainData);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    } catch {}
+  }
+  
+  // Si no hay datos en la key principal, buscar en legacy
+  for (const legacyKey of LEGACY_KEYS) {
+    const raw = localStorage.getItem(legacyKey);
+    if (!raw) continue;
+    
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed) || parsed.length === 0) continue;
+      
+      const normalized = parsed
+        .map((item, idx) => normalizeTransaction(item, idx))
+        .filter(Boolean) as JournalTransaction[];
+      
+      if (normalized.length > 0) {
+        // Migrar datos a la nueva key
+        const sorted = normalized.sort((a, b) => a.date.localeCompare(b.date));
+        localStorage.setItem(JOURNAL_KEY, JSON.stringify(sorted));
+        return sorted;
+      }
+    } catch {}
+  }
+  
+  return [];
+}
+
 export function useJournalTransactions() {
-  const [transactions, setTransactions] = useLocalStorage<JournalTransaction[]>(
+  const [transactions, setTransactionsInternal] = useLocalStorage<JournalTransaction[]>(
     JOURNAL_KEY,
     []
   );
 
-  // Migración: si no hay transacciones en la key actual, intentar traer de keys legacy
+  // Migración automática al montar
   useEffect(() => {
-    if (transactions.length > 0) return;
-
-    for (const legacyKey of LEGACY_KEYS) {
-      const raw = localStorage.getItem(legacyKey);
-      if (!raw) continue;
-
-      try {
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed)) continue;
-
-        const normalized = parsed
-          .map((item, idx) => normalizeTransaction(item, idx))
-          .filter(Boolean) as JournalTransaction[];
-
-        if (normalized.length > 0) {
-          setTransactions(
-            normalized.sort((a, b) => a.date.localeCompare(b.date))
-          );
-          // No borramos la legacy por seguridad: permite rollback si el usuario necesita.
-        }
-      } catch {
-        // ignore
+    if (transactions.length === 0) {
+      const migrated = getStoredTransactions();
+      if (migrated.length > 0) {
+        setTransactionsInternal(migrated);
       }
-
-      break;
     }
-  }, [transactions.length, setTransactions]);
+  }, []);
+
+  // Wrapper para setTransactions que asegura persistencia inmediata
+  const setTransactions = useCallback((
+    value: JournalTransaction[] | ((prev: JournalTransaction[]) => JournalTransaction[])
+  ) => {
+    setTransactionsInternal((prev) => {
+      const newValue = typeof value === "function" ? value(prev) : value;
+      // Forzar persistencia inmediata
+      localStorage.setItem(JOURNAL_KEY, JSON.stringify(newValue));
+      // Disparar evento para sincronizar otras tabs/componentes
+      window.dispatchEvent(new StorageEvent("storage", {
+        key: JOURNAL_KEY,
+        newValue: JSON.stringify(newValue),
+      }));
+      return newValue;
+    });
+  }, [setTransactionsInternal]);
 
   return { transactions, setTransactions };
 }

@@ -11,9 +11,7 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.cjs')
-    },
-    // Usamos PNG aquí para evitar problemas de render (icono cortado) en algunos Windows
-    icon: path.join(__dirname, '../public/icon-final.png')
+    }
   });
 
   // Oculta el menú nativo (File/Edit/View/...) por defecto, pero permite mostrarlo luego

@@ -288,59 +288,155 @@ export default function Configuracion() {
           }));
         }
       } else if (extension === "pfd") {
-        // Personal Finances Data format - típicamente XML o texto estructurado
-        // Intentar parsear como XML primero
-        if (text.includes("<?xml") || text.includes("<transactions>") || text.includes("<Transaction>")) {
+        // Personal Finances Data format - múltiples formatos posibles
+        // Parsear archivo PFD de Personal Finances (soporta XML, texto delimitado, binario estructurado)
+        
+        // Intentar detectar si es binario (caracteres no imprimibles)
+        const isBinary = text.split('').some((char, i) => {
+          if (i > 500) return false; // Solo revisar primeros 500 chars
+          const code = char.charCodeAt(0);
+          return code < 32 && code !== 9 && code !== 10 && code !== 13;
+        });
+        
+        if (!isBinary && (text.includes("<?xml") || text.includes("<") && text.includes(">"))) {
+          // Formato XML
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(text, "text/xml");
           
-          // Buscar transacciones en diferentes estructuras XML posibles
-          const txNodes = xmlDoc.querySelectorAll("Transaction, transaction, record, entry");
-          let txIndex = 0;
+          // Buscar en múltiples estructuras XML posibles de Personal Finances
+          const selectors = [
+            "Transaction", "transaction", "record", "entry", "item",
+            "Row", "row", "Data", "data", "Movimiento", "movimiento",
+            "Registro", "registro", "Operacion", "operacion"
+          ];
           
+          let txNodes: Element[] = [];
+          for (const selector of selectors) {
+            const nodes = xmlDoc.querySelectorAll(selector);
+            if (nodes.length > 0) {
+              txNodes = Array.from(nodes);
+              break;
+            }
+          }
+          
+          // Si no encuentra nodos específicos, buscar cualquier elemento con datos de fecha/monto
+          if (txNodes.length === 0) {
+            const allElements = xmlDoc.querySelectorAll("*");
+            txNodes = Array.from(allElements).filter(el => {
+              const hasDate = el.querySelector("Date, date, Fecha, fecha, FECHA");
+              const hasAmount = el.querySelector("Amount, amount, Monto, monto, MONTO, Importe, importe");
+              return hasDate || hasAmount;
+            });
+          }
+          
+          let txIndex = 0;
           txNodes.forEach((node) => {
-            const date = node.querySelector("Date, date, fecha")?.textContent || 
-                        node.getAttribute("date") || "";
-            const desc = node.querySelector("Description, description, Memo, memo, descripcion")?.textContent ||
-                        node.getAttribute("description") || "";
-            const amount = parseFloat(
-              node.querySelector("Amount, amount, monto, Value, value")?.textContent ||
-              node.getAttribute("amount") || "0"
-            );
-            const category = node.querySelector("Category, category, Account, account")?.textContent ||
-                            node.getAttribute("category") || "";
+            // Buscar fecha en múltiples campos posibles
+            const dateFields = ["Date", "date", "Fecha", "fecha", "FECHA", "FechaOperacion", "FechaValor"];
+            let date = "";
+            for (const field of dateFields) {
+              date = node.querySelector(field)?.textContent || node.getAttribute(field.toLowerCase()) || "";
+              if (date) break;
+            }
+            
+            // Buscar descripción
+            const descFields = ["Description", "description", "Memo", "memo", "Descripcion", "descripcion", 
+                               "DESCRIPCION", "Concepto", "concepto", "CONCEPTO", "Detalle", "detalle"];
+            let desc = "";
+            for (const field of descFields) {
+              desc = node.querySelector(field)?.textContent || node.getAttribute(field.toLowerCase()) || "";
+              if (desc) break;
+            }
+            
+            // Buscar monto
+            const amountFields = ["Amount", "amount", "Monto", "monto", "MONTO", "Importe", "importe", 
+                                 "IMPORTE", "Valor", "valor", "Value", "value"];
+            let amountStr = "";
+            for (const field of amountFields) {
+              amountStr = node.querySelector(field)?.textContent || node.getAttribute(field.toLowerCase()) || "";
+              if (amountStr) break;
+            }
+            
+            // Buscar categoría
+            const catFields = ["Category", "category", "Categoria", "categoria", "CATEGORIA", 
+                              "Account", "account", "Cuenta", "cuenta", "CUENTA", "Tipo", "tipo"];
+            let category = "";
+            for (const field of catFields) {
+              category = node.querySelector(field)?.textContent || node.getAttribute(field.toLowerCase()) || "";
+              if (category) break;
+            }
+            
+            const amount = parseFloat(String(amountStr).replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0;
             
             if (date || desc || amount !== 0) {
               parsedTransactions.push({
                 id: Date.now() + txIndex++,
                 date: parseDateString(date) || new Date().toISOString().slice(0, 10),
                 account: detectAccount(category || desc),
-                description: desc || "Importado PFD",
+                description: desc || category || "Importado PFD",
                 debit: amount > 0 ? amount : 0,
                 credit: amount < 0 ? Math.abs(amount) : 0,
               });
             }
           });
         } else {
-          // Intentar parsear como texto delimitado (tab o pipe)
-          const lines = text.split("\n").filter(line => line.trim());
-          const delimiter = text.includes("\t") ? "\t" : text.includes("|") ? "|" : ",";
+          // Formato texto delimitado o propietario
+          const lines = text.split(/[\r\n]+/).filter(line => line.trim());
           
-          lines.forEach((line, index) => {
-            if (index === 0 && (line.toLowerCase().includes("date") || line.toLowerCase().includes("fecha"))) {
-              return; // Skip header
-            }
-            const values = line.split(delimiter).map(v => v.trim());
+          // Detectar delimitador
+          const firstLines = lines.slice(0, 5).join('');
+          let delimiter = ',';
+          if (firstLines.includes('\t')) delimiter = '\t';
+          else if (firstLines.includes('|')) delimiter = '|';
+          else if (firstLines.includes(';')) delimiter = ';';
+          
+          // Detectar si hay encabezado
+          const firstLine = lines[0]?.toLowerCase() || '';
+          const hasHeader = firstLine.includes("date") || firstLine.includes("fecha") || 
+                           firstLine.includes("description") || firstLine.includes("descripcion") ||
+                           firstLine.includes("amount") || firstLine.includes("monto");
+          
+          const dataLines = hasHeader ? lines.slice(1) : lines;
+          
+          dataLines.forEach((line, index) => {
+            const values = line.split(delimiter).map(v => v.trim().replace(/^["']|["']$/g, ''));
+            
             if (values.length >= 2) {
-              const amount = parseFloat(values[2] || values[3] || "0");
-              parsedTransactions.push({
-                id: Date.now() + index,
-                date: parseDateString(values[0]) || new Date().toISOString().slice(0, 10),
-                account: detectAccount(values[1]),
-                description: values[1] || "Importado PFD",
-                debit: amount > 0 ? amount : 0,
-                credit: amount < 0 ? Math.abs(amount) : 0,
+              // Intentar identificar qué columna es qué
+              let dateVal = '', descVal = '', amountVal = '';
+              
+              values.forEach((val, i) => {
+                // Detectar fecha por formato
+                if (!dateVal && /^\d{1,4}[\/-]\d{1,2}[\/-]\d{1,4}/.test(val)) {
+                  dateVal = val;
+                }
+                // Detectar monto por formato numérico con posibles signos
+                else if (!amountVal && /^[+-]?\$?\d+([.,]\d+)?$/.test(val.replace(/\s/g, ''))) {
+                  amountVal = val;
+                }
+                // El resto es descripción
+                else if (!descVal && val.length > 2) {
+                  descVal = val;
+                }
               });
+              
+              // Fallback: usar posiciones fijas si no se detectó automáticamente
+              if (!dateVal) dateVal = values[0];
+              if (!descVal) descVal = values[1] || values[0];
+              if (!amountVal) amountVal = values[2] || values[3] || "0";
+              
+              const amount = parseFloat(String(amountVal).replace(/[^0-9.,-]/g, '').replace(',', '.')) || 0;
+              
+              if (dateVal || descVal || amount !== 0) {
+                parsedTransactions.push({
+                  id: Date.now() + index,
+                  date: parseDateString(dateVal) || new Date().toISOString().slice(0, 10),
+                  account: detectAccount(descVal),
+                  description: descVal || "Importado PFD",
+                  debit: amount > 0 ? amount : 0,
+                  credit: amount < 0 ? Math.abs(amount) : 0,
+                });
+              }
             }
           });
         }

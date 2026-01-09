@@ -7,7 +7,6 @@ files:
   - electron/**/*
   - package.json
 win:
-  icon: public/icon-final.ico
   target:
     - nsis
 nsis:
@@ -17,6 +16,4 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: "Cap Finanzas"
-  installerIcon: public/icon-final.ico
-  uninstallerIcon: public/icon-final.ico
   include: electron/installer.nsh
