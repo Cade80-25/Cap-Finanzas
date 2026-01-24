@@ -288,26 +288,33 @@ export default function Configuracion() {
           }));
         }
       } else if (extension === "pfd") {
-        // Personal Finances Data format - múltiples formatos posibles
-        // Parsear archivo PFD de Personal Finances (soporta XML, texto delimitado, binario estructurado)
-        
-        // Intentar detectar si es binario (caracteres no imprimibles)
+        // Personal Finances (Alzex Finance) - formato binario SQLite
+        // El archivo .pfd de Alzex es una base de datos SQLite, no se puede leer directamente en el navegador
+        // Verificar si es binario
         const isBinary = text.split('').some((char, i) => {
-          if (i > 500) return false; // Solo revisar primeros 500 chars
+          if (i > 200) return false;
           const code = char.charCodeAt(0);
           return code < 32 && code !== 9 && code !== 10 && code !== 13;
         });
         
-        if (!isBinary && (text.includes("<?xml") || text.includes("<") && text.includes(">"))) {
+        if (isBinary) {
+          // Archivo binario - mostrar mensaje explicativo
+          toast.error("Formato PFD binario detectado", {
+            description: "El archivo .pfd de Alzex Personal Finances es una base de datos SQLite. Por favor, exporta tus datos desde Personal Finances como CSV o Excel y luego impórtalos aquí.",
+            duration: 10000,
+          });
+          return [];
+        }
+        
+        // Si no es binario, intentar parsear como texto/XML
+        if (text.includes("<?xml") || (text.includes("<") && text.includes(">"))) {
           // Formato XML
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(text, "text/xml");
           
-          // Buscar en múltiples estructuras XML posibles de Personal Finances
           const selectors = [
             "Transaction", "transaction", "record", "entry", "item",
-            "Row", "row", "Data", "data", "Movimiento", "movimiento",
-            "Registro", "registro", "Operacion", "operacion"
+            "Row", "row", "Data", "data", "Movimiento", "movimiento"
           ];
           
           let txNodes: Element[] = [];
@@ -319,47 +326,29 @@ export default function Configuracion() {
             }
           }
           
-          // Si no encuentra nodos específicos, buscar cualquier elemento con datos de fecha/monto
-          if (txNodes.length === 0) {
-            const allElements = xmlDoc.querySelectorAll("*");
-            txNodes = Array.from(allElements).filter(el => {
-              const hasDate = el.querySelector("Date, date, Fecha, fecha, FECHA");
-              const hasAmount = el.querySelector("Amount, amount, Monto, monto, MONTO, Importe, importe");
-              return hasDate || hasAmount;
-            });
-          }
-          
-          let txIndex = 0;
-          txNodes.forEach((node) => {
-            // Buscar fecha en múltiples campos posibles
-            const dateFields = ["Date", "date", "Fecha", "fecha", "FECHA", "FechaOperacion", "FechaValor"];
+          txNodes.forEach((node, txIndex) => {
+            const dateFields = ["Date", "date", "Fecha", "fecha"];
             let date = "";
             for (const field of dateFields) {
               date = node.querySelector(field)?.textContent || node.getAttribute(field.toLowerCase()) || "";
               if (date) break;
             }
             
-            // Buscar descripción
-            const descFields = ["Description", "description", "Memo", "memo", "Descripcion", "descripcion", 
-                               "DESCRIPCION", "Concepto", "concepto", "CONCEPTO", "Detalle", "detalle"];
+            const descFields = ["Description", "description", "Memo", "memo", "Descripcion", "descripcion", "Concepto", "concepto"];
             let desc = "";
             for (const field of descFields) {
               desc = node.querySelector(field)?.textContent || node.getAttribute(field.toLowerCase()) || "";
               if (desc) break;
             }
             
-            // Buscar monto
-            const amountFields = ["Amount", "amount", "Monto", "monto", "MONTO", "Importe", "importe", 
-                                 "IMPORTE", "Valor", "valor", "Value", "value"];
+            const amountFields = ["Amount", "amount", "Monto", "monto", "Importe", "importe", "Valor", "value"];
             let amountStr = "";
             for (const field of amountFields) {
               amountStr = node.querySelector(field)?.textContent || node.getAttribute(field.toLowerCase()) || "";
               if (amountStr) break;
             }
             
-            // Buscar categoría
-            const catFields = ["Category", "category", "Categoria", "categoria", "CATEGORIA", 
-                              "Account", "account", "Cuenta", "cuenta", "CUENTA", "Tipo", "tipo"];
+            const catFields = ["Category", "category", "Categoria", "categoria", "Account", "account", "Cuenta", "cuenta"];
             let category = "";
             for (const field of catFields) {
               category = node.querySelector(field)?.textContent || node.getAttribute(field.toLowerCase()) || "";
@@ -370,30 +359,27 @@ export default function Configuracion() {
             
             if (date || desc || amount !== 0) {
               parsedTransactions.push({
-                id: Date.now() + txIndex++,
+                id: Date.now() + txIndex,
                 date: parseDateString(date) || new Date().toISOString().slice(0, 10),
                 account: detectAccount(category || desc),
-                description: desc || category || "Importado PFD",
+                description: desc || category || "Importado",
                 debit: amount > 0 ? amount : 0,
                 credit: amount < 0 ? Math.abs(amount) : 0,
               });
             }
           });
         } else {
-          // Formato texto delimitado o propietario
+          // Formato texto delimitado
           const lines = text.split(/[\r\n]+/).filter(line => line.trim());
           
-          // Detectar delimitador
-          const firstLines = lines.slice(0, 5).join('');
           let delimiter = ',';
-          if (firstLines.includes('\t')) delimiter = '\t';
-          else if (firstLines.includes('|')) delimiter = '|';
-          else if (firstLines.includes(';')) delimiter = ';';
+          const sample = lines.slice(0, 5).join('');
+          if (sample.includes('\t')) delimiter = '\t';
+          else if (sample.includes(';')) delimiter = ';';
+          else if (sample.includes('|')) delimiter = '|';
           
-          // Detectar si hay encabezado
           const firstLine = lines[0]?.toLowerCase() || '';
           const hasHeader = firstLine.includes("date") || firstLine.includes("fecha") || 
-                           firstLine.includes("description") || firstLine.includes("descripcion") ||
                            firstLine.includes("amount") || firstLine.includes("monto");
           
           const dataLines = hasHeader ? lines.slice(1) : lines;
@@ -402,25 +388,18 @@ export default function Configuracion() {
             const values = line.split(delimiter).map(v => v.trim().replace(/^["']|["']$/g, ''));
             
             if (values.length >= 2) {
-              // Intentar identificar qué columna es qué
               let dateVal = '', descVal = '', amountVal = '';
               
-              values.forEach((val, i) => {
-                // Detectar fecha por formato
+              values.forEach((val) => {
                 if (!dateVal && /^\d{1,4}[\/-]\d{1,2}[\/-]\d{1,4}/.test(val)) {
                   dateVal = val;
-                }
-                // Detectar monto por formato numérico con posibles signos
-                else if (!amountVal && /^[+-]?\$?\d+([.,]\d+)?$/.test(val.replace(/\s/g, ''))) {
+                } else if (!amountVal && /^[+-]?\$?[\d,.]+$/.test(val.replace(/\s/g, ''))) {
                   amountVal = val;
-                }
-                // El resto es descripción
-                else if (!descVal && val.length > 2) {
+                } else if (!descVal && val.length > 2) {
                   descVal = val;
                 }
               });
               
-              // Fallback: usar posiciones fijas si no se detectó automáticamente
               if (!dateVal) dateVal = values[0];
               if (!descVal) descVal = values[1] || values[0];
               if (!amountVal) amountVal = values[2] || values[3] || "0";
@@ -432,7 +411,7 @@ export default function Configuracion() {
                   id: Date.now() + index,
                   date: parseDateString(dateVal) || new Date().toISOString().slice(0, 10),
                   account: detectAccount(descVal),
-                  description: descVal || "Importado PFD",
+                  description: descVal || "Importado",
                   debit: amount > 0 ? amount : 0,
                   credit: amount < 0 ? Math.abs(amount) : 0,
                 });
