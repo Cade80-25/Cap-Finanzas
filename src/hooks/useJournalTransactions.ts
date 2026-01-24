@@ -118,22 +118,13 @@ export function useJournalTransactions() {
     }
   }, []);
 
-  // Wrapper para setTransactions que asegura persistencia inmediata
-  const setTransactions = useCallback((
-    value: JournalTransaction[] | ((prev: JournalTransaction[]) => JournalTransaction[])
-  ) => {
-    setTransactionsInternal((prev) => {
-      const newValue = typeof value === "function" ? value(prev) : value;
-      // Forzar persistencia inmediata
-      localStorage.setItem(JOURNAL_KEY, JSON.stringify(newValue));
-      // Disparar evento para sincronizar otras tabs/componentes
-      window.dispatchEvent(new StorageEvent("storage", {
-        key: JOURNAL_KEY,
-        newValue: JSON.stringify(newValue),
-      }));
-      return newValue;
-    });
-  }, [setTransactionsInternal]);
+  // Wrapper directo: useLocalStorage ya maneja persistencia y sincronización
+  const setTransactions = useCallback(
+    (value: JournalTransaction[] | ((prev: JournalTransaction[]) => JournalTransaction[])) => {
+      setTransactionsInternal(value);
+    },
+    [setTransactionsInternal]
+  );
 
   return { transactions, setTransactions };
 }
