@@ -20,9 +20,12 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useAccountingData } from "@/hooks/useAccountingData";
+import { useModeFeatures } from "@/hooks/useModeFeatures";
+import { SimpleTransactionsView } from "@/components/SimpleTransactionsView";
 import { useNavigate } from "react-router-dom";
 
-export default function Transacciones() {
+// Traditional view component
+function TraditionalTransactionsView() {
   const navigate = useNavigate();
   const { transactions, ACCOUNT_CATEGORIES } = useAccountingData();
   const [searchTerm, setSearchTerm] = useState("");
@@ -201,4 +204,16 @@ export default function Transacciones() {
       </Card>
     </div>
   );
+}
+
+export default function Transacciones() {
+  const { isSimpleMode } = useModeFeatures();
+  
+  // Show simplified view for simple mode
+  if (isSimpleMode) {
+    return <SimpleTransactionsView />;
+  }
+  
+  // Show traditional view for accounting mode
+  return <TraditionalTransactionsView />;
 }
