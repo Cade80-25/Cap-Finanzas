@@ -21,6 +21,8 @@ import {
   PanelLeftClose,
   Bell,
   Book,
+  Key,
+  ShoppingCart,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +30,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useNotifications } from "@/hooks/useNotifications";
 import { TutorialButton } from "@/components/TutorialButton";
+import { ModeSelector } from "@/components/ModeSelector";
+import { PurchaseDialog } from "@/components/PurchaseDialog";
+import { ActivationDialog } from "@/components/ActivationDialog";
 
 interface MenuBarProps {
   onSearchClick?: () => void;
@@ -41,6 +46,8 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
   const isElectron =
     typeof window !== "undefined" && typeof (window as any).electron !== "undefined";
   const [nativeMenuVisible, setNativeMenuVisible] = useState(false);
+  const [purchaseOpen, setPurchaseOpen] = useState(false);
+  const [activationOpen, setActivationOpen] = useState(false);
 
   const handleExport = () => {
     toast.success("Exportar datos", {
@@ -181,14 +188,33 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
               </MenubarItem>
             </MenubarContent>
           </MenubarMenu>
+
+          <MenubarMenu>
+            <MenubarTrigger>Licencia</MenubarTrigger>
+            <MenubarContent>
+              <MenubarItem onClick={() => setPurchaseOpen(true)}>
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Ver Planes y Comprar
+              </MenubarItem>
+              <MenubarItem onClick={() => setActivationOpen(true)}>
+                <Key className="mr-2 h-4 w-4" />
+                Activar Licencia
+              </MenubarItem>
+            </MenubarContent>
+          </MenubarMenu>
         </Menubar>
       </div>
 
       {/* Center section: Spacer */}
       <div className="flex-1" />
     
-      {/* Right section: Search + Tutorial + Notifications */}
+      {/* Right section: Mode Selector + Search + Tutorial + Notifications */}
       <div className="flex items-center gap-2">
+        <ModeSelector 
+          compact 
+          onPurchaseClick={() => setPurchaseOpen(true)} 
+        />
+        
         <Button
           variant="outline"
           size="sm"
@@ -220,6 +246,19 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
           )}
         </Button>
       </div>
+
+      <PurchaseDialog
+        open={purchaseOpen}
+        onOpenChange={setPurchaseOpen}
+        onActivate={() => {
+          setPurchaseOpen(false);
+          setActivationOpen(true);
+        }}
+      />
+      <ActivationDialog
+        open={activationOpen}
+        onOpenChange={setActivationOpen}
+      />
     </div>
   );
 }
