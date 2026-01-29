@@ -15,17 +15,55 @@ interface LicenseData {
 const TRIAL_DAYS = 30;
 const LICENSE_KEY = "cap-finanzas-license";
 
-// Simple validation: codes are like "CF-SIMPLE-XXXX" or "CF-TRAD-XXXX"
+// Validate license codes with checksum verification
+// Formats: CF-SIMP-XXXX-XXXXX (simple) or CF-TRAD-XXXX-XXXXX (traditional)
 function validateLicenseCode(code: string): { valid: boolean; mode: LicenseMode | null } {
   const cleanCode = code.trim().toUpperCase();
   
-  if (cleanCode.startsWith("CF-SIMPLE-") && cleanCode.length >= 14) {
+  // New format from license generator: CF-SIMP-XXXX-XXXXX or CF-TRAD-XXXX-XXXXX
+  const simpMatch = cleanCode.match(/^CF-SIMP-([A-Z0-9]{4})-([A-Z0-9]{5})$/);
+  const tradMatch = cleanCode.match(/^CF-TRAD-([A-Z0-9]{4})-([A-Z0-9]{5})$/);
+  const fullMatch = cleanCode.match(/^CF-FULL-([A-Z0-9]{4})-([A-Z0-9]{5})$/);
+  
+  // Legacy format support: CF-SIMPLE-XXXX or CF-TRAD-XXXX
+  const legacySimpleMatch = cleanCode.match(/^CF-SIMPLE-[A-Z0-9]{4,}$/);
+  const legacyTradMatch = cleanCode.match(/^CF-TRAD-[A-Z0-9]{4,}$/);
+  
+  if (simpMatch || legacySimpleMatch) {
+    // Verify checksum for new format
+    if (simpMatch) {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      const codeBody = simpMatch[1] + simpMatch[2].substring(0, 4);
+      let checksum = 0;
+      for (let i = 0; i < codeBody.length; i++) {
+        checksum += codeBody.charCodeAt(i);
+      }
+      const expectedChecksum = chars.charAt(checksum % chars.length);
+      if (simpMatch[2].charAt(4) !== expectedChecksum) {
+        return { valid: false, mode: null };
+      }
+    }
     return { valid: true, mode: "simple" };
   }
-  if (cleanCode.startsWith("CF-TRAD-") && cleanCode.length >= 12) {
+  
+  if (tradMatch || legacyTradMatch) {
+    // Verify checksum for new format
+    if (tradMatch) {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      const codeBody = tradMatch[1] + tradMatch[2].substring(0, 4);
+      let checksum = 0;
+      for (let i = 0; i < codeBody.length; i++) {
+        checksum += codeBody.charCodeAt(i);
+      }
+      const expectedChecksum = chars.charAt(checksum % chars.length);
+      if (tradMatch[2].charAt(4) !== expectedChecksum) {
+        return { valid: false, mode: null };
+      }
+    }
     return { valid: true, mode: "traditional" };
   }
-  if (cleanCode.startsWith("CF-FULL-") && cleanCode.length >= 12) {
+  
+  if (fullMatch) {
     // Full license activates both modes
     return { valid: true, mode: "traditional" };
   }

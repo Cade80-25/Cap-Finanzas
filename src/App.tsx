@@ -22,6 +22,8 @@ import Recomendaciones from "./pages/Recomendaciones";
 import Notificaciones from "./pages/Notificaciones";
 import Manual from "./pages/Manual";
 import NotFound from "./pages/NotFound";
+import LandingPage from "./pages/LandingPage";
+import LicenseGenerator from "./pages/LicenseGenerator";
 import { ThemeProvider } from "next-themes";
 import { useNotificationGenerator } from "./hooks/useNotificationGenerator";
 
@@ -51,6 +53,11 @@ const App = () => (
           <Sonner />
           <Router>
             <Routes>
+              {/* Landing page y rutas públicas */}
+              <Route path="/landing" element={<LandingPage />} />
+              <Route path="/license-generator" element={<LicenseGenerator />} />
+              
+              {/* App principal */}
               <Route path="/" element={<Layout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="transacciones" element={<Transacciones />} />
