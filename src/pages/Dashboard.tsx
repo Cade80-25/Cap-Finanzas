@@ -53,14 +53,14 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
-      <div>
+      <div data-tutorial="dashboard-title">
         <h1 className="text-3xl font-bold mb-2">Panel Principal</h1>
         <p className="text-muted-foreground">
           Resumen general de tus finanzas (datos desde Libro Diario)
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div data-tutorial="dashboard-stats" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Balance Total"
           value={`$${totales.balance.toFixed(2)}`}
@@ -88,7 +88,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="shadow-soft lg:col-span-2">
+        <Card data-tutorial="dashboard-chart" className="shadow-soft lg:col-span-2">
           <CardHeader>
             <CardTitle>Ingresos vs Gastos</CardTitle>
             <CardDescription>Comparativa de los últimos meses</CardDescription>
@@ -166,7 +166,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="shadow-soft">
+        <Card data-tutorial="dashboard-transactions" className="shadow-soft">
           <CardHeader>
             <CardTitle>Transacciones Recientes</CardTitle>
             <CardDescription>

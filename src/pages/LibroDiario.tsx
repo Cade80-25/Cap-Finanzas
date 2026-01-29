@@ -232,7 +232,7 @@ export default function LibroDiario() {
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
-        <div>
+        <div data-tutorial="diario-title">
           <h1 className="text-3xl font-bold mb-2">Libro Diario</h1>
           <p className="text-muted-foreground">
             Registro cronológico de todas las transacciones
@@ -240,7 +240,7 @@ export default function LibroDiario() {
         </div>
         <Dialog open={open} onOpenChange={handleOpenChange}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-primary shadow-soft">
+            <Button data-tutorial="diario-new-btn" className="bg-gradient-primary shadow-soft">
               <Plus className="h-4 w-4 mr-2" />
               Nueva Transacción
             </Button>
@@ -413,7 +413,7 @@ export default function LibroDiario() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Card className="shadow-soft">
+      <Card data-tutorial="diario-table" className="shadow-soft">
         <CardHeader>
           <CardTitle>Asientos Contables</CardTitle>
           <CardDescription>
@@ -428,7 +428,7 @@ export default function LibroDiario() {
                   <TableHead>Fecha</TableHead>
                   <TableHead>Cuenta</TableHead>
                   <TableHead>Descripción</TableHead>
-                  <TableHead className="text-right">Debe</TableHead>
+                  <TableHead data-tutorial="diario-debe-haber" className="text-right">Debe</TableHead>
                   <TableHead className="text-right">Haber</TableHead>
                   <TableHead className="text-right w-24">Acciones</TableHead>
                 </TableRow>

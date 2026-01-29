@@ -26,6 +26,8 @@ import MenuBar from "@/components/MenuBar";
 import GlobalSearch from "@/components/GlobalSearch";
 import { LockScreen } from "@/components/LockScreen";
 import { useSecurity } from "@/hooks/useSecurity";
+import { TutorialOverlay } from "@/components/TutorialOverlay";
+import { WelcomeDialog } from "@/components/WelcomeDialog";
 
 const navigation = [
   { name: "Panel Principal", href: "/", icon: Home },
@@ -60,6 +62,10 @@ export default function Layout() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
+      {/* Tutorial components */}
+      <WelcomeDialog />
+      <TutorialOverlay />
+
       {/* MenuBar siempre visible en la parte superior */}
       <MenuBar 
         onSearchClick={() => setSearchOpen(true)} 
