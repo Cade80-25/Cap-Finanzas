@@ -33,6 +33,7 @@ import { TutorialButton } from "@/components/TutorialButton";
 import { ModeSelector } from "@/components/ModeSelector";
 import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { ActivationDialog } from "@/components/ActivationDialog";
+import { useModeFeatures } from "@/hooks/useModeFeatures";
 
 interface MenuBarProps {
   onSearchClick?: () => void;
@@ -43,11 +44,16 @@ interface MenuBarProps {
 export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible }: MenuBarProps) {
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
+  const { isSimpleMode, isFeatureAvailable } = useModeFeatures();
   const isElectron =
     typeof window !== "undefined" && typeof (window as any).electron !== "undefined";
   const [nativeMenuVisible, setNativeMenuVisible] = useState(false);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const [activationOpen, setActivationOpen] = useState(false);
+
+  // Determine where to add transactions based on mode
+  const addTransactionRoute = isSimpleMode ? "/transacciones" : "/libro-diario";
+  const addTransactionLabel = isSimpleMode ? "Nuevo Movimiento" : "Nueva Transacción";
 
   const handleExport = () => {
     toast.success("Exportar datos", {
@@ -95,9 +101,9 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
           <MenubarMenu>
             <MenubarTrigger>Archivo</MenubarTrigger>
             <MenubarContent>
-              <MenubarItem onClick={() => navigate("/libro-diario")}>
+              <MenubarItem onClick={() => navigate(addTransactionRoute)}>
                 <FileText className="mr-2 h-4 w-4" />
-                Nueva Transacción
+                {addTransactionLabel}
                 <MenubarShortcut>⌘N</MenubarShortcut>
               </MenubarItem>
               <MenubarSeparator />
@@ -124,7 +130,9 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
             <MenubarTrigger>Vista</MenubarTrigger>
             <MenubarContent>
               <MenubarItem onClick={() => navigate("/")}>Panel Principal</MenubarItem>
-              <MenubarItem onClick={() => navigate("/transacciones")}>Transacciones</MenubarItem>
+              <MenubarItem onClick={() => navigate("/transacciones")}>
+                {isSimpleMode ? "Movimientos" : "Transacciones"}
+              </MenubarItem>
               <MenubarItem onClick={() => navigate("/resumen")}>Resumen</MenubarItem>
               <MenubarSeparator />
 
@@ -140,10 +148,19 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
                 </>
               )}
 
-              <MenubarItem onClick={() => navigate("/libro-diario")}>Libro Diario</MenubarItem>
-              <MenubarItem onClick={() => navigate("/libro-mayor")}>Libro Mayor</MenubarItem>
-              <MenubarItem onClick={() => navigate("/balance")}>Balance General</MenubarItem>
-              <MenubarItem onClick={() => navigate("/resultados")}>Estado de Resultados</MenubarItem>
+              {/* Traditional accounting views - only show in traditional mode */}
+              {isFeatureAvailable("journal") && (
+                <MenubarItem onClick={() => navigate("/libro-diario")}>Libro Diario</MenubarItem>
+              )}
+              {isFeatureAvailable("ledger") && (
+                <MenubarItem onClick={() => navigate("/libro-mayor")}>Libro Mayor</MenubarItem>
+              )}
+              {isFeatureAvailable("balance") && (
+                <MenubarItem onClick={() => navigate("/balance")}>Balance General</MenubarItem>
+              )}
+              {isFeatureAvailable("incomeStatement") && (
+                <MenubarItem onClick={() => navigate("/resultados")}>Estado de Resultados</MenubarItem>
+              )}
             </MenubarContent>
           </MenubarMenu>
 
@@ -173,10 +190,12 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
                 <Book className="mr-2 h-4 w-4" />
                 Manual de Usuario
               </MenubarItem>
-              <MenubarItem onClick={() => navigate("/enciclopedia")}>
-                <HelpCircle className="mr-2 h-4 w-4" />
-                Enciclopedia
-              </MenubarItem>
+              {isFeatureAvailable("encyclopedia") && (
+                <MenubarItem onClick={() => navigate("/enciclopedia")}>
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  Enciclopedia
+                </MenubarItem>
+              )}
               <MenubarItem>
                 <Keyboard className="mr-2 h-4 w-4" />
                 Atajos de Teclado

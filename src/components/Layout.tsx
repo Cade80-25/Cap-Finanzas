@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import {
   Home,
@@ -19,6 +19,7 @@ import {
   Globe,
   Bell,
   Book,
+  LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,25 +31,35 @@ import { TutorialOverlay } from "@/components/TutorialOverlay";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
 import { LicenseGate } from "@/components/LicenseGate";
 import { TrialBanner } from "@/components/TrialBanner";
+import { useModeFeatures, FeatureKey } from "@/hooks/useModeFeatures";
+import { Badge } from "@/components/ui/badge";
 
-const navigation = [
-  { name: "Panel Principal", href: "/", icon: Home },
-  { name: "Transacciones", href: "/transacciones", icon: Receipt },
-  { name: "Calendario", href: "/calendario", icon: Calendar },
-  { name: "Presupuesto", href: "/presupuesto", icon: Target },
-  { name: "Monedas", href: "/monedas", icon: Globe },
-  { name: "Categorías", href: "/categorias", icon: Tag },
-  { name: "Resumen", href: "/resumen", icon: PieChart },
-  { name: "Libro Diario", href: "/libro-diario", icon: BookOpen },
-  { name: "Libro Mayor", href: "/libro-mayor", icon: FileText },
-  { name: "Balance General", href: "/balance", icon: BarChart3 },
-  { name: "Estado de Resultados", href: "/resultados", icon: TrendingUp },
-  { name: "Enciclopedia", href: "/enciclopedia", icon: HelpCircle },
-  { name: "Recomendaciones", href: "/recomendaciones", icon: Sparkles },
-  { name: "Manual de Usuario", href: "/manual", icon: Book },
-  { name: "Notificaciones", href: "/notificaciones", icon: Bell },
-  { name: "Cuenta", href: "/cuenta", icon: User },
-  { name: "Configuración", href: "/configuracion", icon: Settings },
+type NavItem = {
+  name: string;
+  href: string;
+  icon: LucideIcon;
+  featureKey: FeatureKey;
+  traditionalOnly?: boolean;
+};
+
+const allNavigation: NavItem[] = [
+  { name: "Panel Principal", href: "/", icon: Home, featureKey: "dashboard" },
+  { name: "Transacciones", href: "/transacciones", icon: Receipt, featureKey: "transactions" },
+  { name: "Calendario", href: "/calendario", icon: Calendar, featureKey: "calendar" },
+  { name: "Presupuesto", href: "/presupuesto", icon: Target, featureKey: "budget" },
+  { name: "Monedas", href: "/monedas", icon: Globe, featureKey: "currencies" },
+  { name: "Categorías", href: "/categorias", icon: Tag, featureKey: "categories" },
+  { name: "Resumen", href: "/resumen", icon: PieChart, featureKey: "summary" },
+  { name: "Libro Diario", href: "/libro-diario", icon: BookOpen, featureKey: "journal", traditionalOnly: true },
+  { name: "Libro Mayor", href: "/libro-mayor", icon: FileText, featureKey: "ledger", traditionalOnly: true },
+  { name: "Balance General", href: "/balance", icon: BarChart3, featureKey: "balance", traditionalOnly: true },
+  { name: "Estado de Resultados", href: "/resultados", icon: TrendingUp, featureKey: "incomeStatement", traditionalOnly: true },
+  { name: "Enciclopedia", href: "/enciclopedia", icon: HelpCircle, featureKey: "encyclopedia", traditionalOnly: true },
+  { name: "Recomendaciones", href: "/recomendaciones", icon: Sparkles, featureKey: "recommendations" },
+  { name: "Manual de Usuario", href: "/manual", icon: Book, featureKey: "manual" },
+  { name: "Notificaciones", href: "/notificaciones", icon: Bell, featureKey: "notifications" },
+  { name: "Cuenta", href: "/cuenta", icon: User, featureKey: "account" },
+  { name: "Configuración", href: "/configuracion", icon: Settings, featureKey: "settings" },
 ];
 
 export default function Layout() {
@@ -56,6 +67,12 @@ export default function Layout() {
   const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
   const { isLocked, unlock, hasMasterPin } = useSecurity();
+  const { isFeatureAvailable, isSimpleMode } = useModeFeatures();
+
+  // Filter navigation based on current mode
+  const navigation = useMemo(() => {
+    return allNavigation.filter((item) => isFeatureAvailable(item.featureKey));
+  }, [isFeatureAvailable]);
 
   // Show lock screen if app is locked
   if (isLocked && hasMasterPin) {
@@ -86,9 +103,16 @@ export default function Layout() {
           {sidebarVisible && (
             <aside className="flex flex-col w-64 bg-sidebar border-r border-sidebar-border transition-all duration-300">
               <div className="flex h-12 items-center justify-between px-4 border-b border-sidebar-border flex-shrink-0">
-                <h1 className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
-                  Cap Finanzas
-                </h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
+                    Cap Finanzas
+                  </h1>
+                  {isSimpleMode && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      Simple
+                    </Badge>
+                  )}
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"

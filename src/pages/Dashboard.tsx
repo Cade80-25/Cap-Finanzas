@@ -1,4 +1,4 @@
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, AlertTriangle, LayoutDashboard } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, AlertTriangle, LayoutDashboard, Plus } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,19 +7,30 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { useAccountingData } from "@/hooks/useAccountingData";
+import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
 import { useBudgets } from "@/hooks/useBudgets";
+import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
+
 export default function Dashboard() {
   const navigate = useNavigate();
-  const {
-    totales,
-    resumenMensual,
-    datosCategorias,
-    transaccionesRecientes,
-    estadoResultados,
-    ACCOUNT_CATEGORIES,
-  } = useAccountingData();
+  const { isSimpleMode, isFeatureAvailable, labels } = useModeFeatures();
+  
+  // Use traditional accounting data
+  const traditionalData = useAccountingData();
+  
+  // Use simplified accounting data
+  const simpleData = useSimpleAccountingData();
+  
   const { budgets: presupuestoData } = useBudgets();
+
+  // Choose data based on mode
+  const totales = isSimpleMode ? simpleData.totals : traditionalData.totales;
+  const resumenMensual = isSimpleMode ? simpleData.monthlySummary : traditionalData.resumenMensual;
+  const datosCategorias = isSimpleMode ? simpleData.categoryChartData : traditionalData.datosCategorias;
+  const transaccionesRecientes = isSimpleMode ? simpleData.recentTransactions : traditionalData.transaccionesRecientes;
+  const estadoResultados = traditionalData.estadoResultados;
+  const ACCOUNT_CATEGORIES = traditionalData.ACCOUNT_CATEGORIES;
 
   // Calcular alertas de presupuesto (desde Presupuesto + Libro Diario)
   const budgetAlerts = presupuestoData
@@ -29,15 +40,25 @@ export default function Dashboard() {
         ? ACCOUNT_CATEGORIES[p.cuentaAsociada]?.label
         : undefined;
 
-      const gastoRelacionado = cuentaLabel
-        ? estadoResultados.gastos.find((g) => g.name === cuentaLabel)
-        : estadoResultados.gastos.find((g) => {
-            const a = g.name.toLowerCase();
-            const b = p.categoria.toLowerCase();
-            return a.includes(b) || b.includes(a);
-          });
+      // In simple mode, use simple category totals
+      let spent = 0;
+      if (isSimpleMode) {
+        const simpleCat = simpleData.categories.find((c) => 
+          c.id === p.cuentaAsociada || 
+          c.nombre.toLowerCase().includes(p.categoria.toLowerCase())
+        );
+        spent = simpleCat?.gastos || 0;
+      } else {
+        const gastoRelacionado = cuentaLabel
+          ? estadoResultados.gastos.find((g) => g.name === cuentaLabel)
+          : estadoResultados.gastos.find((g) => {
+              const a = g.name.toLowerCase();
+              const b = p.categoria.toLowerCase();
+              return a.includes(b) || b.includes(a);
+            });
+        spent = gastoRelacionado?.value || 0;
+      }
 
-      const spent = gastoRelacionado?.value || 0;
       const percentage = p.presupuesto > 0 ? Math.round((spent / p.presupuesto) * 100) : 0;
 
       return {
@@ -54,16 +75,23 @@ export default function Dashboard() {
   const hasFinancialData = totales.ingresosDelMes > 0 || totales.gastosDelMes > 0 || resumenMensual.length > 0;
   const hasTransactions = transaccionesRecientes.length > 0;
 
+  // Determine where to navigate for adding transactions
+  const addTransactionRoute = isSimpleMode ? "/transacciones" : "/libro-diario";
+  const addTransactionLabel = isSimpleMode ? "Agregar Movimiento" : "Ir al Libro Diario";
+
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div data-tutorial="dashboard-title">
         <h1 className="text-3xl font-bold mb-2">Panel Principal</h1>
         <p className="text-muted-foreground">
-          Resumen general de tus finanzas (datos desde Libro Diario)
+          {isSimpleMode 
+            ? "Resumen de tus ingresos y gastos" 
+            : "Resumen general de tus finanzas (datos desde Libro Diario)"}
         </p>
       </div>
 
-      {hasTransactions && !hasFinancialData && (
+      {/* Help for traditional mode when data isn't showing correctly */}
+      {!isSimpleMode && hasTransactions && !hasFinancialData && (
         <ContextualHelp
           id="dashboard-no-financial-data"
           title="¿Por qué los totales muestran $0?"
@@ -86,19 +114,27 @@ export default function Dashboard() {
 
       {!hasTransactions && (
         <EmptyStateHelp
-          title="Sin transacciones registradas"
-          description="El Panel Principal muestra un resumen de tus finanzas basado en las transacciones del Libro Diario."
+          title={isSimpleMode ? "Sin movimientos registrados" : "Sin transacciones registradas"}
+          description={isSimpleMode 
+            ? "El Panel Principal muestra un resumen de tus ingresos y gastos." 
+            : "El Panel Principal muestra un resumen de tus finanzas basado en las transacciones del Libro Diario."}
           icon={<LayoutDashboard className="h-16 w-16" />}
-          tips={[
+          tips={isSimpleMode ? [
+            "Ve a Transacciones para registrar tu primer movimiento",
+            "Registra tus ingresos (salario, ventas, etc.)",
+            "Registra tus gastos (compras, servicios, etc.)",
+            "Los totales aparecerán automáticamente aquí",
+          ] : [
             "Ve al Libro Diario para registrar tu primera transacción",
             "Usa 'Ingresos' (Haber) para ventas, salarios, etc.",
             "Usa 'Gastos Operativos' (Debe) para pagos y compras",
             "Los datos aparecerán automáticamente aquí",
           ]}
-          actionLabel="Ir al Libro Diario"
-          onAction={() => navigate("/libro-diario")}
+          actionLabel={addTransactionLabel}
+          onAction={() => navigate(addTransactionRoute)}
         />
       )}
+
       <div data-tutorial="dashboard-stats" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Balance Total"
@@ -155,8 +191,8 @@ export default function Dashboard() {
             ) : (
               <div className="flex flex-col items-center justify-center h-[250px] text-muted-foreground">
                 <p>No hay datos disponibles</p>
-                <Button variant="link" onClick={() => navigate("/libro-diario")}>
-                  Ir al Libro Diario
+                <Button variant="link" onClick={() => navigate(addTransactionRoute)}>
+                  {addTransactionLabel}
                 </Button>
               </div>
             )}
@@ -207,9 +243,9 @@ export default function Dashboard() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card data-tutorial="dashboard-transactions" className="shadow-soft">
           <CardHeader>
-            <CardTitle>Transacciones Recientes</CardTitle>
+            <CardTitle>{isSimpleMode ? "Movimientos Recientes" : "Transacciones Recientes"}</CardTitle>
             <CardDescription>
-              Últimas transacciones del Libro Diario
+              {isSimpleMode ? "Últimos ingresos y gastos" : "Últimas transacciones del Libro Diario"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -236,12 +272,12 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="flex items-center justify-center h-[100px] text-muted-foreground">
-                No hay transacciones registradas
+                {isSimpleMode ? "No hay movimientos registrados" : "No hay transacciones registradas"}
               </div>
             )}
-            <Button variant="outline" className="w-full mt-4" onClick={() => navigate("/libro-diario")}>
+            <Button variant="outline" className="w-full mt-4" onClick={() => navigate(addTransactionRoute)}>
               <ArrowUpRight className="h-4 w-4 mr-2" />
-              Ir al Libro Diario
+              {addTransactionLabel}
             </Button>
           </CardContent>
         </Card>
@@ -286,22 +322,45 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Card className="shadow-soft bg-gradient-primary">
-        <CardHeader>
-          <CardTitle className="text-primary-foreground">¿Necesitas Ayuda?</CardTitle>
-          <CardDescription className="text-primary-foreground/80">
-            Aprende sobre conceptos contables básicos y obtén recomendaciones personalizadas
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row gap-3">
-          <Button variant="secondary" className="flex-1" onClick={() => navigate("/enciclopedia")}>
-            Ir a Enciclopedia
-          </Button>
-          <Button variant="secondary" className="flex-1" onClick={() => navigate("/recomendaciones")}>
-            Obtener Recomendaciones
-          </Button>
-        </CardContent>
-      </Card>
+      {/* Quick action card for simple mode */}
+      {isSimpleMode ? (
+        <Card className="shadow-soft bg-gradient-primary">
+          <CardHeader>
+            <CardTitle className="text-primary-foreground">Registrar Movimiento</CardTitle>
+            <CardDescription className="text-primary-foreground/80">
+              Agrega rápidamente un ingreso o gasto
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col sm:flex-row gap-3">
+            <Button variant="secondary" className="flex-1" onClick={() => navigate("/transacciones")}>
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar Movimiento
+            </Button>
+            <Button variant="secondary" className="flex-1" onClick={() => navigate("/recomendaciones")}>
+              Obtener Recomendaciones
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="shadow-soft bg-gradient-primary">
+          <CardHeader>
+            <CardTitle className="text-primary-foreground">¿Necesitas Ayuda?</CardTitle>
+            <CardDescription className="text-primary-foreground/80">
+              Aprende sobre conceptos contables básicos y obtén recomendaciones personalizadas
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col sm:flex-row gap-3">
+            {isFeatureAvailable("encyclopedia") && (
+              <Button variant="secondary" className="flex-1" onClick={() => navigate("/enciclopedia")}>
+                Ir a Enciclopedia
+              </Button>
+            )}
+            <Button variant="secondary" className="flex-1" onClick={() => navigate("/recomendaciones")}>
+              Obtener Recomendaciones
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
