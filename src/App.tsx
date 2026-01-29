@@ -19,7 +19,6 @@ import Enciclopedia from "./pages/Enciclopedia";
 import Cuenta from "./pages/Cuenta";
 import Configuracion from "./pages/Configuracion";
 import Recomendaciones from "./pages/Recomendaciones";
-import CalculadoraIRPF from "./pages/CalculadoraIRPF";
 import Notificaciones from "./pages/Notificaciones";
 import Manual from "./pages/Manual";
 import NotFound from "./pages/NotFound";
@@ -58,7 +57,6 @@ const App = () => (
                 <Route path="calendario" element={<Calendario />} />
                 <Route path="presupuesto" element={<Presupuesto />} />
                 <Route path="monedas" element={<Monedas />} />
-                <Route path="calculadora-irpf" element={<CalculadoraIRPF />} />
                 <Route path="categorias" element={<Categorias />} />
                 <Route path="resumen" element={<Resumen />} />
                 <Route path="libro-diario" element={<LibroDiario />} />
