@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, AlertCircle } from "lucide-react";
+import { Plus, AlertCircle, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -22,6 +22,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -92,6 +102,10 @@ const validateTransaction = (account: string, description: string, debit: number
 
 export default function LibroDiario() {
   const [open, setOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+  
   const [date, setDate] = useState("");
   const [selectedAccount, setSelectedAccount] = useState("");
   const [description, setDescription] = useState("");
@@ -114,16 +128,46 @@ export default function LibroDiario() {
     setDescription("");
     setDebit(0);
     setCredit(0);
+    setDate("");
+    setEditingTransaction(null);
   };
 
   const hasBlockingError = (d: number, c: number) => (d === 0 && c === 0) || (d > 0 && c > 0);
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
-    if (nextOpen) {
+    if (nextOpen && !editingTransaction) {
       setDate((prev) => prev || new Date().toISOString().slice(0, 10));
     }
+    if (!nextOpen) {
+      resetForm();
+    }
   };
+
+  const handleEdit = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setDate(transaction.date);
+    setSelectedAccount(transaction.account);
+    setDescription(transaction.description);
+    setDebit(transaction.debit);
+    setCredit(transaction.credit);
+    setOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!transactionToDelete) return;
+    
+    setTransactions((prev) => prev.filter((t) => t.id !== transactionToDelete.id));
+    toast.success("Transacción eliminada");
+    setDeleteDialogOpen(false);
+    setTransactionToDelete(null);
+  };
+
+  const handleDelete = (transaction: Transaction) => {
+    setTransactionToDelete(transaction);
+    setDeleteDialogOpen(true);
+  };
+
 
   const handleSave = () => {
     if (!date) {
@@ -147,20 +191,40 @@ export default function LibroDiario() {
       return;
     }
 
-    const newTx: Transaction = {
-      id: Date.now(),
-      date,
-      account: selectedAccount,
-      description: description.trim(),
-      debit,
-      credit,
-    };
+    if (editingTransaction) {
+      // Update existing transaction
+      setTransactions((prev) =>
+        prev.map((t) =>
+          t.id === editingTransaction.id
+            ? {
+                ...t,
+                date,
+                account: selectedAccount,
+                description: description.trim(),
+                debit,
+                credit,
+              }
+            : t
+        ).sort((a, b) => a.date.localeCompare(b.date))
+      );
+      toast.success("Transacción actualizada");
+    } else {
+      // Create new transaction
+      const newTx: Transaction = {
+        id: Date.now(),
+        date,
+        account: selectedAccount,
+        description: description.trim(),
+        debit,
+        credit,
+      };
 
-    setTransactions((prev) =>
-      [...prev, newTx].sort((a, b) => a.date.localeCompare(b.date))
-    );
+      setTransactions((prev) =>
+        [...prev, newTx].sort((a, b) => a.date.localeCompare(b.date))
+      );
+      toast.success("Transacción registrada exitosamente");
+    }
 
-    toast.success("Transacción registrada exitosamente");
     setOpen(false);
     resetForm();
   };
@@ -183,9 +247,13 @@ export default function LibroDiario() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Registrar Transacción</DialogTitle>
+              <DialogTitle>
+                {editingTransaction ? "Editar Transacción" : "Registrar Transacción"}
+              </DialogTitle>
               <DialogDescription>
-                Ingresa los detalles de la nueva transacción contable
+                {editingTransaction 
+                  ? "Modifica los detalles de la transacción"
+                  : "Ingresa los detalles de la nueva transacción contable"}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -319,12 +387,31 @@ export default function LibroDiario() {
                 Cancelar
               </Button>
               <Button onClick={handleSave}>
-                Guardar
+                {editingTransaction ? "Actualizar" : "Guardar"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar transacción?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente la transacción 
+              "{transactionToDelete?.description}" del {transactionToDelete?.date}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Card className="shadow-soft">
         <CardHeader>
@@ -343,6 +430,7 @@ export default function LibroDiario() {
                   <TableHead>Descripción</TableHead>
                   <TableHead className="text-right">Debe</TableHead>
                   <TableHead className="text-right">Haber</TableHead>
+                  <TableHead className="text-right w-24">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -356,6 +444,28 @@ export default function LibroDiario() {
                     </TableCell>
                     <TableCell className="text-right font-medium text-destructive">
                       {transaction.credit > 0 ? `$${transaction.credit.toFixed(2)}` : "-"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleEdit(transaction)}
+                          title="Editar"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => handleDelete(transaction)}
+                          title="Eliminar"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
