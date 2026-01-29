@@ -32,6 +32,7 @@ import { useSecurity } from "@/hooks/useSecurity";
 import { useAdvancedFeatures } from "@/hooks/useAdvancedFeatures";
 import { ChangePinDialog, BackupDialog, TwoFactorDialog } from "@/components/SecurityDialogs";
 import { LogsDialog, SyncDialog, ResetDialog } from "@/components/AdvancedFeaturesDialogs";
+import { LicenseSettings } from "@/components/LicenseSettings";
 
 const STORAGE_KEY = "cap-finanzas-config";
 
@@ -710,6 +711,9 @@ export default function Configuracion() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* License Settings Section */}
+      <LicenseSettings />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
