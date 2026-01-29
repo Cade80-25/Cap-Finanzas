@@ -1,4 +1,4 @@
-import { Book, ChevronRight, Home, Receipt, Calendar, Target, Globe, Calculator, Tag, PieChart, BookOpen, FileText, BarChart3, TrendingUp, HelpCircle, Sparkles, User, Settings, Bell, Search } from "lucide-react";
+import { Book, ChevronRight, Home, Receipt, Calendar, Target, Globe, Tag, PieChart, BookOpen, FileText, BarChart3, TrendingUp, HelpCircle, Sparkles, User, Settings, Bell, Search } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
@@ -147,17 +147,6 @@ const secciones = [
       {
         subtitulo: "Conversión en tiempo real",
         texto: "Convierte montos entre diferentes monedas del mundo usando tasas de cambio actualizadas."
-      }
-    ]
-  },
-  {
-    id: "calculadora",
-    titulo: "Calculadora IRPF",
-    icono: Calculator,
-    contenido: [
-      {
-        subtitulo: "Cálculo de impuestos",
-        texto: "Calcula el Impuesto sobre la Renta de las Personas Físicas según tu país y situación. Ingresa tus ingresos brutos y deducciones para obtener una estimación."
       }
     ]
   },

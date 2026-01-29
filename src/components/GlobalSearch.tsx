@@ -24,7 +24,6 @@ import {
   TrendingUp,
   HelpCircle,
   Sparkles,
-  Calculator,
   Globe,
   User,
   Search,
@@ -93,16 +92,6 @@ const searchableItems: SearchItem[] = [
     icon: Globe,
     location: "Finanzas",
     keywords: ["monedas", "divisas", "conversión", "cambio", "forex"],
-  },
-  {
-    id: "calculadora-irpf",
-    title: "Calculadora IRPF",
-    description: "Cálculo de impuestos sobre la renta",
-    category: "Principal",
-    path: "/calculadora-irpf",
-    icon: Calculator,
-    location: "Impuestos",
-    keywords: ["irpf", "impuestos", "renta", "calculadora", "tax"],
   },
   
   // Categorización
