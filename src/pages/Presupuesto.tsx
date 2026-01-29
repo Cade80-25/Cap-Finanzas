@@ -115,7 +115,7 @@ export default function Presupuesto() {
   return (
     <div className="p-8 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
+        <div data-tutorial="presupuesto-title">
           <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Presupuesto
           </h1>

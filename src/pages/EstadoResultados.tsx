@@ -52,14 +52,14 @@ export default function EstadoResultados() {
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
-      <div>
+      <div data-tutorial="resultados-title">
         <h1 className="text-3xl font-bold mb-2">Estado de Resultados</h1>
         <p className="text-muted-foreground">
           Análisis completo de ingresos, gastos y rentabilidad (desde Libro Diario)
         </p>
       </div>
 
-      <Card className="shadow-medium border-primary bg-gradient-primary/10">
+      <Card data-tutorial="resultados-neto" className="shadow-medium border-primary bg-gradient-primary/10">
         <CardHeader>
           <CardTitle className="text-primary">Resultado Neto del Período</CardTitle>
           <CardDescription>

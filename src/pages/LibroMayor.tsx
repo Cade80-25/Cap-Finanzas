@@ -15,7 +15,7 @@ export default function LibroMayor() {
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
-      <div>
+      <div data-tutorial="mayor-title">
         <h1 className="text-3xl font-bold mb-2">Libro Mayor</h1>
         <p className="text-muted-foreground">
           Movimientos agrupados por cuenta contable (desde Libro Diario)
@@ -24,7 +24,7 @@ export default function LibroMayor() {
 
       {libroMayor.length > 0 ? (
         <Tabs defaultValue={libroMayor[0]?.name} className="space-y-4">
-          <TabsList className="bg-muted flex-wrap h-auto gap-1">
+          <TabsList data-tutorial="mayor-tabs" className="bg-muted flex-wrap h-auto gap-1">
             {libroMayor.map((account) => (
               <TabsTrigger 
                 key={account.name} 

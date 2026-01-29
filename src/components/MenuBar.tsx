@@ -27,6 +27,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useNotifications } from "@/hooks/useNotifications";
+import { TutorialButton } from "@/components/TutorialButton";
 
 interface MenuBarProps {
   onSearchClick?: () => void;
@@ -186,7 +187,7 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
       {/* Center section: Spacer */}
       <div className="flex-1" />
     
-      {/* Right section: Search + Notifications */}
+      {/* Right section: Search + Tutorial + Notifications */}
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
@@ -200,6 +201,9 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
             <span className="text-xs">⌘</span>K
           </kbd>
         </Button>
+
+        {/* Tutorial/Help Button */}
+        <TutorialButton />
         
         <Button
           variant="ghost"

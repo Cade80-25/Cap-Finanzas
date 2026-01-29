@@ -28,14 +28,14 @@ export default function Balance() {
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
-      <div>
+      <div data-tutorial="balance-title">
         <h1 className="text-3xl font-bold mb-2">Balance General</h1>
         <p className="text-muted-foreground">
           Estado de la situación financiera (calculado desde Libro Diario)
         </p>
       </div>
 
-      <Card className="shadow-medium border-primary">
+      <Card data-tutorial="balance-patrimonio" className="shadow-medium border-primary">
         <CardHeader>
           <CardTitle className="text-primary">Patrimonio Neto</CardTitle>
           <CardDescription>
