@@ -1,4 +1,4 @@
-import { DollarSign, TrendingUp, TrendingDown, Target } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Target, PieChart as PieChartIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -17,12 +17,16 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useAccountingData } from "@/hooks/useAccountingData";
+import { useNavigate } from "react-router-dom";
+import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 
 export default function Resumen() {
   const { estadoResultados, resumenMensual, datosCategorias } = useAccountingData();
+  const navigate = useNavigate();
 
   const { totalIngresos, totalGastos, resultadoNeto } = estadoResultados;
   const tasaAhorro = totalIngresos > 0 ? ((resultadoNeto / totalIngresos) * 100).toFixed(1) : "0.0";
+  const hasData = resumenMensual.length > 0 || datosCategorias.length > 0;
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
@@ -34,6 +38,40 @@ export default function Resumen() {
           Visualización completa de tu situación financiera (desde Libro Diario)
         </p>
       </div>
+
+      {!hasData && (
+        <EmptyStateHelp
+          title="No hay datos para mostrar"
+          description="El Resumen Financiero visualiza tus ingresos y gastos registrados en el Libro Diario."
+          icon={<PieChartIcon className="h-16 w-16" />}
+          tips={[
+            "Registra transacciones en el Libro Diario para ver gráficos aquí",
+            "Usa la cuenta 'Ingresos' para ventas, salarios, etc.",
+            "Usa 'Gastos Operativos' para pagos de servicios, compras, etc.",
+            "Los gráficos mostrarán la evolución mensual de tus finanzas",
+          ]}
+          actionLabel="Ir al Libro Diario"
+          onAction={() => navigate("/libro-diario")}
+        />
+      )}
+
+      {hasData && (
+        <ContextualHelp
+          id="resumen-intro"
+          title="¿Qué muestra este resumen?"
+          variant="info"
+          defaultCollapsed
+        >
+          <p>
+            Este panel muestra gráficos de tus <strong className="text-success">ingresos</strong> y{" "}
+            <strong className="text-destructive">gastos</strong> a lo largo del tiempo.
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Solo se incluyen transacciones con cuentas de tipo "Ingresos" o "Gastos". 
+            Movimientos de Banco, Caja u otras cuentas de balance no aparecen aquí.
+          </p>
+        </ContextualHelp>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>

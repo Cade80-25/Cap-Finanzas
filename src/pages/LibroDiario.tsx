@@ -41,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ContextualHelp, AccountSelectionHelp } from "@/components/ContextualHelp";
 
 type Transaction = JournalTransaction;
 
@@ -245,7 +246,7 @@ export default function LibroDiario() {
               Nueva Transacción
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>
                 {editingTransaction ? "Editar Transacción" : "Registrar Transacción"}
@@ -256,6 +257,10 @@ export default function LibroDiario() {
                   : "Ingresa los detalles de la nueva transacción contable"}
               </DialogDescription>
             </DialogHeader>
+            
+            {/* Account selection help */}
+            <AccountSelectionHelp className="my-2" />
+            
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="date">Fecha</Label>

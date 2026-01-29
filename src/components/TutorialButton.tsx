@@ -1,4 +1,4 @@
-import { HelpCircle, CheckCircle2 } from "lucide-react";
+import { HelpCircle, CheckCircle2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,8 +9,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTutorial } from "@/hooks/useTutorial";
-import { useLocation } from "react-router-dom";
+import { useHelpPreferences } from "@/hooks/useHelpPreferences";
+import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { HelpSettingsDialog } from "@/components/HelpSettingsDialog";
 
 const ROUTE_TO_SECTION: Record<string, string> = {
   "/": "dashboard",
@@ -18,13 +20,16 @@ const ROUTE_TO_SECTION: Record<string, string> = {
   "/libro-mayor": "libro-mayor",
   "/balance": "balance",
   "/estado-resultados": "estado-resultados",
+  "/resultados": "estado-resultados",
   "/resumen": "resumen",
   "/presupuesto": "presupuesto",
 };
 
 export function TutorialButton() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { startTutorial, allSections, isSectionCompleted, resetTutorial } = useTutorial();
+  const { showContextualHelp, toggleContextualHelp } = useHelpPreferences();
 
   const currentSectionId = ROUTE_TO_SECTION[location.pathname];
   const currentSection = allSections.find((s) => s.id === currentSectionId);
@@ -92,11 +97,27 @@ export function TutorialButton() {
         ))}
 
         <DropdownMenuSeparator />
+        
+        <DropdownMenuItem
+          onClick={toggleContextualHelp}
+          className="cursor-pointer"
+        >
+          {showContextualHelp ? "🙈 Ocultar ayudas contextuales" : "👁️ Mostrar ayudas contextuales"}
+        </DropdownMenuItem>
+
         <DropdownMenuItem
           onClick={resetTutorial}
           className="cursor-pointer text-muted-foreground"
         >
           🔄 Reiniciar todos los tutoriales
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem asChild className="p-0">
+          <div className="w-full">
+            <HelpSettingsDialog />
+          </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

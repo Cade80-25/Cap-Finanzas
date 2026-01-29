@@ -26,11 +26,16 @@ import {
   AreaChart,
 } from "recharts";
 import { useAccountingData } from "@/hooks/useAccountingData";
+import { useNavigate } from "react-router-dom";
+import { TrendingUp, TrendingDown, FileText } from "lucide-react";
+import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 
 export default function EstadoResultados() {
   const { estadoResultados, resumenMensual } = useAccountingData();
+  const navigate = useNavigate();
 
   const { ingresos, gastos, totalIngresos, totalGastos, resultadoNeto } = estadoResultados;
+  const hasData = ingresos.length > 0 || gastos.length > 0;
 
   // Datos para gráficos
   const comparacionData = [
@@ -58,6 +63,39 @@ export default function EstadoResultados() {
           Análisis completo de ingresos, gastos y rentabilidad (desde Libro Diario)
         </p>
       </div>
+
+      {!hasData && (
+        <EmptyStateHelp
+          title="No hay datos de ingresos ni gastos"
+          description="El Estado de Resultados muestra la diferencia entre tus ingresos y gastos. Para ver datos aquí, necesitas registrar transacciones con cuentas específicas."
+          icon={<FileText className="h-16 w-16" />}
+          tips={[
+            "Para INGRESOS: Usa la cuenta 'Ingresos' con un valor en Haber (crédito)",
+            "Para GASTOS: Usa 'Gastos Operativos', 'Gastos Financieros' o 'Costo de Ventas' con un valor en Debe (débito)",
+            "Las cuentas de Activos (Banco, Caja) NO aparecen aquí - son para el Balance General",
+          ]}
+          actionLabel="Ir al Libro Diario"
+          onAction={() => navigate("/libro-diario")}
+        />
+      )}
+
+      {hasData && (
+        <ContextualHelp
+          id="estado-resultados-intro"
+          title="¿Cómo funciona el Estado de Resultados?"
+          variant="info"
+          defaultCollapsed
+        >
+          <p>
+            Este reporte muestra tus <strong className="text-success">Ingresos</strong> menos tus{" "}
+            <strong className="text-destructive">Gastos</strong>. Si el resultado es positivo, tienes ganancias.
+            Si es negativo, tienes pérdidas.
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Solo aparecen transacciones registradas con cuentas de tipo "Ingresos" o "Gastos" del Libro Diario.
+          </p>
+        </ContextualHelp>
+      )}
 
       <Card data-tutorial="resultados-neto" className="shadow-medium border-primary bg-gradient-primary/10">
         <CardHeader>
