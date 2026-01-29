@@ -1,4 +1,4 @@
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, AlertTriangle } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, AlertTriangle, LayoutDashboard } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { useAccountingData } from "@/hooks/useAccountingData";
 import { useBudgets } from "@/hooks/useBudgets";
-
+import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 export default function Dashboard() {
   const navigate = useNavigate();
   const {
@@ -51,6 +51,9 @@ export default function Dashboard() {
     .sort((a, b) => b.percentage - a.percentage)
     .slice(0, 3);
 
+  const hasFinancialData = totales.ingresosDelMes > 0 || totales.gastosDelMes > 0 || resumenMensual.length > 0;
+  const hasTransactions = transaccionesRecientes.length > 0;
+
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div data-tutorial="dashboard-title">
@@ -60,6 +63,42 @@ export default function Dashboard() {
         </p>
       </div>
 
+      {hasTransactions && !hasFinancialData && (
+        <ContextualHelp
+          id="dashboard-no-financial-data"
+          title="¿Por qué los totales muestran $0?"
+          variant="warning"
+        >
+          <p>
+            Tienes transacciones registradas, pero los totales de <strong>Ingresos</strong> y <strong>Gastos</strong> solo 
+            cuentan cuentas de tipo "ingreso" o "gasto".
+          </p>
+          <p className="mt-2">
+            Si usaste cuentas como <strong>"Banco"</strong> o <strong>"Caja"</strong> (tipo activo), esas transacciones 
+            aparecen en el Balance pero no aquí.
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            <strong>Solución:</strong> Para registrar un ingreso, usa la cuenta "Ingresos" con valor en Haber. 
+            Para gastos, usa "Gastos Operativos" con valor en Debe.
+          </p>
+        </ContextualHelp>
+      )}
+
+      {!hasTransactions && (
+        <EmptyStateHelp
+          title="Sin transacciones registradas"
+          description="El Panel Principal muestra un resumen de tus finanzas basado en las transacciones del Libro Diario."
+          icon={<LayoutDashboard className="h-16 w-16" />}
+          tips={[
+            "Ve al Libro Diario para registrar tu primera transacción",
+            "Usa 'Ingresos' (Haber) para ventas, salarios, etc.",
+            "Usa 'Gastos Operativos' (Debe) para pagos y compras",
+            "Los datos aparecerán automáticamente aquí",
+          ]}
+          actionLabel="Ir al Libro Diario"
+          onAction={() => navigate("/libro-diario")}
+        />
+      )}
       <div data-tutorial="dashboard-stats" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Balance Total"
