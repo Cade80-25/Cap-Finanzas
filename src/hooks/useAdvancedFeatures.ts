@@ -134,14 +134,13 @@ export function useAdvancedFeatures() {
       // Store sync metadata
       const syncMeta = {
         lastSync: new Date().toISOString(),
-        dataKeys: Object.keys(allData),
         itemCount: Object.keys(allData).length,
       };
       localStorage.setItem("cap-finanzas-sync-meta", JSON.stringify(syncMeta));
       
       setSyncStatus("success");
       setLastSyncTime(syncMeta.lastSync);
-      addLog("info", "Sincronización", `Sincronización completada: ${syncMeta.itemCount} elementos`, syncMeta);
+      addLog("info", "Sincronización", `Sincronización completada: ${syncMeta.itemCount} elementos`);
       
       // Reset to idle after showing success
       setTimeout(() => setSyncStatus("idle"), 2000);

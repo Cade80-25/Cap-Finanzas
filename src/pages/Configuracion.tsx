@@ -197,8 +197,14 @@ export default function Configuracion() {
     });
   };
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
   // Función para parsear diferentes formatos de archivo
   const parseFile = async (file: File): Promise<Transaction[]> => {
+    if (file.size > MAX_FILE_SIZE) {
+      throw new Error("El archivo excede el tamaño máximo permitido de 10MB.");
+    }
+
     const extension = file.name.split('.').pop()?.toLowerCase();
     const parsedTransactions: Transaction[] = [];
 
@@ -275,17 +281,29 @@ export default function Configuracion() {
       const text = await file.text();
 
       if (extension === "json") {
-        const data = JSON.parse(text);
+        let data: any;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error("El archivo JSON tiene un formato inválido.");
+        }
         if (data.transactions && Array.isArray(data.transactions)) {
-          return data.transactions;
-        } else if (Array.isArray(data)) {
-          return data.map((item: any, index: number) => ({
+          return data.transactions.map((item: any, index: number) => ({
             id: Date.now() + index,
-            date: item.date || item.fecha || new Date().toISOString().slice(0, 10),
-            account: item.account || item.cuenta || "otros",
-            description: item.description || item.descripcion || "Importado",
-            debit: parseFloat(item.debit || item.debe || 0),
-            credit: parseFloat(item.credit || item.haber || 0),
+            date: String(item.date || "").slice(0, 10) || new Date().toISOString().slice(0, 10),
+            account: String(item.account || "otros").slice(0, 100),
+            description: String(item.description || "Importado").slice(0, 500),
+            debit: Math.max(0, parseFloat(item.debit) || 0),
+            credit: Math.max(0, parseFloat(item.credit) || 0),
+          }));
+        } else if (Array.isArray(data)) {
+          return data.slice(0, 10000).map((item: any, index: number) => ({
+            id: Date.now() + index,
+            date: String(item.date || item.fecha || "").slice(0, 10) || new Date().toISOString().slice(0, 10),
+            account: String(item.account || item.cuenta || "otros").slice(0, 100),
+            description: String(item.description || item.descripcion || "Importado").slice(0, 500),
+            debit: Math.max(0, parseFloat(item.debit || item.debe || 0)),
+            credit: Math.max(0, parseFloat(item.credit || item.haber || 0)),
           }));
         }
       } else if (extension === "pfd") {
@@ -507,8 +525,7 @@ export default function Configuracion() {
 
       return parsedTransactions;
     } catch (error) {
-      console.error("Error parsing file:", error);
-      throw new Error("No se pudo leer el archivo. Verifica el formato.");
+      throw new Error(error instanceof Error ? error.message : "No se pudo leer el archivo. Verifica el formato.");
     }
   };
 
@@ -580,6 +597,13 @@ export default function Configuracion() {
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Archivo demasiado grande", {
+        description: "El tamaño máximo permitido es 10MB",
+      });
+      return;
+    }
 
     const validExtensions = ['json', 'csv', 'tsv', 'txt', 'qif', 'ofx', 'qfx', 'pfd', 'xlsx', 'xls', 'ods'];
     const extension = file.name.split('.').pop()?.toLowerCase();
