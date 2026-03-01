@@ -23,6 +23,8 @@ import {
   Book,
   Key,
   ShoppingCart,
+  Smartphone,
+  Monitor,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -218,6 +220,21 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
               <MenubarItem onClick={() => setActivationOpen(true)}>
                 <Key className="mr-2 h-4 w-4" />
                 Activar Licencia
+              </MenubarItem>
+            </MenubarContent>
+          </MenubarMenu>
+
+          <MenubarMenu>
+            <MenubarTrigger>Descargar</MenubarTrigger>
+            <MenubarContent>
+              <MenubarItem onClick={() => navigate("/instalar")}>
+                <Smartphone className="mr-2 h-4 w-4" />
+                Versión para Celular (PWA)
+              </MenubarItem>
+              <MenubarSeparator />
+              <MenubarItem onClick={() => window.open("https://github.com/Cade80-25/cap-finanzas/releases/latest", "_blank")}>
+                <Monitor className="mr-2 h-4 w-4" />
+                Versión para Escritorio (Windows)
               </MenubarItem>
             </MenubarContent>
           </MenubarMenu>
