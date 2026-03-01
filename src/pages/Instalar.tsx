@@ -82,10 +82,10 @@ export default function Instalar() {
         <CreditCard className="h-4 w-4" />
         <AlertDescription className="flex flex-col gap-2">
           <span className="font-medium">
-            Se requiere una licencia activa para usar Cap Finanzas.
+            Las descargas para celular y escritorio serán autorizadas una vez realizada la compra de la licencia.
           </span>
           <span className="text-sm text-muted-foreground">
-            Adquiere tu licencia por PayPal y recibe tu código de activación. La versión móvil (PWA) se instala desde el navegador; la versión de escritorio se descarga como instalador. Ambas requieren licencia después de los 30 días de prueba.
+            Puedes probar la aplicación gratis durante 30 días. Para continuar usándola, adquiere tu licencia por PayPal y recibe tu código de activación. Con la licencia activa podrás descargar e instalar Cap Finanzas en cualquier dispositivo.
           </span>
           {!hasLicense && (
             <Button variant="outline" size="sm" className="w-fit mt-1" onClick={() => navigate("/landing")}>
