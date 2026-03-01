@@ -11,24 +11,63 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useAccountingData } from "@/hooks/useAccountingData";
+import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
+import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { useNavigate } from "react-router-dom";
+
+// Categoría icons for simple mode
+const CATEGORY_ICONS: Record<string, string> = {
+  salario: "💰", freelance: "💻", ventas: "🛒", inversiones: "📈",
+  regalo: "🎁", "otros-ingresos": "💵", alimentacion: "🍔",
+  transporte: "🚗", vivienda: "🏠", servicios: "💡", salud: "🏥",
+  entretenimiento: "🎬", educacion: "📚", ropa: "👕", tecnologia: "📱",
+  "otros-gastos": "📦",
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  Ingreso: "bg-success",
+  Gasto: "bg-destructive",
+  Balance: "bg-secondary",
+};
 
 export default function Categorias() {
   const [filterTipo, setFilterTipo] = useState<string>("todos");
-  const { categorias, estadoResultados } = useAccountingData();
+  const accountingData = useAccountingData();
+  const simpleData = useSimpleAccountingData();
+  const { isSimpleMode } = useModeFeatures();
   const navigate = useNavigate();
+
+  // Unify data shape depending on mode
+  const categorias = isSimpleMode
+    ? simpleData.categories.map((c) => ({
+        id: c.id,
+        nombre: c.nombre,
+        tipo: c.tipo,
+        total: c.tipo === "Ingreso" ? c.ingresos : c.gastos,
+        transacciones: c.transacciones,
+        icono: CATEGORY_ICONS[c.id] || "📁",
+        color: CATEGORY_COLORS[c.tipo] || "bg-muted",
+      }))
+    : accountingData.categorias;
+
+  const totalIngresos = isSimpleMode
+    ? simpleData.totals.totalIngresos
+    : accountingData.estadoResultados.totalIngresos;
+  const totalGastos = isSimpleMode
+    ? simpleData.totals.totalGastos
+    : accountingData.estadoResultados.totalGastos;
 
   const filteredCategorias = categorias.filter((cat) => {
     if (filterTipo === "todos") return true;
     return cat.tipo.toLowerCase() === filterTipo;
   });
 
-  const totalGastos = estadoResultados.totalGastos;
-  const totalIngresos = estadoResultados.totalIngresos;
-
-  const categoriasGasto = categorias.filter(c => c.tipo === "Gasto").length;
-  const categoriasIngreso = categorias.filter(c => c.tipo === "Ingreso").length;
+  const categoriasGasto = categorias.filter((c) => c.tipo === "Gasto").length;
+  const categoriasIngreso = categorias.filter((c) => c.tipo === "Ingreso").length;
   const totalTransacciones = categorias.reduce((acc, c) => acc + c.transacciones, 0);
+
+  const actionLabel = isSimpleMode ? "Agregar Movimiento" : "Agregar en Libro Diario";
+  const actionRoute = isSimpleMode ? "/transacciones" : "/libro-diario";
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
@@ -38,12 +77,14 @@ export default function Categorias() {
             Categorías
           </h1>
           <p className="text-muted-foreground mt-2">
-            Categorías generadas automáticamente desde el Libro Diario
+            {isSimpleMode
+              ? "Categorías generadas automáticamente desde tus movimientos"
+              : "Categorías generadas automáticamente desde el Libro Diario"}
           </p>
         </div>
-        <Button className="shadow-soft" onClick={() => navigate("/libro-diario")}>
+        <Button className="shadow-soft" onClick={() => navigate(actionRoute)}>
           <Plus className="h-4 w-4 mr-2" />
-          Agregar en Libro Diario
+          {actionLabel}
         </Button>
       </div>
 
@@ -82,7 +123,7 @@ export default function Categorias() {
           <CardContent>
             <div className="text-2xl font-bold">{categorias.length}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              {totalTransacciones} transacciones totales
+              {totalTransacciones} movimientos totales
             </p>
           </CardContent>
         </Card>
@@ -93,7 +134,11 @@ export default function Categorias() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Lista de Categorías</CardTitle>
-              <CardDescription>Categorías activas basadas en tus transacciones del Libro Diario</CardDescription>
+              <CardDescription>
+                {isSimpleMode
+                  ? "Categorías activas basadas en tus movimientos"
+                  : "Categorías activas basadas en tus transacciones del Libro Diario"}
+              </CardDescription>
             </div>
             <Select value={filterTipo} onValueChange={setFilterTipo}>
               <SelectTrigger className="w-40">
@@ -103,7 +148,7 @@ export default function Categorias() {
                 <SelectItem value="todos">Todas</SelectItem>
                 <SelectItem value="ingreso">Ingresos</SelectItem>
                 <SelectItem value="gasto">Gastos</SelectItem>
-                <SelectItem value="balance">Balance</SelectItem>
+                {!isSimpleMode && <SelectItem value="balance">Balance</SelectItem>}
               </SelectContent>
             </Select>
           </div>
@@ -133,7 +178,7 @@ export default function Categorias() {
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Transacciones</span>
+                        <span className="text-muted-foreground">Movimientos</span>
                         <span className="font-medium">{categoria.transacciones}</span>
                       </div>
                       <div className="flex justify-between text-sm">
@@ -153,9 +198,13 @@ export default function Categorias() {
           ) : (
             <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
               <p>No hay categorías disponibles.</p>
-              <p className="text-sm">Registra transacciones en el Libro Diario para ver las categorías.</p>
-              <Button variant="outline" className="mt-4" onClick={() => navigate("/libro-diario")}>
-                Ir al Libro Diario
+              <p className="text-sm">
+                {isSimpleMode
+                  ? "Registra movimientos para ver las categorías."
+                  : "Registra transacciones en el Libro Diario para ver las categorías."}
+              </p>
+              <Button variant="outline" className="mt-4" onClick={() => navigate(actionRoute)}>
+                {actionLabel}
               </Button>
             </div>
           )}
