@@ -29,8 +29,8 @@ function createWindow() {
     win.loadFile(path.join(app.getAppPath(), 'dist', 'index.html'));
   }
 
-  win.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
-    console.error('did-fail-load', { errorCode, errorDescription });
+  win.webContents.on('did-fail-load', () => {
+    // Load failure handled silently
   });
 
   return win;
@@ -58,30 +58,26 @@ autoUpdater.autoInstallOnAppQuit = true;
 
 // Auto-updater events
 autoUpdater.on('checking-for-update', () => {
-  console.log('Checking for updates...');
+  // Silent check
 });
 
 autoUpdater.on('update-available', (info) => {
-  console.log('Update available:', info.version);
   BrowserWindow.getAllWindows()[0]?.webContents.send('update-available', info);
 });
 
-autoUpdater.on('update-not-available', (info) => {
-  console.log('Update not available:', info.version);
+autoUpdater.on('update-not-available', () => {
+  // No update available
 });
 
 autoUpdater.on('error', (err) => {
-  console.error('Update error:', err);
   BrowserWindow.getAllWindows()[0]?.webContents.send('update-error', err.message);
 });
 
 autoUpdater.on('download-progress', (progressObj) => {
-  console.log(`Download progress: ${progressObj.percent}%`);
   BrowserWindow.getAllWindows()[0]?.webContents.send('download-progress', progressObj);
 });
 
 autoUpdater.on('update-downloaded', (info) => {
-  console.log('Update downloaded:', info.version);
   BrowserWindow.getAllWindows()[0]?.webContents.send('update-downloaded', info);
 });
 
