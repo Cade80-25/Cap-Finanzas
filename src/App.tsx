@@ -22,6 +22,7 @@ import Recomendaciones from "./pages/Recomendaciones";
 import Notificaciones from "./pages/Notificaciones";
 import Manual from "./pages/Manual";
 import NotFound from "./pages/NotFound";
+import Instalar from "./pages/Instalar";
 import LandingPage from "./pages/LandingPage";
 import LicenseGenerator from "./pages/LicenseGenerator";
 import { ThemeProvider } from "next-themes";
@@ -76,6 +77,7 @@ const App = () => (
                 <Route path="manual" element={<Manual />} />
                 <Route path="cuenta" element={<Cuenta />} />
                 <Route path="configuracion" element={<Configuracion />} />
+                <Route path="instalar" element={<Instalar />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
