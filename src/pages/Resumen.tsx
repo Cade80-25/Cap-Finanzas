@@ -45,7 +45,7 @@ export default function Resumen() {
           Resumen Financiero
         </h1>
         <p className="text-muted-foreground mt-2">
-          Visualización completa de tu situación financiera (desde Libro Diario)
+          {isSimple ? "Visualización completa de tu situación financiera" : "Visualización completa de tu situación financiera (desde Libro Diario)"}
         </p>
       </div>
 

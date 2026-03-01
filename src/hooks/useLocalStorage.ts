@@ -20,34 +20,11 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     }
   });
 
-  const externalUpdateRef = useRef(false);
-
-  // Guardar en localStorage cuando cambie el valor (y notificar a otros hooks)
-  useEffect(() => {
-    if (externalUpdateRef.current) {
-      externalUpdateRef.current = false;
-      return;
-    }
-
-    try {
-      localStorage.setItem(key, JSON.stringify(storedValue));
-
-      window.dispatchEvent(
-        new CustomEvent(LOCAL_STORAGE_SYNC_EVENT, {
-          detail: { key, source: instanceIdRef.current },
-        })
-      );
-    } catch (error) {
-      console.error(`Error saving ${key} to localStorage:`, error);
-    }
-  }, [key, storedValue]);
-
   // Sincronizar cambios entre distintos componentes (mismo window) y pestañas (storage)
   useEffect(() => {
     const syncFromStorage = (raw: string | null) => {
       try {
         const next = raw ? (JSON.parse(raw) as T) : initialValue;
-        externalUpdateRef.current = true;
         setStoredValue(next);
       } catch (error) {
         console.error(`Error parsing ${key} from localStorage:`, error);
@@ -75,10 +52,23 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     };
   }, [key, initialValue]);
 
-  // Función para actualizar el valor
+  // Función para actualizar el valor - escribe a localStorage sincrónicamente
   const setValue = useCallback((value: T | ((val: T) => T)) => {
-    setStoredValue((prev) => (value instanceof Function ? value(prev) : value));
-  }, []);
+    setStoredValue((prev) => {
+      const next = value instanceof Function ? value(prev) : value;
+      try {
+        localStorage.setItem(key, JSON.stringify(next));
+        window.dispatchEvent(
+          new CustomEvent(LOCAL_STORAGE_SYNC_EVENT, {
+            detail: { key, source: instanceIdRef.current },
+          })
+        );
+      } catch (error) {
+        console.error(`Error saving ${key} to localStorage:`, error);
+      }
+      return next;
+    });
+  }, [key]);
 
   return [storedValue, setValue] as const;
 }
