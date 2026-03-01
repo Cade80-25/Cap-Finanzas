@@ -18,8 +18,8 @@ interface ChangePinDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   hasMasterPin: boolean;
-  onVerifyPin: (pin: string) => boolean;
-  onSetPin: (pin: string | null) => void;
+  onVerifyPin: (pin: string) => Promise<boolean>;
+  onSetPin: (pin: string | null) => Promise<void>;
 }
 
 export function ChangePinDialog({ 
@@ -35,6 +35,7 @@ export function ChangePinDialog({
   const [confirmPin, setConfirmPin] = useState("");
   const [showPin, setShowPin] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const resetDialog = () => {
     setStep(hasMasterPin ? "verify" : "new");
@@ -42,6 +43,7 @@ export function ChangePinDialog({
     setNewPin("");
     setConfirmPin("");
     setError("");
+    setLoading(false);
   };
 
   const handleClose = () => {
@@ -49,14 +51,17 @@ export function ChangePinDialog({
     onOpenChange(false);
   };
 
-  const handleVerify = () => {
-    if (onVerifyPin(currentPin)) {
+  const handleVerify = async () => {
+    setLoading(true);
+    const valid = await onVerifyPin(currentPin);
+    if (valid) {
       setStep("new");
       setCurrentPin("");
       setError("");
     } else {
       setError("PIN actual incorrecto");
     }
+    setLoading(false);
   };
 
   const handleSetNew = () => {
@@ -68,20 +73,24 @@ export function ChangePinDialog({
     setError("");
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (newPin !== confirmPin) {
       setError("Los PIN no coinciden");
       return;
     }
     
-    onSetPin(newPin);
+    setLoading(true);
+    await onSetPin(newPin);
     toast.success(hasMasterPin ? "PIN actualizado correctamente" : "PIN configurado correctamente");
+    setLoading(false);
     handleClose();
   };
 
-  const handleRemovePin = () => {
-    onSetPin(null);
+  const handleRemovePin = async () => {
+    setLoading(true);
+    await onSetPin(null);
     toast.success("PIN eliminado. La aplicación ya no requerirá desbloqueo.");
+    setLoading(false);
     handleClose();
   };
 
@@ -206,7 +215,7 @@ export function ChangePinDialog({
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
           {step === "verify" && hasMasterPin && (
-            <Button variant="destructive" onClick={handleRemovePin} className="sm:mr-auto">
+            <Button variant="destructive" onClick={handleRemovePin} disabled={loading} className="sm:mr-auto">
               Eliminar PIN
             </Button>
           )}
@@ -214,8 +223,8 @@ export function ChangePinDialog({
             Cancelar
           </Button>
           {step === "verify" && (
-            <Button onClick={handleVerify} disabled={currentPin.length < 4}>
-              Verificar
+            <Button onClick={handleVerify} disabled={currentPin.length < 4 || loading}>
+              {loading ? "Verificando..." : "Verificar"}
             </Button>
           )}
           {step === "new" && (
@@ -224,9 +233,9 @@ export function ChangePinDialog({
             </Button>
           )}
           {step === "confirm" && (
-            <Button onClick={handleConfirm} disabled={confirmPin.length < 4}>
+            <Button onClick={handleConfirm} disabled={confirmPin.length < 4 || loading}>
               <CheckCircle className="h-4 w-4 mr-2" />
-              Confirmar
+              {loading ? "Guardando..." : "Confirmar"}
             </Button>
           )}
         </DialogFooter>
@@ -374,7 +383,6 @@ export function TwoFactorDialog({
   const [code, setCode] = useState("");
 
   const handleEnable = () => {
-    // Simulated 2FA - in a real app, this would integrate with an authenticator
     if (code.length === 6) {
       onToggle(true);
       toast.success("Verificación en dos pasos activada");

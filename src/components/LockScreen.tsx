@@ -7,7 +7,7 @@ import { Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface LockScreenProps {
-  onUnlock: (pin: string) => boolean;
+  onUnlock: (pin: string) => Promise<boolean>;
 }
 
 export function LockScreen({ onUnlock }: LockScreenProps) {
@@ -15,11 +15,14 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
   const [showPin, setShowPin] = useState(false);
   const [error, setError] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const [checking, setChecking] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setChecking(true);
     
-    if (onUnlock(pin)) {
+    const success = await onUnlock(pin);
+    if (success) {
       setPin("");
       setError(false);
       setAttempts(0);
@@ -28,10 +31,10 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
       setAttempts(prev => prev + 1);
       setPin("");
     }
+    setChecking(false);
   };
 
   const handlePinChange = (value: string) => {
-    // Only allow numbers, max 6 digits
     const cleaned = value.replace(/\D/g, "").slice(0, 6);
     setPin(cleaned);
     setError(false);
@@ -89,9 +92,9 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={pin.length < 4}
+              disabled={pin.length < 4 || checking}
             >
-              Desbloquear
+              {checking ? "Verificando..." : "Desbloquear"}
             </Button>
 
             <p className="text-xs text-center text-muted-foreground">
