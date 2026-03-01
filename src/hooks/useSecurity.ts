@@ -5,8 +5,17 @@ const SECURITY_KEY = "cap-finanzas-security";
 const LOCK_STATE_KEY = "cap-finanzas-locked";
 const BACKUP_KEY = "cap-finanzas-backup";
 
+// Hash a PIN using SHA-256 via Web Crypto API
+async function hashPin(pin: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pin);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 interface SecuritySettings {
-  masterPin: string | null;
+  masterPin: string | null; // now stores SHA-256 hash
   autoLockEnabled: boolean;
   autoLockMinutes: number;
   twoFactorEnabled: boolean;
@@ -30,13 +39,16 @@ export function useSecurity() {
   );
   const [isLocked, setIsLocked] = useState(() => {
     if (typeof window === "undefined") return false;
-    // Only lock if there's a master PIN set
     const saved = localStorage.getItem(SECURITY_KEY);
     if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.masterPin) {
-        const lockState = sessionStorage.getItem(LOCK_STATE_KEY);
-        return lockState !== "unlocked";
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.masterPin) {
+          const lockState = sessionStorage.getItem(LOCK_STATE_KEY);
+          return lockState !== "unlocked";
+        }
+      } catch {
+        // ignore
       }
     }
     return false;
@@ -58,9 +70,10 @@ export function useSecurity() {
     }
   }, [settings.masterPin]);
 
-  // Unlock with PIN
-  const unlock = useCallback((pin: string): boolean => {
-    if (pin === settings.masterPin) {
+  // Unlock with PIN (async - compares hash)
+  const unlock = useCallback(async (pin: string): Promise<boolean> => {
+    const hashed = await hashPin(pin);
+    if (hashed === settings.masterPin) {
       setIsLocked(false);
       sessionStorage.setItem(LOCK_STATE_KEY, "unlocked");
       updateActivity();
@@ -69,21 +82,24 @@ export function useSecurity() {
     return false;
   }, [settings.masterPin, updateActivity]);
 
-  // Set or change master PIN
-  const setMasterPin = useCallback((newPin: string | null) => {
-    setSettings(prev => ({ ...prev, masterPin: newPin }));
+  // Set or change master PIN (async - stores hash)
+  const setMasterPin = useCallback(async (newPin: string | null) => {
     if (newPin) {
+      const hashed = await hashPin(newPin);
+      setSettings(prev => ({ ...prev, masterPin: hashed }));
       sessionStorage.setItem(LOCK_STATE_KEY, "unlocked");
       setIsLocked(false);
     } else {
+      setSettings(prev => ({ ...prev, masterPin: null }));
       sessionStorage.removeItem(LOCK_STATE_KEY);
       setIsLocked(false);
     }
   }, [setSettings]);
 
-  // Verify current PIN
-  const verifyPin = useCallback((pin: string): boolean => {
-    return pin === settings.masterPin;
+  // Verify current PIN (async)
+  const verifyPin = useCallback(async (pin: string): Promise<boolean> => {
+    const hashed = await hashPin(pin);
+    return hashed === settings.masterPin;
   }, [settings.masterPin]);
 
   // Toggle auto-lock
@@ -148,10 +164,8 @@ export function useSecurity() {
       if (!backup.data) return false;
       
       const storageKeyMap: Record<string, string> = {
-        // backups antiguos
         transactions: "cap-finanzas-libro-diario-transactions",
         transacciones: "cap-finanzas-libro-diario-transactions",
-        // actuales
         presupuesto: "cap-finanzas-presupuesto",
         config: "cap-finanzas-config",
         cuenta: "cap-finanzas-cuenta",
@@ -201,7 +215,7 @@ export function useSecurity() {
       }
     };
 
-    inactivityTimerRef.current = setInterval(checkInactivity, 10000); // Check every 10 seconds
+    inactivityTimerRef.current = setInterval(checkInactivity, 10000);
 
     return () => {
       if (inactivityTimerRef.current) {
@@ -235,7 +249,7 @@ export function useSecurity() {
     if (lastBackup) {
       const lastDate = new Date(lastBackup).toDateString();
       const today = new Date().toDateString();
-      if (lastDate === today) return; // Already backed up today
+      if (lastDate === today) return;
     }
     
     createBackup();
