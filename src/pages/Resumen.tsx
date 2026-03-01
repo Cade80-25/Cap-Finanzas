@@ -17,15 +17,25 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useAccountingData } from "@/hooks/useAccountingData";
+import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
 import { useNavigate } from "react-router-dom";
 import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 
 export default function Resumen() {
-  const { estadoResultados, resumenMensual, datosCategorias } = useAccountingData();
+  const accountingData = useAccountingData();
+  const simpleData = useSimpleAccountingData();
   const navigate = useNavigate();
 
-  const { totalIngresos, totalGastos, resultadoNeto } = estadoResultados;
+  const isSimple = simpleData.isSimpleMode;
+
+  // En modo simple: crédito=ingreso, débito=gasto (todos los datos)
+  // En modo tradicional: solo cuentas tipo ingreso/gasto
+  const totalIngresos = isSimple ? simpleData.totals.totalIngresos : accountingData.estadoResultados.totalIngresos;
+  const totalGastos = isSimple ? simpleData.totals.totalGastos : accountingData.estadoResultados.totalGastos;
+  const resultadoNeto = totalIngresos - totalGastos;
   const tasaAhorro = totalIngresos > 0 ? ((resultadoNeto / totalIngresos) * 100).toFixed(1) : "0.0";
+  const resumenMensual = isSimple ? simpleData.monthlySummary : accountingData.resumenMensual;
+  const datosCategorias = isSimple ? simpleData.categoryChartData : accountingData.datosCategorias;
   const hasData = resumenMensual.length > 0 || datosCategorias.length > 0;
 
   return (
