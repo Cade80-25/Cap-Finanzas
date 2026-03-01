@@ -392,20 +392,20 @@ export function SimpleTransactionsView() {
                         {tx.type === "income" ? "Ingreso" : "Gasto"}
                       </Badge>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 shrink-0">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary"
-                        onClick={() => openEditDialog(tx)}
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={(e) => { e.stopPropagation(); openEditDialog(tx); }}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(tx.id)}
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={(e) => { e.stopPropagation(); handleDelete(tx.id); }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
