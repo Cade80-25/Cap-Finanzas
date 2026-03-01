@@ -66,8 +66,8 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
     },
   ];
 
-  const paypalEmail = "tu-email@paypal.com"; // TODO: Cambiar por email real
-  const paypalLink = `https://paypal.me/tuusuario`; // TODO: Cambiar por link real
+  const paypalEmail = "charonito@gmail.com";
+  const paypalLink = "https://paypal.me/charonito";
 
   const getSelectedPrice = () => {
     if (!selectedPlan) return 0;
