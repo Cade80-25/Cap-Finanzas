@@ -81,6 +81,28 @@ function TraditionalTransactionsView() {
     .filter(t => t.tipo === "Gasto")
     .reduce((sum, t) => sum + Math.abs(t.monto), 0);
 
+  const handleDownloadCSV = () => {
+    if (transaccionesFormateadas.length === 0) {
+      return;
+    }
+    const headers = ["Fecha", "Descripción", "Cuenta", "Tipo", "Monto"];
+    const rows = transaccionesFormateadas.map((t) => [
+      t.fecha,
+      `"${t.descripcion.replace(/"/g, '""')}"`,
+      `"${t.categoria.replace(/"/g, '""')}"`,
+      t.tipo,
+      t.monto.toFixed(2),
+    ]);
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `transacciones_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-8 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -93,7 +115,7 @@ function TraditionalTransactionsView() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="icon">
+          <Button variant="outline" size="icon" onClick={handleDownloadCSV} title="Descargar CSV">
             <Download className="h-4 w-4" />
           </Button>
           <Button className="shadow-soft" onClick={() => navigate("/libro-diario")}>

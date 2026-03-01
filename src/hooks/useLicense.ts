@@ -64,6 +64,16 @@ function validateLicenseCode(code: string): { valid: boolean; mode: LicenseMode 
   }
   
   if (fullMatch) {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const codeBody = fullMatch[1] + fullMatch[2].substring(0, 4);
+    let checksum = 0;
+    for (let i = 0; i < codeBody.length; i++) {
+      checksum += codeBody.charCodeAt(i);
+    }
+    const expectedChecksum = chars.charAt(checksum % chars.length);
+    if (fullMatch[2].charAt(4) !== expectedChecksum) {
+      return { valid: false, mode: null };
+    }
     // Full license activates both modes
     return { valid: true, mode: "traditional" };
   }
