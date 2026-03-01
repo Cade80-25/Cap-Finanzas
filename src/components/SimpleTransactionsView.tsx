@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, TrendingUp, TrendingDown, Trash2, Calendar, Tag } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,18 +50,28 @@ const SIMPLE_CATEGORIES = {
   ],
 };
 
+interface EditingTransaction {
+  id: number;
+  type: "income" | "expense";
+  amount: number;
+  description: string;
+  category: string;
+  date: string;
+}
+
 interface SimpleTransactionFormProps {
   onClose: () => void;
   defaultType?: "income" | "expense";
+  editing?: EditingTransaction | null;
 }
 
-function SimpleTransactionForm({ onClose, defaultType = "expense" }: SimpleTransactionFormProps) {
+function SimpleTransactionForm({ onClose, defaultType = "expense", editing }: SimpleTransactionFormProps) {
   const { transactions, setTransactions } = useJournalTransactions();
-  const [type, setType] = useState<"income" | "expense">(defaultType);
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [type, setType] = useState<"income" | "expense">(editing?.type ?? defaultType);
+  const [amount, setAmount] = useState(editing ? String(editing.amount) : "");
+  const [description, setDescription] = useState(editing?.description ?? "");
+  const [category, setCategory] = useState(editing?.category ?? "");
+  const [date, setDate] = useState(editing?.date ?? new Date().toISOString().split("T")[0]);
 
   const categories = type === "income" ? SIMPLE_CATEGORIES.income : SIMPLE_CATEGORIES.expense;
 
@@ -79,17 +89,33 @@ function SimpleTransactionForm({ onClose, defaultType = "expense" }: SimpleTrans
       return;
     }
 
-    const newTransaction = {
-      id: Date.now(),
-      date,
-      account: category,
-      description: description || categories.find(c => c.id === category)?.label || "Sin descripción",
-      debit: type === "expense" ? numAmount : 0,
-      credit: type === "income" ? numAmount : 0,
-    };
-
-    setTransactions([...transactions, newTransaction]);
-    toast.success(type === "income" ? "Ingreso registrado" : "Gasto registrado");
+    if (editing) {
+      // Update existing transaction
+      setTransactions(transactions.map(tx => 
+        tx.id === editing.id
+          ? {
+              ...tx,
+              date,
+              account: category,
+              description: description || categories.find(c => c.id === category)?.label || "Sin descripción",
+              debit: type === "expense" ? numAmount : 0,
+              credit: type === "income" ? numAmount : 0,
+            }
+          : tx
+      ));
+      toast.success("Movimiento actualizado");
+    } else {
+      const newTransaction = {
+        id: Date.now(),
+        date,
+        account: category,
+        description: description || categories.find(c => c.id === category)?.label || "Sin descripción",
+        debit: type === "expense" ? numAmount : 0,
+        credit: type === "income" ? numAmount : 0,
+      };
+      setTransactions([...transactions, newTransaction]);
+      toast.success(type === "income" ? "Ingreso registrado" : "Gasto registrado");
+    }
     onClose();
   };
 
@@ -175,7 +201,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense" }: SimpleTrans
           Cancelar
         </Button>
         <Button type="submit" className={type === "income" ? "bg-success hover:bg-success/90" : ""}>
-          {type === "income" ? "Agregar Ingreso" : "Agregar Gasto"}
+          {editing ? "Guardar Cambios" : type === "income" ? "Agregar Ingreso" : "Agregar Gasto"}
         </Button>
       </DialogFooter>
     </form>
@@ -188,6 +214,7 @@ export function SimpleTransactionsView() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [defaultType, setDefaultType] = useState<"income" | "expense">("expense");
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
+  const [editingTx, setEditingTx] = useState<EditingTransaction | null>(null);
 
   const handleDelete = (id: number) => {
     setTransactions(transactions.filter((t) => t.id !== id));
@@ -195,7 +222,21 @@ export function SimpleTransactionsView() {
   };
 
   const openDialog = (type: "income" | "expense") => {
+    setEditingTx(null);
     setDefaultType(type);
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (tx: { id: number; date: string; description: string; category: string; type: "income" | "expense"; amount: number }) => {
+    setEditingTx({
+      id: tx.id,
+      type: tx.type,
+      amount: tx.amount,
+      description: tx.description,
+      category: tx.category,
+      date: tx.date,
+    });
+    setDefaultType(tx.type);
     setDialogOpen(true);
   };
 
@@ -351,14 +392,24 @@ export function SimpleTransactionsView() {
                         {tx.type === "income" ? "Ingreso" : "Gasto"}
                       </Badge>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(tx.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary"
+                        onClick={() => openEditDialog(tx)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(tx.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 );
               })}
@@ -372,20 +423,21 @@ export function SimpleTransactionsView() {
         </CardContent>
       </Card>
 
-      {/* Add transaction dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* Add/Edit transaction dialog */}
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingTx(null); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {defaultType === "income" ? "Nuevo Ingreso" : "Nuevo Gasto"}
+              {editingTx ? "Editar Movimiento" : defaultType === "income" ? "Nuevo Ingreso" : "Nuevo Gasto"}
             </DialogTitle>
             <DialogDescription>
-              Registra un {defaultType === "income" ? "ingreso" : "gasto"} de forma rápida
+              {editingTx ? "Modifica los datos del movimiento" : `Registra un ${defaultType === "income" ? "ingreso" : "gasto"} de forma rápida`}
             </DialogDescription>
           </DialogHeader>
           <SimpleTransactionForm 
-            onClose={() => setDialogOpen(false)} 
+            onClose={() => { setDialogOpen(false); setEditingTx(null); }} 
             defaultType={defaultType}
+            editing={editingTx}
           />
         </DialogContent>
       </Dialog>
