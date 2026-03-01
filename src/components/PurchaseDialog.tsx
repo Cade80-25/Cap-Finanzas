@@ -66,8 +66,8 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
     },
   ];
 
-  const paypalEmail = "charonito@gmail.com";
-  const paypalLink = "https://paypal.me/charonito";
+  const paypalEmail = "pierresshop48@gmail.com";
+  const paypalLink = "https://paypal.me/pierresshop48";
 
   const getSelectedPrice = () => {
     if (!selectedPlan) return 0;
