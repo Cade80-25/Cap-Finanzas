@@ -6,6 +6,9 @@ import {
   MenubarMenu,
   MenubarSeparator,
   MenubarShortcut,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import {
@@ -25,6 +28,8 @@ import {
   ShoppingCart,
   Smartphone,
   Monitor,
+  Apple,
+  Laptop,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -226,15 +231,48 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
 
           <MenubarMenu>
             <MenubarTrigger>Descargar</MenubarTrigger>
-            <MenubarContent>
-              <MenubarItem onClick={() => navigate("/instalar")}>
-                <Smartphone className="mr-2 h-4 w-4" />
-                Versión para Celular (PWA)
-              </MenubarItem>
+            <MenubarContent className="w-56">
+              <MenubarSub>
+                <MenubarSubTrigger>
+                  <Smartphone className="mr-2 h-4 w-4" />
+                  Celular / Tablet
+                </MenubarSubTrigger>
+                <MenubarSubContent>
+                  <MenubarItem onClick={() => navigate("/instalar")}>
+                    <Smartphone className="mr-2 h-4 w-4" />
+                    Android (PWA)
+                  </MenubarItem>
+                  <MenubarItem onClick={() => navigate("/instalar")}>
+                    <Smartphone className="mr-2 h-4 w-4" />
+                    iPhone / iPad (PWA)
+                  </MenubarItem>
+                </MenubarSubContent>
+              </MenubarSub>
               <MenubarSeparator />
-              <MenubarItem onClick={() => window.open("https://github.com/Cade80-25/cap-finanzas/releases/latest", "_blank")}>
-                <Monitor className="mr-2 h-4 w-4" />
-                Versión para Escritorio (Windows)
+              <MenubarSub>
+                <MenubarSubTrigger>
+                  <Monitor className="mr-2 h-4 w-4" />
+                  Escritorio
+                </MenubarSubTrigger>
+                <MenubarSubContent>
+                  <MenubarItem onClick={() => window.open("https://github.com/Cade80-25/cap-finanzas/releases/latest", "_blank")}>
+                    <Monitor className="mr-2 h-4 w-4" />
+                    Windows (.exe)
+                  </MenubarItem>
+                  <MenubarItem onClick={() => window.open("https://github.com/Cade80-25/cap-finanzas/releases/latest", "_blank")}>
+                    <Apple className="mr-2 h-4 w-4" />
+                    macOS (.dmg)
+                  </MenubarItem>
+                  <MenubarItem onClick={() => window.open("https://github.com/Cade80-25/cap-finanzas/releases/latest", "_blank")}>
+                    <Laptop className="mr-2 h-4 w-4" />
+                    Linux (.AppImage)
+                  </MenubarItem>
+                </MenubarSubContent>
+              </MenubarSub>
+              <MenubarSeparator />
+              <MenubarItem onClick={() => navigate("/instalar")} className="text-muted-foreground text-xs">
+                <Info className="mr-2 h-4 w-4" />
+                Instrucciones de instalación
               </MenubarItem>
             </MenubarContent>
           </MenubarMenu>
