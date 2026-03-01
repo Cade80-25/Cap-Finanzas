@@ -52,16 +52,24 @@ export default function Resumen() {
       {!hasData && (
         <EmptyStateHelp
           title="No hay datos para mostrar"
-          description="El Resumen Financiero visualiza tus ingresos y gastos registrados en el Libro Diario."
+          description={isSimple 
+            ? "El Resumen Financiero visualiza tus ingresos y gastos registrados en Movimientos."
+            : "El Resumen Financiero visualiza tus ingresos y gastos registrados en el Libro Diario."
+          }
           icon={<PieChartIcon className="h-16 w-16" />}
-          tips={[
+          tips={isSimple ? [
+            "Registra movimientos en la sección de Movimientos para ver gráficos aquí",
+            "Agrega tus ingresos como salario, ventas, freelance, etc.",
+            "Registra tus gastos como alimentación, transporte, servicios, etc.",
+            "Los gráficos mostrarán la evolución mensual de tus finanzas",
+          ] : [
             "Registra transacciones en el Libro Diario para ver gráficos aquí",
             "Usa la cuenta 'Ingresos' para ventas, salarios, etc.",
             "Usa 'Gastos Operativos' para pagos de servicios, compras, etc.",
             "Los gráficos mostrarán la evolución mensual de tus finanzas",
           ]}
-          actionLabel="Ir al Libro Diario"
-          onAction={() => navigate("/libro-diario")}
+          actionLabel={isSimple ? "Ir a Movimientos" : "Ir al Libro Diario"}
+          onAction={() => navigate(isSimple ? "/transacciones" : "/libro-diario")}
         />
       )}
 
