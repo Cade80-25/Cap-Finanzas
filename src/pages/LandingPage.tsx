@@ -84,7 +84,7 @@ export default function LandingPage() {
   const [activationOpen, setActivationOpen] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
-  const downloadUrl = "https://github.com/TU_USUARIO/cap-finanzas/releases/latest/download/Cap-Finanzas-Setup.exe";
+  const downloadUrl = "https://github.com/Cade80-25/cap-finanzas/releases/latest/download/Cap-Finanzas-Setup.exe";
 
   return (
     <div className="min-h-screen bg-background">
@@ -321,7 +321,7 @@ export default function LandingPage() {
               </a>
             </Button>
             <Button size="lg" variant="outline" className="gap-2" asChild>
-              <a href="https://github.com/TU_USUARIO/cap-finanzas" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/Cade80-25/cap-finanzas" target="_blank" rel="noopener noreferrer">
                 <Github className="h-5 w-5" />
                 Ver en GitHub
               </a>
