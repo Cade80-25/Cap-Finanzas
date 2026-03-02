@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, TrendingUp, BookOpen, Target, MessageCircle, Send, LineChart, DollarSign, AlertTriangle, LucideIcon, ShieldAlert, Info } from "lucide-react";
+import { Sparkles, TrendingUp, BookOpen, Target, MessageCircle, Send, LineChart, DollarSign, AlertTriangle, LucideIcon, ShieldAlert, Info, BarChart3 } from "lucide-react";
+import MarketExplorer from "@/components/MarketExplorer";
 import { RecommendationDetailDialog } from "@/components/RecommendationDetailDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -173,14 +174,18 @@ export default function Recomendaciones() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="tutor">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="tutor">
                 <BookOpen className="h-4 w-4 mr-2" />
                 Tutor Educativo
               </TabsTrigger>
               <TabsTrigger value="inversiones">
                 <TrendingUp className="h-4 w-4 mr-2" />
-                Guía de Mercados
+                Chat Financiero
+              </TabsTrigger>
+              <TabsTrigger value="mercados">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Bolsas en Vivo
               </TabsTrigger>
             </TabsList>
             
@@ -327,6 +332,10 @@ export default function Recomendaciones() {
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
+            </TabsContent>
+
+            <TabsContent value="mercados" className="mt-4">
+              <MarketExplorer />
             </TabsContent>
           </Tabs>
         </CardContent>
