@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
+import { WalletSelector } from "@/components/WalletSelector";
 import {
   Home,
   Receipt,
@@ -121,6 +122,11 @@ export default function Layout() {
                 >
                   <X className="h-4 w-4" />
                 </Button>
+              </div>
+
+              {/* Wallet selector */}
+              <div className="px-3 pb-2">
+                <WalletSelector />
               </div>
 
               <nav className="flex-1 space-y-1 px-2 py-4 overflow-y-auto">

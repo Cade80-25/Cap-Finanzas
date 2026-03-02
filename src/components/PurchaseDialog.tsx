@@ -157,6 +157,15 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
           ))}
         </div>
 
+        {/* Extra accounts info */}
+        <div className="bg-muted/50 rounded-lg p-3 mt-2">
+          <p className="text-sm text-muted-foreground">
+            💼 <strong>¿Necesitas más cuentas?</strong> Todos los planes incluyen 1 cuenta. 
+            Puedes agregar hasta 4 cuentas adicionales por <strong>$2 USD</strong> cada una para separar 
+            tus finanzas (ej: Casa, Negocio, Ahorros).
+          </p>
+        </div>
+
         {selectedPlan && (
           <Card className="mt-4 bg-muted/50">
             <CardHeader className="pb-2">

@@ -27,6 +27,7 @@ import LandingPage from "./pages/LandingPage";
 import LicenseGenerator from "./pages/LicenseGenerator";
 import { ThemeProvider } from "next-themes";
 import { useNotificationGenerator } from "./hooks/useNotificationGenerator";
+import { WalletProvider } from "./contexts/WalletContext";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
+        <WalletProvider>
         <NotificationProvider>
           <Toaster />
           <Sonner />
@@ -83,6 +85,7 @@ const App = () => (
             </Routes>
           </Router>
         </NotificationProvider>
+        </WalletProvider>
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
