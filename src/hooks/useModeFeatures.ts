@@ -12,6 +12,7 @@ export type FeatureKey =
   | "currencies"
   | "categories"
   | "summary"
+  | "consolidated"
   | "journal"        // Libro Diario (full double-entry)
   | "ledger"         // Libro Mayor
   | "balance"        // Balance General
@@ -40,6 +41,7 @@ const FEATURE_CONFIG: FeatureConfig[] = [
   { key: "currencies", route: "/monedas", label: "Monedas", simpleMode: true, traditionalMode: true },
   { key: "categories", route: "/categorias", label: "Categorías", simpleMode: true, traditionalMode: true },
   { key: "summary", route: "/resumen", label: "Resumen", simpleMode: true, traditionalMode: true, simplifiedInSimple: true },
+  { key: "consolidated", route: "/consolidado", label: "Consolidado", simpleMode: true, traditionalMode: true },
   { key: "journal", route: "/libro-diario", label: "Libro Diario", simpleMode: false, traditionalMode: true },
   { key: "ledger", route: "/libro-mayor", label: "Libro Mayor", simpleMode: false, traditionalMode: true },
   { key: "balance", route: "/balance", label: "Balance General", simpleMode: false, traditionalMode: true },
