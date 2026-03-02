@@ -267,6 +267,13 @@ export function useLicense() {
   // Account slots: 1 base + extras purchased
   const accountSlots = 1 + (licenseData.extraAccountSlots || 0);
 
+  // Profile slots: Full license = 3, others = 1, trial = 3
+  const maxProfiles = useMemo(() => {
+    if (status === "trial") return 3;
+    const hasBoth = licenseData.purchasedModes.includes("simple") && licenseData.purchasedModes.includes("traditional");
+    return hasBoth ? 3 : 1;
+  }, [status, licenseData.purchasedModes]);
+
   return {
     // Current state
     mode: licenseData.mode,
@@ -284,7 +291,8 @@ export function useLicense() {
     canUpgrade,
     pricing,
     
-    // Account slots
+    // Account slots & profiles
     accountSlots,
+    maxProfiles,
   };
 }

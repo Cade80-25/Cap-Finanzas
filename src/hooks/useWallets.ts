@@ -14,7 +14,7 @@ interface WalletsData {
   wallets: Wallet[];
 }
 
-const WALLETS_KEY = "cap-finanzas-wallets";
+const WALLETS_BASE_KEY = "cap-finanzas-wallets";
 const DEFAULT_WALLET_ID = "wallet-default";
 
 const WALLET_ICONS = ["💼", "🏠", "🛒", "💰", "🎓", "🏦", "✈️", "🎯", "🚗", "❤️"];
@@ -31,8 +31,13 @@ const defaultWalletsData: WalletsData = {
   ],
 };
 
-export function useWallets() {
-  const [data, setData] = useLocalStorage<WalletsData>(WALLETS_KEY, defaultWalletsData);
+export function useWallets(profileId?: string) {
+  // Default profile uses the original key for backward compat
+  const walletsKey = !profileId || profileId === "profile-default"
+    ? WALLETS_BASE_KEY
+    : `${WALLETS_BASE_KEY}-${profileId}`;
+
+  const [data, setData] = useLocalStorage<WalletsData>(walletsKey, defaultWalletsData);
   const { accountSlots } = useLicense();
 
   const maxWallets = accountSlots;
@@ -102,7 +107,12 @@ export function useWallets() {
       setData((prev) => {
         const newWallets = prev.wallets.filter((w) => w.id !== walletId);
         // Remove wallet's transactions from localStorage
-        localStorage.removeItem(`cap-finanzas-journal-${walletId}`);
+        const journalPrefix = !profileId || profileId === "profile-default"
+          ? "cap-finanzas-journal"
+          : `cap-finanzas-journal-${profileId}`;
+        localStorage.removeItem(
+          walletId === "wallet-default" ? journalPrefix : `${journalPrefix}-${walletId}`
+        );
         return {
           ...prev,
           wallets: newWallets,

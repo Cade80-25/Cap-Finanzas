@@ -1,7 +1,21 @@
 import { createContext, useContext, ReactNode } from "react";
 import { useWallets, Wallet } from "@/hooks/useWallets";
+import { useProfiles, Profile } from "@/hooks/useProfiles";
 
 interface WalletContextValue {
+  // Profiles
+  profiles: Profile[];
+  activeProfile: Profile;
+  activeProfileId: string;
+  maxProfiles: number;
+  canAddProfile: boolean;
+  setActiveProfile: (id: string) => void;
+  addProfile: (name: string, avatar?: string) => { success: boolean; message: string };
+  renameProfile: (id: string, name: string, avatar?: string) => void;
+  deleteProfile: (id: string) => { success: boolean; message: string };
+  profileAvatars: string[];
+
+  // Wallets (scoped to active profile)
   wallets: Wallet[];
   activeWallet: Wallet;
   activeWalletId: string;
@@ -17,8 +31,16 @@ interface WalletContextValue {
 const WalletContext = createContext<WalletContextValue | null>(null);
 
 export function WalletProvider({ children }: { children: ReactNode }) {
-  const wallets = useWallets();
-  return <WalletContext.Provider value={wallets}>{children}</WalletContext.Provider>;
+  const profilesHook = useProfiles();
+  // Pass active profile ID to scope wallets
+  const walletsHook = useWallets(profilesHook.activeProfileId);
+
+  const value: WalletContextValue = {
+    ...profilesHook,
+    ...walletsHook,
+  };
+
+  return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
 }
 
 export function useWalletContext() {

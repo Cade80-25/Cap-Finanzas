@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { WalletSelector } from "@/components/WalletSelector";
+import { ProfileSelector } from "@/components/ProfileSelector";
 import {
   Home,
   Receipt,
@@ -124,8 +125,9 @@ export default function Layout() {
                 </Button>
               </div>
 
-              {/* Wallet selector */}
-              <div className="px-3 pb-2">
+              {/* Profile & Wallet selectors */}
+              <div className="px-3 pb-2 space-y-1">
+                <ProfileSelector />
                 <WalletSelector />
               </div>
 
