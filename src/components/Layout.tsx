@@ -36,6 +36,7 @@ import { LicenseGate } from "@/components/LicenseGate";
 import { TrialBanner } from "@/components/TrialBanner";
 import { useModeFeatures, FeatureKey } from "@/hooks/useModeFeatures";
 import { Badge } from "@/components/ui/badge";
+import { FloatingAddAccount } from "@/components/FloatingAddAccount";
 
 type NavItem = {
   name: string;
@@ -160,6 +161,9 @@ export default function Layout() {
           <main className="flex-1 overflow-auto">
             <Outlet />
           </main>
+
+          {/* Floating add account button */}
+          <FloatingAddAccount />
         </div>
       </div>
     </LicenseGate>
