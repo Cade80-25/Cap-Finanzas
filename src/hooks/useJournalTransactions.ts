@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useContext } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 
 export type JournalTransaction = {
@@ -103,14 +103,20 @@ function getStoredTransactions(): JournalTransaction[] {
   return [];
 }
 
-export function useJournalTransactions() {
+export function useJournalTransactionsForWallet(walletId?: string) {
+  // Default wallet uses the original key for backward compatibility
+  const storageKey = !walletId || walletId === "wallet-default" 
+    ? JOURNAL_KEY 
+    : `cap-finanzas-journal-${walletId}`;
+
   const [transactions, setTransactionsInternal] = useLocalStorage<JournalTransaction[]>(
-    JOURNAL_KEY,
+    storageKey,
     []
   );
 
-  // Migración automática al montar (solo una vez)
+  // Migración automática al montar (solo una vez, solo para la key principal)
   useEffect(() => {
+    if (storageKey !== JOURNAL_KEY) return;
     const alreadyMigrated = localStorage.getItem(MIGRATION_DONE_KEY);
     if (alreadyMigrated) return;
 
@@ -134,4 +140,22 @@ export function useJournalTransactions() {
   );
 
   return { transactions, setTransactions };
+}
+
+// Default export that reads the active wallet from localStorage directly
+// (avoids circular dependency with context)
+function getActiveWalletId(): string {
+  try {
+    const raw = localStorage.getItem("cap-finanzas-wallets");
+    if (raw) {
+      const data = JSON.parse(raw);
+      return data.activeWalletId || "wallet-default";
+    }
+  } catch {}
+  return "wallet-default";
+}
+
+export function useJournalTransactions() {
+  const walletId = getActiveWalletId();
+  return useJournalTransactionsForWallet(walletId);
 }

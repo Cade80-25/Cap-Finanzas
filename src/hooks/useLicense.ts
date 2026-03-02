@@ -10,6 +10,8 @@ interface LicenseData {
   activatedAt: string | null;
   licenseCode: string | null;
   purchasedModes: LicenseMode[];
+  extraAccountSlots: number;
+  usedAccountCodes: string[];
 }
 
 const TRIAL_DAYS = 30;
@@ -17,7 +19,7 @@ const LICENSE_KEY = "cap-finanzas-license";
 
 // Validate license codes with checksum verification
 // Formats: CF-SIMP-XXXX-XXXXX (simple) or CF-TRAD-XXXX-XXXXX (traditional)
-function validateLicenseCode(code: string): { valid: boolean; mode: LicenseMode | null } {
+function validateLicenseCode(code: string): { valid: boolean; mode: LicenseMode | null; isAccountCode?: boolean } {
   const cleanCode = code.trim().toUpperCase();
   
   // New format from license generator: CF-SIMP-XXXX-XXXXX or CF-TRAD-XXXX-XXXXX
@@ -74,8 +76,23 @@ function validateLicenseCode(code: string): { valid: boolean; mode: LicenseMode 
     if (fullMatch[2].charAt(4) !== expectedChecksum) {
       return { valid: false, mode: null };
     }
-    // Full license activates both modes
     return { valid: true, mode: "traditional" };
+  }
+  
+  // Account slot code: CF-ACCT-XXXX-XXXXX
+  const acctMatch = cleanCode.match(/^CF-ACCT-([A-Z0-9]{4})-([A-Z0-9]{5})$/);
+  if (acctMatch) {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const codeBody = acctMatch[1] + acctMatch[2].substring(0, 4);
+    let checksum = 0;
+    for (let i = 0; i < codeBody.length; i++) {
+      checksum += codeBody.charCodeAt(i);
+    }
+    const expectedChecksum = chars.charAt(checksum % chars.length);
+    if (acctMatch[2].charAt(4) !== expectedChecksum) {
+      return { valid: false, mode: null };
+    }
+    return { valid: true, mode: null, isAccountCode: true };
   }
   
   return { valid: false, mode: null };
@@ -87,6 +104,8 @@ const defaultLicenseData: LicenseData = {
   activatedAt: null,
   licenseCode: null,
   purchasedModes: [],
+  extraAccountSlots: 0,
+  usedAccountCodes: [],
 };
 
 export function useLicense() {
@@ -164,9 +183,9 @@ export function useLicense() {
   // Activate license with code
   const activateLicense = useCallback(
     (code: string): { success: boolean; message: string } => {
-      const { valid, mode } = validateLicenseCode(code);
+      const { valid, mode, isAccountCode } = validateLicenseCode(code);
       
-      if (!valid || !mode) {
+      if (!valid) {
         return { 
           success: false, 
           message: "Código de licencia inválido. Verifica que esté escrito correctamente." 
@@ -174,6 +193,27 @@ export function useLicense() {
       }
 
       const cleanCode = code.trim().toUpperCase();
+      
+      // Handle account slot codes
+      if (isAccountCode) {
+        if (licenseData.usedAccountCodes?.includes(cleanCode)) {
+          return { success: false, message: "Este código de cuenta ya fue activado." };
+        }
+        const currentExtra = licenseData.extraAccountSlots || 0;
+        if (currentExtra >= 4) {
+          return { success: false, message: "Ya tienes el máximo de 5 cuentas (1 base + 4 adicionales)." };
+        }
+        setLicenseData((prev) => ({
+          ...prev,
+          extraAccountSlots: (prev.extraAccountSlots || 0) + 1,
+          usedAccountCodes: [...(prev.usedAccountCodes || []), cleanCode],
+        }));
+        return { 
+          success: true, 
+          message: `¡Cuenta adicional activada! Ahora tienes ${currentExtra + 2} cuentas disponibles.` 
+        };
+      }
+
       const isFullLicense = cleanCode.startsWith("CF-FULL-");
       
       // Check if code was already used
@@ -186,14 +226,14 @@ export function useLicense() {
 
       const newPurchasedModes: LicenseMode[] = isFullLicense 
         ? ["simple", "traditional"]
-        : [...new Set([...licenseData.purchasedModes, mode])];
+        : [...new Set([...licenseData.purchasedModes, mode!])];
 
       setLicenseData((prev) => ({
         ...prev,
         activatedAt: new Date().toISOString(),
         licenseCode: cleanCode,
         purchasedModes: newPurchasedModes,
-        mode: mode, // Switch to the newly activated mode
+        mode: mode!, // Switch to the newly activated mode
       }));
 
       const modeName = mode === "simple" ? "Finanzas Personales Simples" : "Contabilidad Tradicional";
@@ -220,8 +260,12 @@ export function useLicense() {
     simple: 5,
     traditional: 10,
     full: 12,
-    upgrade: 5, // Difference from simple to traditional
+    upgrade: 5,
+    extraAccount: 2,
   };
+
+  // Account slots: 1 base + extras purchased
+  const accountSlots = 1 + (licenseData.extraAccountSlots || 0);
 
   return {
     // Current state
@@ -239,5 +283,8 @@ export function useLicense() {
     // Upgrade info
     canUpgrade,
     pricing,
+    
+    // Account slots
+    accountSlots,
   };
 }

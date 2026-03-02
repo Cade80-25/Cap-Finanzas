@@ -11,15 +11,15 @@ import { toast } from "@/hooks/use-toast";
 
 interface GeneratedLicense {
   code: string;
-  type: "simple" | "traditional" | "full";
+  type: "simple" | "traditional" | "full" | "account";
   createdAt: Date;
   customerEmail?: string;
   used: boolean;
 }
 
 // Simple hash function for license validation
-function generateLicenseCode(type: "simple" | "traditional" | "full"): string {
-  const prefix = type === "simple" ? "CF-SIMP" : type === "full" ? "CF-FULL" : "CF-TRAD";
+function generateLicenseCode(type: "simple" | "traditional" | "full" | "account"): string {
+  const prefix = type === "simple" ? "CF-SIMP" : type === "full" ? "CF-FULL" : type === "account" ? "CF-ACCT" : "CF-TRAD";
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Excluding confusing characters
   let code = "";
   
@@ -42,7 +42,7 @@ export default function LicenseGenerator() {
     const saved = localStorage.getItem("cap-finanzas-generated-licenses");
     return saved ? JSON.parse(saved) : [];
   });
-  const [selectedType, setSelectedType] = useState<"simple" | "traditional" | "full">("traditional");
+  const [selectedType, setSelectedType] = useState<"simple" | "traditional" | "full" | "account">("traditional");
   const [customerEmail, setCustomerEmail] = useState("");
   const [quantity, setQuantity] = useState(1);
 
@@ -69,7 +69,7 @@ export default function LicenseGenerator() {
     
     toast({
       title: `${quantity} licencia(s) generada(s)`,
-      description: `Tipo: ${selectedType === "simple" ? "Finanzas Simples ($5)" : selectedType === "full" ? "Licencia Completa ($12)" : "Contabilidad Completa ($10)"}`,
+      description: `Tipo: ${selectedType === "simple" ? "Finanzas Simples ($5)" : selectedType === "full" ? "Licencia Completa ($12)" : selectedType === "account" ? "Cuenta Adicional ($2)" : "Contabilidad Completa ($10)"}`,
     });
   };
 
@@ -102,7 +102,7 @@ export default function LicenseGenerator() {
 
   const exportCSV = () => {
     const headers = "Código,Tipo,Fecha,Email Cliente,Usada\n";
-    const typeLabel = (t: string) => t === "simple" ? "Finanzas Simples" : t === "full" ? "Licencia Completa" : "Contabilidad Completa";
+    const typeLabel = (t: string) => t === "simple" ? "Finanzas Simples" : t === "full" ? "Licencia Completa" : t === "account" ? "Cuenta Adicional" : "Contabilidad Completa";
     const rows = licenses
       .map(
         (l) =>
@@ -128,6 +128,7 @@ export default function LicenseGenerator() {
   const simpleCount = licenses.filter((l) => l.type === "simple").length;
   const traditionalCount = licenses.filter((l) => l.type === "traditional").length;
   const fullCount = licenses.filter((l) => l.type === "full").length;
+  const accountCount = licenses.filter((l) => l.type === "account").length;
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -149,7 +150,7 @@ export default function LicenseGenerator() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-5 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Total Generadas</CardDescription>
@@ -164,14 +165,20 @@ export default function LicenseGenerator() {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Contabilidad Completa ($10)</CardDescription>
+              <CardDescription>Contabilidad ($10)</CardDescription>
               <CardTitle className="text-2xl">{traditionalCount}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Licencia Completa ($12)</CardDescription>
+              <CardDescription>Completa ($12)</CardDescription>
               <CardTitle className="text-2xl">{fullCount}</CardTitle>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Cuenta Extra ($2)</CardDescription>
+              <CardTitle className="text-2xl">{accountCount}</CardTitle>
             </CardHeader>
           </Card>
         </div>
@@ -191,7 +198,7 @@ export default function LicenseGenerator() {
             <div className="grid md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label>Tipo de Licencia</Label>
-                <Select value={selectedType} onValueChange={(v: "simple" | "traditional" | "full") => setSelectedType(v)}>
+                <Select value={selectedType} onValueChange={(v: "simple" | "traditional" | "full" | "account") => setSelectedType(v)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -199,6 +206,7 @@ export default function LicenseGenerator() {
                     <SelectItem value="simple">Finanzas Simples ($5)</SelectItem>
                     <SelectItem value="traditional">Contabilidad Completa ($10)</SelectItem>
                     <SelectItem value="full">Licencia Completa ($12)</SelectItem>
+                    <SelectItem value="account">Cuenta Adicional ($2)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -274,8 +282,8 @@ export default function LicenseGenerator() {
                     <TableRow key={license.code} className={license.used ? "opacity-50" : ""}>
                       <TableCell className="font-mono font-medium">{license.code}</TableCell>
                       <TableCell>
-                        <Badge variant={license.type === "simple" ? "secondary" : license.type === "full" ? "outline" : "default"}>
-                          {license.type === "simple" ? "Simple $5" : license.type === "full" ? "Completa $12" : "Contabilidad $10"}
+                        <Badge variant={license.type === "simple" ? "secondary" : license.type === "full" ? "outline" : license.type === "account" ? "secondary" : "default"}>
+                          {license.type === "simple" ? "Simple $5" : license.type === "full" ? "Completa $12" : license.type === "account" ? "Cuenta $2" : "Contabilidad $10"}
                         </Badge>
                       </TableCell>
                       <TableCell>{new Date(license.createdAt).toLocaleDateString()}</TableCell>
