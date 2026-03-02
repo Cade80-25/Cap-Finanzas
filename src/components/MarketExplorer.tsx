@@ -310,7 +310,7 @@ export default function MarketExplorer() {
       {isOnline && activeSymbol ? (
         <div className="space-y-4">
           {/* Symbol Info */}
-          <Card className="bg-transparent border-muted">
+          <Card className="bg-card-widget border-muted">
             <CardContent className="pt-4">
               <TradingViewSymbolInfo symbol={activeSymbol} />
             </CardContent>
@@ -331,7 +331,7 @@ export default function MarketExplorer() {
 
           {/* Analysis & Profile */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card className="bg-transparent border-muted">
+            <Card className="bg-card-widget border-muted">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-primary" />
@@ -343,7 +343,7 @@ export default function MarketExplorer() {
               </CardContent>
             </Card>
 
-            <Card className="bg-transparent border-muted">
+            <Card className="bg-card-widget border-muted">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Globe className="h-4 w-4 text-primary" />
