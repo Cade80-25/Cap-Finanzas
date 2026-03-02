@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Sparkles, TrendingUp, BookOpen, Target, MessageCircle, Send, LineChart, DollarSign, AlertTriangle, LucideIcon } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Sparkles, TrendingUp, BookOpen, Target, MessageCircle, Send, LineChart, DollarSign, AlertTriangle, LucideIcon, ShieldAlert, Info } from "lucide-react";
 import { RecommendationDetailDialog } from "@/components/RecommendationDetailDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function Recomendaciones() {
   const [consulta, setConsulta] = useState("");
@@ -54,37 +56,70 @@ export default function Recomendaciones() {
     "¿Cómo crear un presupuesto efectivo?"
   ];
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
   const handleConsulta = async () => {
     if (!consulta.trim()) return;
     
     setLoading(true);
-    // Simulación de respuesta de IA
-    setTimeout(() => {
-      setRespuesta(`📚 **Respuesta educativa sobre: "${consulta}"**\n\nComo tu tutor financiero, te recomiendo lo siguiente:\n\n1. **Análisis de tu situación**: Basándome en tus datos actuales, veo que estás construyendo buenos hábitos financieros.\n\n2. **Recomendación específica**: Para ${consulta.toLowerCase()}, te sugiero comenzar por revisar la sección de Enciclopedia donde encontrarás términos relacionados.\n\n3. **Acción práctica**: Establece metas pequeñas y medibles. Usa la sección de Presupuesto para planificar tus objetivos.\n\n4. **Recursos adicionales**: Consulta el Estado de Resultados para analizar tus patrones de ingresos y gastos.\n\n💡 *Tip del día*: La clave del éxito financiero es la consistencia, no la perfección.`);
+    setRespuesta("");
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-financial-chat", {
+        body: { 
+          messages: [{ role: "user", content: consulta }],
+          mode: "tutor"
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+      setRespuesta(data.content);
+    } catch (err) {
+      console.error("Error:", err);
+      toast.error("No se pudo obtener respuesta. Intenta de nuevo.");
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!message.trim()) return;
 
     const userMessage = message;
-    setChatMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    const newMessages = [...chatMessages, { role: "user" as const, content: userMessage }];
+    setChatMessages(newMessages);
     setMessage("");
     setIsLoadingChat(true);
 
-    // Simulación de respuesta de asesor de inversiones
-    setTimeout(() => {
-      const responses = [
-        "📈 **Análisis de Mercado Actual**\n\nBasándome en las tendencias del mercado:\n\n• **Acciones de Tecnología**: El sector tecnológico muestra una tendencia alcista con un crecimiento promedio del 12% en el último trimestre. Empresas como Microsoft, Apple y NVIDIA lideran el sector.\n\n• **Bonos del Tesoro**: Con tasas de interés actuales del 4.5%, los bonos representan una opción segura para diversificar tu portafolio.\n\n• **Fondos Indexados**: Recomiendo el S&P 500, con un rendimiento histórico del 10% anual.\n\n💡 **Recomendación**: Diversifica un 60% en fondos indexados, 30% en bonos y 10% en acciones individuales.",
-        "🎯 **Estrategia de Inversión Personalizada**\n\nPara optimizar tus inversiones:\n\n1. **Corto Plazo (1-2 años)**: Mantén liquidez en cuentas de ahorro de alto rendimiento (3-4% anual).\n\n2. **Medio Plazo (3-5 años)**: Invierte en ETFs diversificados y bonos corporativos.\n\n3. **Largo Plazo (5+ años)**: Considera fondos de índice bursátil y bienes raíces.\n\n⚠️ **Advertencia**: Todo portafolio debe incluir un fondo de emergencia equivalente a 6 meses de gastos.",
-        "💰 **Oportunidades de Inversión Actuales**\n\n• **Energías Renovables**: Sector en crecimiento con incentivos gubernamentales. ROI proyectado: 15-20% anual.\n\n• **Biotecnología**: Empresas farmacéuticas muestran innovación constante. Riesgo medio-alto.\n\n• **Real Estate Crowdfunding**: Inversión inmobiliaria accesible desde $500. Rendimiento: 8-12% anual.\n\n• **Criptomonedas**: Alta volatilidad. Solo para inversores con alta tolerancia al riesgo. Máximo 5% del portafolio.",
-        "📊 **Análisis de Riesgo y Rendimiento**\n\nSegún tu perfil:\n\n**Riesgo Bajo** (70% probabilidad de ganancia):\n- Bonos gubernamentales: 4-5% anual\n- Cuentas de ahorro: 3-4% anual\n\n**Riesgo Medio** (80% probabilidad de ganancia):\n- Fondos indexados: 8-12% anual\n- ETFs diversificados: 6-10% anual\n\n**Riesgo Alto** (60% probabilidad de ganancia):\n- Acciones individuales: 15-25% anual (o pérdidas)\n- Criptomonedas: Altamente volátil\n\n✅ **Mejor momento para invertir**: Los mercados muestran estabilidad. Considera dollar-cost averaging.",
-      ];
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-      setChatMessages(prev => [...prev, { role: "assistant", content: randomResponse }]);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-financial-chat", {
+        body: { 
+          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+          mode: "inversiones"
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+      setChatMessages(prev => [...prev, { role: "assistant", content: data.content }]);
+    } catch (err) {
+      console.error("Error:", err);
+      toast.error("No se pudo obtener respuesta. Intenta de nuevo.");
+    } finally {
       setIsLoadingChat(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -130,10 +165,10 @@ export default function Recomendaciones() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <LineChart className="h-6 w-6 text-primary" />
-            Asesor Financiero con IA
+            Guía Financiera Inteligente
           </CardTitle>
           <CardDescription>
-            Consulta educativa y asesoramiento de inversiones en tiempo real
+            Aprende sobre finanzas y explora información del mercado con ayuda de IA
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -145,7 +180,7 @@ export default function Recomendaciones() {
               </TabsTrigger>
               <TabsTrigger value="inversiones">
                 <TrendingUp className="h-4 w-4 mr-2" />
-                Asesor de Inversiones
+                Guía de Mercados
               </TabsTrigger>
             </TabsList>
             
@@ -215,39 +250,38 @@ export default function Recomendaciones() {
             </TabsContent>
             
             <TabsContent value="inversiones" className="space-y-4 mt-4">
-              <Alert>
-                <TrendingUp className="h-4 w-4" />
-                <AlertTitle>Asesoramiento en Tiempo Real</AlertTitle>
+              <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-500/10 text-foreground [&>svg]:text-yellow-500">
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle>Información Educativa — No es Asesoría Financiera</AlertTitle>
                 <AlertDescription>
-                  Obtén recomendaciones personalizadas sobre inversiones basadas en análisis de mercado actual
+                  La información proporcionada es generada por IA con fines educativos. Los datos provienen de modelos de lenguaje entrenados con información financiera general. <strong>No constituye asesoría financiera profesional.</strong> Toda decisión de inversión es bajo tu propio riesgo. Consulta a un asesor certificado.
                 </AlertDescription>
               </Alert>
 
-              <ScrollArea className="h-[350px] w-full rounded-md border p-4">
+              <ScrollArea className="h-[350px] w-full rounded-md border p-4" ref={scrollRef}>
                 <div className="space-y-4">
                   {chatMessages.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                       <LineChart className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p className="mb-4">Pregunta sobre inversiones, mercados o estrategias financieras</p>
+                      <p className="mb-4">Pregunta sobre mercados, tipos de inversión o estrategias financieras</p>
                       
                       <div className="space-y-4 text-left">
                         <div className="p-3 rounded-lg border">
                           <div className="flex items-center gap-2 mb-2">
-                            <DollarSign className="h-4 w-4 text-green-500" />
-                            <h4 className="font-semibold text-sm">Oportunidades Actuales</h4>
+                            <Info className="h-4 w-4 text-primary" />
+                            <h4 className="font-semibold text-sm">Ejemplos de preguntas</h4>
                           </div>
-                          <p className="text-xs">• Fondos indexados S&P 500: 10% anual promedio</p>
-                          <p className="text-xs">• ETFs de tecnología en tendencia alcista</p>
-                          <p className="text-xs">• Bonos del Tesoro: 4-5% anual, bajo riesgo</p>
+                          <p className="text-xs">• ¿Qué son los fondos indexados y cómo funcionan?</p>
+                          <p className="text-xs">• ¿Cuáles son las diferencias entre renta fija y variable?</p>
+                          <p className="text-xs">• ¿Qué opciones de inversión existen para principiantes?</p>
                         </div>
                         
-                        <div className="p-3 rounded-lg border">
+                        <div className="p-3 rounded-lg border border-yellow-500/30 bg-yellow-500/5">
                           <div className="flex items-center gap-2 mb-2">
                             <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                            <h4 className="font-semibold text-sm">Alertas de Mercado</h4>
+                            <h4 className="font-semibold text-sm">Fuentes de información</h4>
                           </div>
-                          <p className="text-xs">⚠️ Alta volatilidad en criptomonedas</p>
-                          <p className="text-xs">✅ Sector inmobiliario en recuperación</p>
+                          <p className="text-xs">Las respuestas son generadas por IA basándose en conocimiento financiero general. No representan datos en tiempo real del mercado.</p>
                         </div>
                       </div>
                     </div>
@@ -284,7 +318,7 @@ export default function Recomendaciones() {
               
               <div className="flex gap-2">
                 <Input
-                  placeholder="¿Cuál es el mejor momento para invertir? ¿Dónde debería invertir?"
+                  placeholder="¿Qué son los ETFs? ¿Cómo funciona el interés compuesto?"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
