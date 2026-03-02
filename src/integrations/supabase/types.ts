@@ -14,7 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      licenses: {
+        Row: {
+          code: string
+          created_at: string
+          customer_email: string
+          id: string
+          is_delivered: boolean
+          is_used: boolean
+          license_type: string
+          order_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          customer_email: string
+          id?: string
+          is_delivered?: boolean
+          is_used?: boolean
+          license_type: string
+          order_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          customer_email?: string
+          id?: string
+          is_delivered?: boolean
+          is_used?: boolean
+          license_type?: string
+          order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "licenses_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          customer_email: string
+          id: string
+          paypal_payer_email: string | null
+          paypal_txn_id: string | null
+          plan_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          customer_email: string
+          id?: string
+          paypal_payer_email?: string | null
+          paypal_txn_id?: string | null
+          plan_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          customer_email?: string
+          id?: string
+          paypal_payer_email?: string | null
+          paypal_txn_id?: string | null
+          plan_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
