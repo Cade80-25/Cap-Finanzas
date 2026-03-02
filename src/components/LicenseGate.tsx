@@ -65,16 +65,20 @@ export function LicenseGate({ children }: LicenseGateProps) {
           </div>
 
           {/* Pricing summary */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="border rounded-lg p-3 text-center">
               <p className="text-2xl font-bold">$5</p>
               <p className="text-xs text-muted-foreground">Finanzas Simples</p>
             </div>
-            <div className="border rounded-lg p-3 text-center border-primary">
+            <div className="border rounded-lg p-3 text-center">
               <p className="text-2xl font-bold">$10</p>
-              <p className="text-xs text-muted-foreground">Contabilidad Completa</p>
+              <p className="text-xs text-muted-foreground">Contabilidad</p>
+            </div>
+            <div className="border rounded-lg p-3 text-center border-primary">
+              <p className="text-2xl font-bold">$12</p>
+              <p className="text-xs text-muted-foreground">Completa</p>
               <Badge variant="secondary" className="mt-1 text-xs">
-                Más popular
+                Mejor valor
               </Badge>
             </div>
           </div>

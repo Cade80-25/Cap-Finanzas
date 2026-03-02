@@ -22,12 +22,14 @@ interface PurchaseDialogProps {
 
 export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }: PurchaseDialogProps) {
   const { pricing, canUpgrade, purchasedModes } = useLicense();
-  const [selectedPlan, setSelectedPlan] = useState<LicenseMode | "upgrade" | null>(
+  const [selectedPlan, setSelectedPlan] = useState<LicenseMode | "upgrade" | "full" | null>(
     highlightMode || null
   );
 
   const hasSimple = purchasedModes.includes("simple");
   const hasTraditional = purchasedModes.includes("traditional");
+
+  const hasBoth = hasSimple && hasTraditional;
 
   const plans = [
     {
@@ -43,7 +45,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
         "Calendario financiero",
         "Múltiples monedas",
       ],
-      disabled: hasSimple || hasTraditional,
+      disabled: hasSimple || hasBoth,
       badge: hasSimple ? "Adquirido" : null,
     },
     {
@@ -60,9 +62,24 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
         "Plan de cuentas profesional",
         "Enciclopedia contable",
       ],
-      popular: true,
-      disabled: hasTraditional,
+      disabled: hasTraditional || hasBoth,
       badge: hasTraditional ? "Adquirido" : canUpgrade ? "Upgrade $5" : null,
+    },
+    {
+      id: "full" as const,
+      name: "Licencia Completa",
+      price: pricing.full,
+      description: "Ambos modos en una sola licencia — la mejor oferta",
+      features: [
+        "Todo de Finanzas Simples",
+        "Todo de Contabilidad Tradicional",
+        "Cambio libre entre ambos modos",
+        "Ahorra $3 vs comprar por separado",
+        "Actualizaciones gratuitas de por vida",
+      ],
+      popular: true,
+      disabled: hasBoth,
+      badge: hasBoth ? "Adquirido" : null,
     },
   ];
 
@@ -71,6 +88,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
 
   const getSelectedPrice = () => {
     if (!selectedPlan) return 0;
+    if (selectedPlan === "full") return pricing.full;
     if (selectedPlan === "upgrade") return pricing.upgrade;
     if (selectedPlan === "traditional" && canUpgrade) return pricing.upgrade;
     return selectedPlan === "simple" ? pricing.simple : pricing.traditional;
@@ -78,7 +96,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">Adquirir Cap Finanzas</DialogTitle>
           <DialogDescription>
@@ -86,7 +104,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid md:grid-cols-2 gap-4 mt-4">
+        <div className="grid md:grid-cols-3 gap-4 mt-4">
           {plans.map((plan) => (
             <Card
               key={plan.id}
