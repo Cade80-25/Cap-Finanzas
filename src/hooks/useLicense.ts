@@ -264,8 +264,10 @@ export function useLicense() {
     extraAccount: 2,
   };
 
-  // Account slots: 1 base + extras purchased
-  const accountSlots = 1 + (licenseData.extraAccountSlots || 0);
+  // Account slots: trial = 3, paid = 1 base + extras (max 5)
+  const accountSlots = status === "trial" 
+    ? 3 
+    : 1 + (licenseData.extraAccountSlots || 0);
 
   // Profile slots: Full license = 3, others = 1, trial = 3
   const maxProfiles = useMemo(() => {
