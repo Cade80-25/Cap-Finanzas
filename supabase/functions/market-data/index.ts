@@ -19,129 +19,169 @@ Deno.serve(async (req) => {
       );
     }
 
+    const apiKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ error: "AI not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const upperSymbol = symbol.toUpperCase().trim();
 
     if (action === "chart") {
-      // Fetch 1-month chart data
-      const chartUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(upperSymbol)}?range=1mo&interval=1d`;
-      const chartRes = await fetch(chartUrl, {
-        headers: { "User-Agent": "Mozilla/5.0" },
+      const chartPrompt = `Para el activo financiero "${upperSymbol}", genera datos de precio simulados educativos para los últimos 30 días.
+Responde SOLO con un JSON array, sin texto adicional ni markdown. Cada elemento debe tener: "date" (YYYY-MM-DD), "price" (número), "volume" (número).
+Usa precios realistas basados en tu conocimiento del activo. Si no conoces el activo, usa valores ficticios razonables.
+Ejemplo de formato: [{"date":"2026-02-01","price":150.25,"volume":45000000}]`;
+
+      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: "Eres un generador de datos financieros educativos. Responde SOLO con JSON válido, sin markdown, sin ```json, sin texto extra." },
+            { role: "user", content: chartPrompt },
+          ],
+          max_tokens: 2000,
+          temperature: 0.3,
+        }),
       });
 
-      if (!chartRes.ok) {
-        throw new Error(`Chart data fetch failed: ${chartRes.status}`);
+      if (!aiRes.ok) {
+        throw new Error(`AI error: ${aiRes.status}`);
       }
 
-      const chartData = await chartRes.json();
-      const result = chartData.chart?.result?.[0];
-
-      if (!result) {
-        return new Response(
-          JSON.stringify({ error: "No se encontraron datos para este símbolo." }),
-          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      const aiData = await aiRes.json();
+      let content = aiData.choices?.[0]?.message?.content || "[]";
+      
+      // Clean markdown code blocks if present
+      content = content.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+      
+      let chartPoints;
+      try {
+        chartPoints = JSON.parse(content);
+      } catch {
+        chartPoints = [];
       }
-
-      const timestamps = result.timestamp || [];
-      const closes = result.indicators?.quote?.[0]?.close || [];
-      const volumes = result.indicators?.quote?.[0]?.volume || [];
-
-      const chartPoints = timestamps.map((ts: number, i: number) => ({
-        date: new Date(ts * 1000).toISOString().split("T")[0],
-        price: closes[i] != null ? Number(closes[i].toFixed(2)) : null,
-        volume: volumes[i] || 0,
-      })).filter((p: any) => p.price !== null);
 
       return new Response(
-        JSON.stringify({ chartPoints }),
+        JSON.stringify({ chartPoints, isSimulated: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Default: quote + summary
-    const quoteUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(upperSymbol)}`;
-    const quoteRes = await fetch(quoteUrl, {
-      headers: { "User-Agent": "Mozilla/5.0" },
+    // Default: quote + analysis
+    const quotePrompt = `Para el activo financiero "${upperSymbol}", proporciona información general basada en tu conocimiento.
+Responde SOLO con un JSON object (sin markdown, sin \`\`\`json), con estos campos exactos:
+{
+  "symbol": "${upperSymbol}",
+  "name": "Nombre completo",
+  "price": número_aproximado_reciente,
+  "currency": "USD",
+  "change": número_cambio_diario_estimado,
+  "changePercent": porcentaje_cambio_estimado,
+  "previousClose": precio_cierre_anterior_estimado,
+  "open": precio_apertura_estimado,
+  "dayHigh": máximo_día_estimado,
+  "dayLow": mínimo_día_estimado,
+  "volume": volumen_estimado,
+  "marketCap": capitalización_estimada,
+  "fiftyTwoWeekHigh": máximo_52_semanas_estimado,
+  "fiftyTwoWeekLow": mínimo_52_semanas_estimado,
+  "exchange": "Nombre de la bolsa",
+  "quoteType": "EQUITY o CRYPTOCURRENCY o INDEX o COMMODITY",
+  "region": "US"
+}
+Usa valores numéricos realistas basados en tu conocimiento más reciente. Si no conoces el activo, responde con {"error": "not_found"}.`;
+
+    const quoteRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: "Eres un proveedor de datos financieros educativos. Responde SOLO con JSON válido, sin markdown, sin ```json, sin texto extra." },
+          { role: "user", content: quotePrompt },
+        ],
+        max_tokens: 500,
+        temperature: 0.2,
+      }),
     });
 
     if (!quoteRes.ok) {
-      throw new Error(`Quote fetch failed: ${quoteRes.status}`);
+      throw new Error(`AI error: ${quoteRes.status}`);
     }
 
     const quoteData = await quoteRes.json();
-    const quote = quoteData.quoteResponse?.result?.[0];
+    let quoteContent = quoteData.choices?.[0]?.message?.content || "{}";
+    quoteContent = quoteContent.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
 
-    if (!quote) {
+    let quote;
+    try {
+      quote = JSON.parse(quoteContent);
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "No se pudo procesar la información. Intenta de nuevo." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (quote.error === "not_found") {
       return new Response(
         JSON.stringify({ error: "Símbolo no encontrado. Verifica e intenta de nuevo." }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const summary = {
-      symbol: quote.symbol,
-      name: quote.shortName || quote.longName || quote.symbol,
-      price: quote.regularMarketPrice,
-      currency: quote.currency,
-      change: quote.regularMarketChange,
-      changePercent: quote.regularMarketChangePercent,
-      previousClose: quote.regularMarketPreviousClose,
-      open: quote.regularMarketOpen,
-      dayHigh: quote.regularMarketDayHigh,
-      dayLow: quote.regularMarketDayLow,
-      volume: quote.regularMarketVolume,
-      marketCap: quote.marketCap,
-      fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh,
-      fiftyTwoWeekLow: quote.fiftyTwoWeekLow,
-      exchange: quote.fullExchangeName || quote.exchange,
-      quoteType: quote.quoteType,
-      region: quote.region,
-    };
-
     // Get AI analysis
     let aiAnalysis = "";
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (apiKey) {
-      try {
-        const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
-            messages: [
-              {
-                role: "system",
-                content: `Eres un analista financiero educativo. Proporciona un resumen breve (máximo 200 palabras) sobre la empresa o activo financiero indicado. Incluye:
+    try {
+      const analysisRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            {
+              role: "system",
+              content: `Eres un analista financiero educativo. Proporciona un resumen breve (máximo 200 palabras) sobre la empresa o activo financiero indicado. Incluye:
 - Sector e industria
 - Qué hace la empresa (1-2 oraciones)
 - Datos clave para un inversor principiante
 - Nivel de riesgo general (bajo/medio/alto)
 Responde en español. NO des recomendaciones de compra/venta. Termina con: "⚠️ Información educativa, no constituye asesoría financiera."`,
-              },
-              {
-                role: "user",
-                content: `Analiza brevemente: ${quote.shortName || quote.symbol} (${quote.symbol}). Precio actual: ${quote.regularMarketPrice} ${quote.currency}. Capitalización: ${quote.marketCap}. Tipo: ${quote.quoteType}.`,
-              },
-            ],
-            max_tokens: 500,
-            temperature: 0.5,
-          }),
-        });
+            },
+            {
+              role: "user",
+              content: `Analiza brevemente: ${quote.name} (${quote.symbol}). Precio aproximado: ${quote.price} ${quote.currency}. Capitalización: ${quote.marketCap}. Tipo: ${quote.quoteType}.`,
+            },
+          ],
+          max_tokens: 500,
+          temperature: 0.5,
+        }),
+      });
 
-        if (aiRes.ok) {
-          const aiData = await aiRes.json();
-          aiAnalysis = aiData.choices?.[0]?.message?.content || "";
-        }
-      } catch (e) {
-        console.error("AI analysis error:", e);
+      if (analysisRes.ok) {
+        const analysisData = await analysisRes.json();
+        aiAnalysis = analysisData.choices?.[0]?.message?.content || "";
       }
+    } catch (e) {
+      console.error("AI analysis error:", e);
     }
 
     return new Response(
-      JSON.stringify({ quote: summary, aiAnalysis }),
+      JSON.stringify({ quote, aiAnalysis, isEstimated: true }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

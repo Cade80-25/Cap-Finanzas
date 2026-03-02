@@ -156,9 +156,9 @@ export default function MarketExplorer() {
         <ShieldAlert className="h-4 w-4" />
         <AlertTitle>Datos del Mercado — Solo con Fines Educativos</AlertTitle>
         <AlertDescription>
-          Los datos provienen de fuentes públicas de mercados financieros (Yahoo Finance) y el análisis es generado por IA.
-          <strong> No constituye asesoría financiera profesional.</strong> Toda decisión de inversión es bajo tu propio riesgo.
-          Los precios pueden tener un retraso de 15-20 minutos según la bolsa.
+          Los datos son generados por IA (Google Gemini) con fines educativos basados en conocimiento general del mercado.
+          <strong> No son precios en tiempo real ni constituyen asesoría financiera profesional.</strong> Toda decisión de inversión es bajo tu propio riesgo.
+          Los valores mostrados son aproximaciones educativas.
         </AlertDescription>
       </Alert>
 
@@ -265,7 +265,7 @@ export default function MarketExplorer() {
                 Gráfico de Precio (Último Mes)
               </CardTitle>
               <CardDescription>
-                Fuente: Yahoo Finance • Los precios pueden tener retraso
+                Datos estimados por IA con fines educativos • No representan precios en tiempo real
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -338,9 +338,9 @@ export default function MarketExplorer() {
           <div className="flex items-start gap-2 p-3 rounded-lg border bg-muted/50">
             <Info className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
             <p className="text-xs text-muted-foreground">
-              <strong>Fuentes de datos:</strong> Precios y datos financieros de Yahoo Finance (datos públicos con posible retraso de 15-20 min).
-              Análisis general generado por IA (Google Gemini). Los datos se actualizan cada vez que realizas una búsqueda.
-              Esta herramienta es exclusivamente educativa.
+              <strong>Fuentes de datos:</strong> Todos los datos y análisis son generados por IA (Google Gemini) con fines exclusivamente educativos.
+              Los precios y cifras son aproximaciones basadas en el conocimiento del modelo y pueden no reflejar valores actuales del mercado.
+              Esta herramienta es exclusivamente educativa — no tomes decisiones financieras basándote únicamente en estos datos.
             </p>
           </div>
         </div>
