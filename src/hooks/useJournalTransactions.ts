@@ -12,6 +12,7 @@ export type JournalTransaction = {
 
 // KEY ÚNICA Y DEFINITIVA para todas las transacciones
 const JOURNAL_KEY = "cap-finanzas-journal";
+const MIGRATION_DONE_KEY = "cap-finanzas-journal-migrated";
 
 // Keys legacy para migración automática
 const LEGACY_KEYS = [
@@ -108,14 +109,20 @@ export function useJournalTransactions() {
     []
   );
 
-  // Migración automática al montar
+  // Migración automática al montar (solo una vez)
   useEffect(() => {
+    const alreadyMigrated = localStorage.getItem(MIGRATION_DONE_KEY);
+    if (alreadyMigrated) return;
+
     if (transactions.length === 0) {
       const migrated = getStoredTransactions();
       if (migrated.length > 0) {
         setTransactionsInternal(migrated);
       }
     }
+    // Marcar migración como hecha y limpiar keys legacy
+    localStorage.setItem(MIGRATION_DONE_KEY, "true");
+    LEGACY_KEYS.forEach((key) => localStorage.removeItem(key));
   }, []);
 
   // Wrapper directo: useLocalStorage ya maneja persistencia y sincronización

@@ -1,9 +1,19 @@
 import { useState } from "react";
-import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -215,10 +225,17 @@ export function SimpleTransactionsView() {
   const [defaultType, setDefaultType] = useState<"income" | "expense">("expense");
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
   const [editingTx, setEditingTx] = useState<EditingTransaction | null>(null);
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
   const handleDelete = (id: number) => {
-    setTransactions(transactions.filter((t) => t.id !== id));
+    setTransactions(prev => prev.filter((t) => t.id !== id));
     toast.success("Movimiento eliminado");
+  };
+
+  const handleClearAll = () => {
+    setTransactions([]);
+    setConfirmClearOpen(false);
+    toast.success("Todos los movimientos han sido eliminados");
   };
 
   const openDialog = (type: "income" | "expense") => {
@@ -274,6 +291,17 @@ export function SimpleTransactionsView() {
             Registra tus ingresos y gastos de forma sencilla
           </p>
         </div>
+        {transactions.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-destructive hover:text-destructive"
+            onClick={() => setConfirmClearOpen(true)}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Borrar Todo
+          </Button>
+        )}
       </div>
 
       {/* Quick action cards */}
@@ -441,6 +469,28 @@ export function SimpleTransactionsView() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Confirm clear all dialog */}
+      <AlertDialog open={confirmClearOpen} onOpenChange={setConfirmClearOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              ¿Borrar todos los movimientos?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción eliminará permanentemente todos los movimientos registrados ({transactions.length} en total). 
+              No se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearAll} className="bg-destructive hover:bg-destructive/90">
+              Sí, borrar todo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
