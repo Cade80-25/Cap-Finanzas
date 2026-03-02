@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound";
 import Instalar from "./pages/Instalar";
 import LandingPage from "./pages/LandingPage";
 import LicenseGenerator from "./pages/LicenseGenerator";
+import Consolidado from "./pages/Consolidado";
 import { ThemeProvider } from "next-themes";
 import { useNotificationGenerator } from "./hooks/useNotificationGenerator";
 import { WalletProvider } from "./contexts/WalletContext";
@@ -69,6 +70,7 @@ const App = () => (
                 <Route path="monedas" element={<Monedas />} />
                 <Route path="categorias" element={<Categorias />} />
                 <Route path="resumen" element={<Resumen />} />
+                <Route path="consolidado" element={<Consolidado />} />
                 <Route path="libro-diario" element={<LibroDiario />} />
                 <Route path="libro-mayor" element={<LibroMayor />} />
                 <Route path="balance" element={<Balance />} />

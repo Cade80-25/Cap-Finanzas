@@ -21,6 +21,7 @@ import {
   Globe,
   Bell,
   Book,
+  Layers,
   LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,7 @@ const allNavigation: NavItem[] = [
   { name: "Monedas", href: "/monedas", icon: Globe, featureKey: "currencies" },
   { name: "Categorías", href: "/categorias", icon: Tag, featureKey: "categories" },
   { name: "Resumen", href: "/resumen", icon: PieChart, featureKey: "summary" },
+  { name: "Consolidado", href: "/consolidado", icon: Layers, featureKey: "consolidated" },
   { name: "Libro Diario", href: "/libro-diario", icon: BookOpen, featureKey: "journal", traditionalOnly: true },
   { name: "Libro Mayor", href: "/libro-mayor", icon: FileText, featureKey: "ledger", traditionalOnly: true },
   { name: "Balance General", href: "/balance", icon: BarChart3, featureKey: "balance", traditionalOnly: true },
