@@ -103,11 +103,21 @@ function getStoredTransactions(): JournalTransaction[] {
   return [];
 }
 
-export function useJournalTransactionsForWallet(walletId?: string) {
-  // Default wallet uses the original key for backward compatibility
-  const storageKey = !walletId || walletId === "wallet-default" 
-    ? JOURNAL_KEY 
-    : `cap-finanzas-journal-${walletId}`;
+export function useJournalTransactionsForWallet(walletId?: string, profileId?: string) {
+  // Build storage key: profile + wallet scoped
+  const isDefaultProfile = !profileId || profileId === "profile-default";
+  const isDefaultWallet = !walletId || walletId === "wallet-default";
+  
+  let storageKey: string;
+  if (isDefaultProfile && isDefaultWallet) {
+    storageKey = JOURNAL_KEY; // backward compatible
+  } else if (isDefaultProfile) {
+    storageKey = `cap-finanzas-journal-${walletId}`;
+  } else if (isDefaultWallet) {
+    storageKey = `cap-finanzas-journal-${profileId}-default`;
+  } else {
+    storageKey = `cap-finanzas-journal-${profileId}-${walletId}`;
+  }
 
   const [transactions, setTransactionsInternal] = useLocalStorage<JournalTransaction[]>(
     storageKey,
@@ -142,20 +152,36 @@ export function useJournalTransactionsForWallet(walletId?: string) {
   return { transactions, setTransactions };
 }
 
-// Default export that reads the active wallet from localStorage directly
+// Default export: reads active profile+wallet from localStorage directly
 // (avoids circular dependency with context)
-function getActiveWalletId(): string {
+function getActiveIds(): { profileId: string; walletId: string } {
+  let profileId = "profile-default";
+  let walletId = "wallet-default";
+  
   try {
-    const raw = localStorage.getItem("cap-finanzas-wallets");
-    if (raw) {
-      const data = JSON.parse(raw);
-      return data.activeWalletId || "wallet-default";
+    const profilesRaw = localStorage.getItem("cap-finanzas-profiles");
+    if (profilesRaw) {
+      const profilesData = JSON.parse(profilesRaw);
+      profileId = profilesData.activeProfileId || "profile-default";
     }
   } catch {}
-  return "wallet-default";
+
+  const walletsKey = profileId === "profile-default"
+    ? "cap-finanzas-wallets"
+    : `cap-finanzas-wallets-${profileId}`;
+  
+  try {
+    const walletsRaw = localStorage.getItem(walletsKey);
+    if (walletsRaw) {
+      const walletsData = JSON.parse(walletsRaw);
+      walletId = walletsData.activeWalletId || "wallet-default";
+    }
+  } catch {}
+
+  return { profileId, walletId };
 }
 
 export function useJournalTransactions() {
-  const walletId = getActiveWalletId();
-  return useJournalTransactionsForWallet(walletId);
+  const { profileId, walletId } = getActiveIds();
+  return useJournalTransactionsForWallet(walletId, profileId);
 }
