@@ -1,1 +1,7 @@
 project_id = "pcxvnqsoafagnthazoir"
+
+[functions.paypal-ipn]
+verify_jwt = false
+
+[functions.check-license]
+verify_jwt = false
