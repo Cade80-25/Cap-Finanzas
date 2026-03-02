@@ -1,40 +1,11 @@
-import { useState, useEffect } from "react";
-import { Search, Wifi, WifiOff, TrendingUp, TrendingDown, BarChart3, Building2, Globe, ShieldAlert, Loader2, Info } from "lucide-react";
+import { useState, useEffect, useRef, memo } from "react";
+import { Search, Wifi, WifiOff, TrendingUp, BarChart3, Globe, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
-
-type QuoteData = {
-  symbol: string;
-  name: string;
-  price: number;
-  currency: string;
-  change: number;
-  changePercent: number;
-  previousClose: number;
-  open: number;
-  dayHigh: number;
-  dayLow: number;
-  volume: number;
-  marketCap: number;
-  fiftyTwoWeekHigh: number;
-  fiftyTwoWeekLow: number;
-  exchange: string;
-  quoteType: string;
-  region: string;
-};
-
-type ChartPoint = {
-  date: string;
-  price: number;
-  volume: number;
-};
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const popularSymbols = [
   { symbol: "AAPL", name: "Apple" },
@@ -43,28 +14,221 @@ const popularSymbols = [
   { symbol: "AMZN", name: "Amazon" },
   { symbol: "TSLA", name: "Tesla" },
   { symbol: "META", name: "Meta" },
-  { symbol: "^GSPC", name: "S&P 500" },
-  { symbol: "^DJI", name: "Dow Jones" },
-  { symbol: "BTC-USD", name: "Bitcoin" },
-  { symbol: "GC=F", name: "Oro" },
+  { symbol: "BTC", name: "Bitcoin" },
+  { symbol: "ETH", name: "Ethereum" },
 ];
 
-function formatNumber(num: number | undefined): string {
-  if (num == null) return "N/A";
-  if (num >= 1e12) return `${(num / 1e12).toFixed(2)}T`;
-  if (num >= 1e9) return `${(num / 1e9).toFixed(2)}B`;
-  if (num >= 1e6) return `${(num / 1e6).toFixed(2)}M`;
-  return num.toLocaleString("es-ES");
-}
+// TradingView Chart Widget
+const TradingViewChart = memo(({ symbol }: { symbol: string }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = "";
+
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    script.type = "text/javascript";
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      autosize: true,
+      symbol: symbol,
+      interval: "D",
+      timezone: "Etc/UTC",
+      theme: "dark",
+      style: "1",
+      locale: "es",
+      allow_symbol_change: true,
+      calendar: false,
+      support_host: "https://www.tradingview.com",
+    });
+
+    containerRef.current.appendChild(script);
+  }, [symbol]);
+
+  return (
+    <div className="tradingview-widget-container" style={{ height: 500, width: "100%" }}>
+      <div ref={containerRef} style={{ height: "100%", width: "100%" }} />
+    </div>
+  );
+});
+TradingViewChart.displayName = "TradingViewChart";
+
+// TradingView Symbol Info Widget
+const TradingViewSymbolInfo = memo(({ symbol }: { symbol: string }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = "";
+
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js";
+    script.type = "text/javascript";
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      symbol: symbol,
+      width: "100%",
+      locale: "es",
+      colorTheme: "dark",
+      isTransparent: true,
+    });
+
+    containerRef.current.appendChild(script);
+  }, [symbol]);
+
+  return (
+    <div className="tradingview-widget-container">
+      <div ref={containerRef} />
+    </div>
+  );
+});
+TradingViewSymbolInfo.displayName = "TradingViewSymbolInfo";
+
+// TradingView Company Profile Widget
+const TradingViewProfile = memo(({ symbol }: { symbol: string }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = "";
+
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-profile.js";
+    script.type = "text/javascript";
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      width: "100%",
+      height: 400,
+      symbol: symbol,
+      colorTheme: "dark",
+      isTransparent: true,
+      locale: "es",
+    });
+
+    containerRef.current.appendChild(script);
+  }, [symbol]);
+
+  return (
+    <div className="tradingview-widget-container" style={{ height: 400 }}>
+      <div ref={containerRef} style={{ height: "100%" }} />
+    </div>
+  );
+});
+TradingViewProfile.displayName = "TradingViewProfile";
+
+// TradingView Technical Analysis Widget
+const TradingViewAnalysis = memo(({ symbol }: { symbol: string }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = "";
+
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js";
+    script.type = "text/javascript";
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      interval: "1D",
+      width: "100%",
+      isTransparent: true,
+      height: 400,
+      symbol: symbol,
+      showIntervalTabs: true,
+      displayMode: "single",
+      locale: "es",
+      colorTheme: "dark",
+    });
+
+    containerRef.current.appendChild(script);
+  }, [symbol]);
+
+  return (
+    <div className="tradingview-widget-container" style={{ height: 400 }}>
+      <div ref={containerRef} style={{ height: "100%" }} />
+    </div>
+  );
+});
+TradingViewAnalysis.displayName = "TradingViewAnalysis";
+
+// Market Overview Widget (shown by default)
+const TradingViewOverview = memo(() => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = "";
+
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js";
+    script.type = "text/javascript";
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      colorTheme: "dark",
+      dateRange: "1D",
+      showChart: true,
+      locale: "es",
+      width: "100%",
+      height: 550,
+      largeChartUrl: "",
+      isTransparent: true,
+      showSymbolLogo: true,
+      showFloatingTooltip: true,
+      tabs: [
+        {
+          title: "Acciones",
+          symbols: [
+            { s: "NASDAQ:AAPL", d: "Apple" },
+            { s: "NASDAQ:MSFT", d: "Microsoft" },
+            { s: "NASDAQ:GOOGL", d: "Google" },
+            { s: "NASDAQ:AMZN", d: "Amazon" },
+            { s: "NASDAQ:TSLA", d: "Tesla" },
+            { s: "NASDAQ:META", d: "Meta" },
+          ],
+        },
+        {
+          title: "Índices",
+          symbols: [
+            { s: "FOREXCOM:SPXUSD", d: "S&P 500" },
+            { s: "FOREXCOM:DJI", d: "Dow Jones" },
+            { s: "FOREXCOM:NSXUSD", d: "NASDAQ 100" },
+          ],
+        },
+        {
+          title: "Crypto",
+          symbols: [
+            { s: "BINANCE:BTCUSDT", d: "Bitcoin" },
+            { s: "BINANCE:ETHUSDT", d: "Ethereum" },
+            { s: "BINANCE:SOLUSDT", d: "Solana" },
+          ],
+        },
+        {
+          title: "Commodities",
+          symbols: [
+            { s: "TVC:GOLD", d: "Oro" },
+            { s: "TVC:SILVER", d: "Plata" },
+            { s: "NYMEX:CL1!", d: "Petróleo" },
+          ],
+        },
+      ],
+    });
+
+    containerRef.current.appendChild(script);
+  }, []);
+
+  return (
+    <div className="tradingview-widget-container" style={{ height: 550 }}>
+      <div ref={containerRef} style={{ height: "100%" }} />
+    </div>
+  );
+});
+TradingViewOverview.displayName = "TradingViewOverview";
 
 export default function MarketExplorer() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [chartLoading, setChartLoading] = useState(false);
-  const [quote, setQuote] = useState<QuoteData | null>(null);
-  const [aiAnalysis, setAiAnalysis] = useState("");
-  const [chartData, setChartData] = useState<ChartPoint[]>([]);
+  const [activeSymbol, setActiveSymbol] = useState<string | null>(null);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -77,66 +241,16 @@ export default function MarketExplorer() {
     };
   }, []);
 
-  const fetchQuote = async (symbol: string) => {
-    if (!isOnline) {
-      toast.error("Sin conexión a internet. Esta función requiere conexión.");
-      return;
-    }
-
-    setLoading(true);
-    setQuote(null);
-    setAiAnalysis("");
-    setChartData([]);
-
-    try {
-      const { data, error } = await supabase.functions.invoke("market-data", {
-        body: { symbol, action: "quote" },
-      });
-
-      if (error) throw error;
-      if (data?.error) {
-        toast.error(data.error);
-        return;
-      }
-
-      setQuote(data.quote);
-      setAiAnalysis(data.aiAnalysis || "");
-
-      // Fetch chart in parallel
-      fetchChart(symbol);
-    } catch (err) {
-      console.error("Error fetching quote:", err);
-      toast.error("Error al obtener datos. Intenta de nuevo.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchChart = async (symbol: string) => {
-    setChartLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("market-data", {
-        body: { symbol, action: "chart" },
-      });
-
-      if (error) throw error;
-      if (data?.chartPoints) {
-        setChartData(data.chartPoints);
-      }
-    } catch (err) {
-      console.error("Error fetching chart:", err);
-    } finally {
-      setChartLoading(false);
-    }
-  };
-
   const handleSearch = () => {
     if (searchTerm.trim()) {
-      fetchQuote(searchTerm.trim());
+      setActiveSymbol(searchTerm.trim().toUpperCase());
     }
   };
 
-  const isPositive = quote ? quote.change >= 0 : false;
+  const selectSymbol = (symbol: string) => {
+    setSearchTerm(symbol);
+    setActiveSymbol(symbol);
+  };
 
   return (
     <div className="space-y-4">
@@ -146,33 +260,22 @@ export default function MarketExplorer() {
         <AlertTitle>{isOnline ? "Conectado a Internet" : "Sin Conexión a Internet"}</AlertTitle>
         <AlertDescription>
           {isOnline
-            ? "Los datos del mercado se obtienen en tiempo real de las bolsas de valores mundiales."
-            : "Esta sección requiere conexión a internet para mostrar datos actualizados del mercado. Conéctate a una red para usar esta función."}
-        </AlertDescription>
-      </Alert>
-
-      {/* Disclaimer */}
-      <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-500/10 text-foreground [&>svg]:text-yellow-500">
-        <ShieldAlert className="h-4 w-4" />
-        <AlertTitle>Datos del Mercado — Solo con Fines Educativos</AlertTitle>
-        <AlertDescription>
-          Los datos son generados por IA (Google Gemini) con fines educativos basados en conocimiento general del mercado.
-          <strong> No son precios en tiempo real ni constituyen asesoría financiera profesional.</strong> Toda decisión de inversión es bajo tu propio riesgo.
-          Los valores mostrados son aproximaciones educativas.
+            ? "Datos del mercado en tiempo real proporcionados por TradingView."
+            : "Esta sección requiere conexión a internet para mostrar datos actualizados del mercado."}
         </AlertDescription>
       </Alert>
 
       {/* Search */}
       <div className="flex gap-2">
         <Input
-          placeholder="Buscar símbolo (ej: AAPL, MSFT, BTC-USD, ^GSPC)..."
+          placeholder="Buscar símbolo (ej: AAPL, MSFT, BTCUSDT)..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           disabled={!isOnline}
         />
-        <Button onClick={handleSearch} disabled={!isOnline || loading || !searchTerm.trim()}>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+        <Button onClick={handleSearch} disabled={!isOnline || !searchTerm.trim()}>
+          <Search className="h-4 w-4" />
         </Button>
       </div>
 
@@ -182,179 +285,71 @@ export default function MarketExplorer() {
         {popularSymbols.map((s) => (
           <Badge
             key={s.symbol}
-            variant="outline"
+            variant={activeSymbol === s.symbol ? "default" : "outline"}
             className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-            onClick={() => {
-              setSearchTerm(s.symbol);
-              fetchQuote(s.symbol);
-            }}
+            onClick={() => selectSymbol(s.symbol)}
           >
             {s.name}
           </Badge>
         ))}
       </div>
 
-      {/* Loading skeleton */}
-      {loading && (
+      {isOnline && activeSymbol ? (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-20 rounded-lg" />
-            ))}
-          </div>
-          <Skeleton className="h-64 rounded-lg" />
-        </div>
-      )}
-
-      {/* Quote data */}
-      {quote && !loading && (
-        <div className="space-y-4">
-          {/* Header */}
+          {/* Symbol Info */}
           <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between flex-wrap gap-2">
-                <div>
-                  <CardTitle className="text-2xl flex items-center gap-2">
-                    {quote.name}
-                    <Badge variant="secondary">{quote.symbol}</Badge>
-                  </CardTitle>
-                  <CardDescription className="flex items-center gap-2 mt-1">
-                    <Globe className="h-3 w-3" />
-                    {quote.exchange} • {quote.quoteType}
-                  </CardDescription>
-                </div>
-                <div className="text-right">
-                  <p className="text-3xl font-bold">
-                    {quote.price?.toFixed(2)} <span className="text-sm text-muted-foreground">{quote.currency}</span>
-                  </p>
-                  <div className={`flex items-center gap-1 justify-end ${isPositive ? "text-green-500" : "text-red-500"}`}>
-                    {isPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                    <span className="font-semibold">
-                      {isPositive ? "+" : ""}{quote.change?.toFixed(2)} ({isPositive ? "+" : ""}{quote.changePercent?.toFixed(2)}%)
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
+            <CardContent className="pt-4">
+              <TradingViewSymbolInfo symbol={activeSymbol} />
+            </CardContent>
           </Card>
-
-          {/* Stats grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label: "Apertura", value: quote.open?.toFixed(2) },
-              { label: "Cierre Anterior", value: quote.previousClose?.toFixed(2) },
-              { label: "Máximo del Día", value: quote.dayHigh?.toFixed(2) },
-              { label: "Mínimo del Día", value: quote.dayLow?.toFixed(2) },
-              { label: "Máx. 52 Semanas", value: quote.fiftyTwoWeekHigh?.toFixed(2) },
-              { label: "Mín. 52 Semanas", value: quote.fiftyTwoWeekLow?.toFixed(2) },
-              { label: "Volumen", value: formatNumber(quote.volume) },
-              { label: "Cap. de Mercado", value: formatNumber(quote.marketCap) },
-            ].map((stat) => (
-              <Card key={stat.label} className="p-3">
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
-                <p className="text-sm font-semibold">{stat.value || "N/A"}</p>
-              </Card>
-            ))}
-          </div>
 
           {/* Chart */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-primary" />
-                Gráfico de Precio (Último Mes)
+                Gráfico en Tiempo Real
               </CardTitle>
-              <CardDescription>
-                Datos estimados por IA con fines educativos • No representan precios en tiempo real
-              </CardDescription>
             </CardHeader>
             <CardContent>
-              {chartLoading ? (
-                <Skeleton className="h-56 w-full" />
-              ) : chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={240}>
-                  <AreaChart data={chartData}>
-                    <defs>
-                      <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={isPositive ? "#22c55e" : "#ef4444"} stopOpacity={0.3} />
-                        <stop offset="95%" stopColor={isPositive ? "#22c55e" : "#ef4444"} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fontSize: 10 }}
-                      tickFormatter={(v) => {
-                        const d = new Date(v);
-                        return `${d.getDate()}/${d.getMonth() + 1}`;
-                      }}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 10 }}
-                      domain={["auto", "auto"]}
-                      tickFormatter={(v) => v.toFixed(0)}
-                    />
-                    <Tooltip
-                      formatter={(value: number) => [`${value.toFixed(2)} ${quote.currency}`, "Precio"]}
-                      labelFormatter={(label) => {
-                        const d = new Date(label);
-                        return d.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="price"
-                      stroke={isPositive ? "#22c55e" : "#ef4444"}
-                      fill="url(#priceGradient)"
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
-                <p className="text-center text-muted-foreground py-8">No hay datos de gráfico disponibles</p>
-              )}
+              <TradingViewChart symbol={activeSymbol} />
             </CardContent>
           </Card>
 
-          {/* AI Analysis */}
-          {aiAnalysis && (
+          {/* Analysis & Profile */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-primary" />
-                  Análisis General (IA)
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  Análisis Técnico
                 </CardTitle>
-                <CardDescription>
-                  Generado por IA con fines educativos • No es asesoría financiera
-                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="whitespace-pre-line text-sm">{aiAnalysis}</div>
+                <TradingViewAnalysis symbol={activeSymbol} />
               </CardContent>
             </Card>
-          )}
 
-          {/* Source info */}
-          <div className="flex items-start gap-2 p-3 rounded-lg border bg-muted/50">
-            <Info className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-            <p className="text-xs text-muted-foreground">
-              <strong>Fuentes de datos:</strong> Todos los datos y análisis son generados por IA (Google Gemini) con fines exclusivamente educativos.
-              Los precios y cifras son aproximaciones basadas en el conocimiento del modelo y pueden no reflejar valores actuales del mercado.
-              Esta herramienta es exclusivamente educativa — no tomes decisiones financieras basándote únicamente en estos datos.
-            </p>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-primary" />
+                  Perfil de la Empresa
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TradingViewProfile symbol={activeSymbol} />
+              </CardContent>
+            </Card>
           </div>
         </div>
-      )}
-
-      {/* Empty state */}
-      {!quote && !loading && isOnline && (
-        <div className="text-center py-8 text-muted-foreground">
-          <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-50" />
-          <p className="font-medium mb-1">Explorador de Mercados</p>
-          <p className="text-sm">Busca cualquier acción, índice, criptomoneda o commodity por su símbolo bursátil</p>
-          <p className="text-xs mt-2">Ejemplos: AAPL (Apple), ^GSPC (S&P 500), BTC-USD (Bitcoin), GC=F (Oro)</p>
-        </div>
-      )}
+      ) : isOnline ? (
+        <Card>
+          <CardContent className="pt-4">
+            <TradingViewOverview />
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }
