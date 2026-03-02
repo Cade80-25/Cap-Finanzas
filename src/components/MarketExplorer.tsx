@@ -14,6 +14,9 @@ const popularSymbols = [
   { symbol: "AMZN", name: "Amazon" },
   { symbol: "TSLA", name: "Tesla" },
   { symbol: "META", name: "Meta" },
+  { symbol: "NVDA", name: "Nvidia" },
+  { symbol: "NFLX", name: "Netflix" },
+  { symbol: "JPM", name: "JPMorgan" },
   { symbol: "BTC", name: "Bitcoin" },
   { symbol: "ETH", name: "Ethereum" },
 ];
@@ -228,7 +231,11 @@ TradingViewOverview.displayName = "TradingViewOverview";
 export default function MarketExplorer() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeSymbol, setActiveSymbol] = useState<string | null>(null);
+  const [activeSymbol, setActiveSymbol] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem("market-last-symbol") || null;
+    } catch { return null; }
+  });
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -240,6 +247,12 @@ export default function MarketExplorer() {
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
+
+  useEffect(() => {
+    if (activeSymbol) {
+      try { localStorage.setItem("market-last-symbol", activeSymbol); } catch {}
+    }
+  }, [activeSymbol]);
 
   const handleSearch = () => {
     if (searchTerm.trim()) {
@@ -254,16 +267,16 @@ export default function MarketExplorer() {
 
   return (
     <div className="space-y-4">
-      {/* Online/Offline indicator */}
-      <Alert variant={isOnline ? "default" : "destructive"} className={isOnline ? "border-green-500/50 bg-green-500/10 [&>svg]:text-green-500" : ""}>
-        {isOnline ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
-        <AlertTitle>{isOnline ? "Conectado a Internet" : "Sin Conexión a Internet"}</AlertTitle>
-        <AlertDescription>
-          {isOnline
-            ? "Datos del mercado en tiempo real proporcionados por TradingView."
-            : "Esta sección requiere conexión a internet para mostrar datos actualizados del mercado."}
-        </AlertDescription>
-      </Alert>
+      {/* Only show alert when offline */}
+      {!isOnline && (
+        <Alert variant="destructive">
+          <WifiOff className="h-4 w-4" />
+          <AlertTitle>Sin Conexión a Internet</AlertTitle>
+          <AlertDescription>
+            Esta sección requiere conexión a internet para mostrar datos actualizados del mercado.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Search */}
       <div className="flex gap-2">
@@ -297,7 +310,7 @@ export default function MarketExplorer() {
       {isOnline && activeSymbol ? (
         <div className="space-y-4">
           {/* Symbol Info */}
-          <Card>
+          <Card className="bg-transparent border-muted">
             <CardContent className="pt-4">
               <TradingViewSymbolInfo symbol={activeSymbol} />
             </CardContent>
@@ -318,7 +331,7 @@ export default function MarketExplorer() {
 
           {/* Analysis & Profile */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card>
+            <Card className="bg-transparent border-muted">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-primary" />
@@ -330,7 +343,7 @@ export default function MarketExplorer() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-transparent border-muted">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Globe className="h-4 w-4 text-primary" />
