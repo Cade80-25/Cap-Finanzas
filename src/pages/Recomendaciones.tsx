@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Sparkles, TrendingUp, BookOpen, Target, MessageCircle, Send, LineChart, DollarSign, AlertTriangle } from "lucide-react";
+import { Sparkles, TrendingUp, BookOpen, Target, MessageCircle, Send, LineChart, DollarSign, AlertTriangle, LucideIcon } from "lucide-react";
+import { RecommendationDetailDialog } from "@/components/RecommendationDetailDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +17,7 @@ export default function Recomendaciones() {
   const [message, setMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
   const [isLoadingChat, setIsLoadingChat] = useState(false);
+  const [selectedDetail, setSelectedDetail] = useState<{ type: "ahorro" | "inversion" | "educacion"; title: string; icon: LucideIcon } | null>(null);
 
   const recomendacionesAutomaticas = [
     {
@@ -23,21 +25,24 @@ export default function Recomendaciones() {
       icon: Target,
       titulo: "Oportunidad de Ahorro Detectada",
       descripcion: "Tus gastos en entretenimiento aumentaron 25% este mes. Considera reducir $200 para cumplir tu meta de ahorro.",
-      prioridad: "alta"
+      prioridad: "alta",
+      detailType: "ahorro" as const,
     },
     {
       tipo: "Inversión",
       icon: TrendingUp,
       titulo: "Momento para Invertir",
       descripcion: "Tienes $5,000 sin asignar en tu presupuesto. Considera invertir en un fondo de bajo riesgo para generar rendimientos.",
-      prioridad: "media"
+      prioridad: "media",
+      detailType: "inversion" as const,
     },
     {
       tipo: "Educación",
       icon: BookOpen,
       titulo: "Aprende sobre Inversiones",
       descripcion: "Recomendación: Lee sobre 'Fondos Indexados' en la Enciclopedia para mejorar tus conocimientos financieros.",
-      prioridad: "baja"
+      prioridad: "baja",
+      detailType: "educacion" as const,
     }
   ];
 
@@ -108,7 +113,12 @@ export default function Recomendaciones() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">{rec.descripcion}</p>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => setSelectedDetail({ type: rec.detailType, title: rec.titulo, icon: rec.icon })}
+              >
                 Ver Detalles
               </Button>
             </CardContent>
@@ -309,6 +319,16 @@ export default function Recomendaciones() {
           </div>
         </CardContent>
       </Card>
+
+      {selectedDetail && (
+        <RecommendationDetailDialog
+          open={!!selectedDetail}
+          onOpenChange={(open) => !open && setSelectedDetail(null)}
+          type={selectedDetail.type}
+          title={selectedDetail.title}
+          icon={selectedDetail.icon}
+        />
+      )}
     </div>
   );
 }
