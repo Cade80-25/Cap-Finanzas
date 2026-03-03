@@ -19,6 +19,11 @@ import {
   Lock,
   Zap,
   Users,
+  X,
+  Sparkles,
+  TrendingUp,
+  MessageCircle,
+  LineChart,
 } from "lucide-react";
 import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { ActivationDialog } from "@/components/ActivationDialog";
@@ -56,10 +61,31 @@ const features = [
   },
 ];
 
+const testimonios = [
+  {
+    nombre: "María G.",
+    rol: "Estudiante de Contabilidad",
+    texto: "Cap Finanzas me ayudó a entender la partida doble de una forma práctica. Lo uso todos los días para mis finanzas y para estudiar.",
+    estrellas: 5,
+  },
+  {
+    nombre: "Carlos R.",
+    rol: "Emprendedor",
+    texto: "Probé varias apps pero todas pedían suscripción mensual. Cap Finanzas es pago único y funciona offline. Exactamente lo que necesitaba.",
+    estrellas: 5,
+  },
+  {
+    nombre: "Ana P.",
+    rol: "Ama de casa",
+    texto: "Muy fácil de usar. El modo simple me permite llevar mis gastos del hogar sin complicaciones. El tutor educativo es genial.",
+    estrellas: 5,
+  },
+];
+
 const faqs = [
   {
     question: "¿Necesito conexión a internet?",
-    answer: "No. Cap Finanzas funciona 100% offline. Una vez instalado, no necesitas internet para nada.",
+    answer: "No. Cap Finanzas funciona 100% offline. Una vez instalado, no necesitas internet para nada. Solo se requiere internet para el Tutor Educativo con IA y las Bolsas en Vivo.",
   },
   {
     question: "¿Dónde se guardan mis datos?",
@@ -67,16 +93,38 @@ const faqs = [
   },
   {
     question: "¿Qué incluye la prueba gratuita?",
-    answer: "La prueba de 30 días incluye acceso completo a todas las funciones. Sin límites ni restricciones.",
+    answer: "La prueba de 30 días incluye acceso completo a todas las funciones, incluyendo Tutor Educativo, Chat Financiero y Bolsas en Vivo.",
   },
   {
     question: "¿Cómo recibo mi código de licencia?",
-    answer: "Después de completar tu pago por PayPal, recibirás tu código por correo electrónico en menos de 24 horas.",
+    answer: "Después de completar tu pago por PayPal, recibirás tu código automáticamente. También puedes recuperarlo desde la app ingresando tu correo.",
   },
   {
     question: "¿Hay pagos mensuales o anuales?",
     answer: "No. Es un pago único de por vida. Sin suscripciones ni costos ocultos.",
   },
+  {
+    question: "¿Cuál es la diferencia entre los planes?",
+    answer: "Finanzas Simples ($7) incluye control de gastos y Tutor Educativo. Contabilidad Tradicional ($10) agrega partida doble y Chat Financiero. La Licencia Completa ($12) incluye todo más Bolsas en Vivo.",
+  },
+];
+
+// Comparison table data
+const planComparison = [
+  { feature: "Registro de ingresos y gastos", simple: true, traditional: true, full: true },
+  { feature: "Categorías y presupuestos", simple: true, traditional: true, full: true },
+  { feature: "Calendario financiero", simple: true, traditional: true, full: true },
+  { feature: "Resumen con gráficos", simple: true, traditional: true, full: true },
+  { feature: "Múltiples monedas", simple: true, traditional: true, full: true },
+  { feature: "Tutor Educativo (IA)", simple: true, traditional: true, full: true },
+  { feature: "Libro Diario (partida doble)", simple: false, traditional: true, full: true },
+  { feature: "Libro Mayor", simple: false, traditional: true, full: true },
+  { feature: "Balance General", simple: false, traditional: true, full: true },
+  { feature: "Estado de Resultados", simple: false, traditional: true, full: true },
+  { feature: "Enciclopedia contable", simple: false, traditional: true, full: true },
+  { feature: "Chat Financiero (IA)", simple: false, traditional: true, full: true },
+  { feature: "Bolsas en Vivo", simple: false, traditional: false, full: true },
+  { feature: "Cambio libre entre modos", simple: false, traditional: false, full: true },
 ];
 
 export default function LandingPage() {
@@ -95,7 +143,7 @@ export default function LandingPage() {
           <div className="text-center max-w-4xl mx-auto">
             <Badge variant="secondary" className="mb-4">
               <Star className="h-3 w-3 mr-1" />
-              30 días de prueba gratis
+              30 días de prueba gratis — Acceso completo
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Cap Finanzas
@@ -150,43 +198,92 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
+      {/* Pricing Section with Comparison Table */}
       <section className="py-16" id="precios">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-4">Precios Simples</h2>
+          <h2 className="text-3xl font-bold text-center mb-4">Precios Simples, Pago Único</h2>
           <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Pago único, licencia de por vida. Sin suscripciones ni costos ocultos.
+            Licencia de por vida. Sin suscripciones ni costos ocultos. Incluye actualizaciones gratuitas.
           </p>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Plan Cards */}
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-16">
             {/* Plan Simple */}
             <Card className="relative">
               <CardHeader>
-                <CardTitle className="text-xl">Finanzas Personales</CardTitle>
-                <CardDescription>Ideal para controlar tus gastos del día a día</CardDescription>
+                <CardTitle className="text-xl">Finanzas Simples</CardTitle>
+                <CardDescription>Control básico de gastos e ingresos</CardDescription>
                 <div className="text-4xl font-bold mt-4">
                   $7 <span className="text-lg font-normal text-muted-foreground">USD</span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <ul className="space-y-3">
+                <ul className="space-y-2">
                   {[
                     "Registro de ingresos y gastos",
-                    "Categorías personalizables",
-                    "Resumen mensual con gráficos",
-                    "Presupuestos y metas",
+                    "Categorías y presupuestos",
+                    "Resumen con gráficos",
                     "Calendario financiero",
                     "Múltiples monedas",
-                    "Actualizaciones gratuitas",
+                    "Tutor Educativo (IA)",
                   ].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-accent" />
+                      <Check className="h-4 w-4 text-accent flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                  {[
+                    "Chat Financiero",
+                    "Bolsas en Vivo",
+                  ].map((item, i) => (
+                    <li key={`no-${i}`} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <X className="h-4 w-4 flex-shrink-0" />
                       {item}
                     </li>
                   ))}
                 </ul>
                 <Button className="w-full" variant="outline" onClick={() => setPurchaseOpen(true)}>
-                  Seleccionar Plan
+                  Seleccionar
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Plan Tradicional */}
+            <Card className="relative">
+              <CardHeader>
+                <CardTitle className="text-xl">Contabilidad Tradicional</CardTitle>
+                <CardDescription>Sistema profesional de partida doble</CardDescription>
+                <div className="text-4xl font-bold mt-4">
+                  $10 <span className="text-lg font-normal text-muted-foreground">USD</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-2">
+                  {[
+                    "Todo de Finanzas Simples",
+                    "Libro Diario (partida doble)",
+                    "Libro Mayor por cuenta",
+                    "Balance General automático",
+                    "Estado de Resultados",
+                    "Enciclopedia contable",
+                    "Chat Financiero (IA)",
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-accent flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                  {[
+                    "Bolsas en Vivo",
+                  ].map((item, i) => (
+                    <li key={`no-${i}`} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <X className="h-4 w-4 flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <Button className="w-full" variant="outline" onClick={() => setPurchaseOpen(true)}>
+                  Seleccionar
                 </Button>
               </CardContent>
             </Card>
@@ -194,35 +291,94 @@ export default function LandingPage() {
             {/* Plan Completo */}
             <Card className="relative border-primary shadow-lg">
               <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
-                Más Popular
+                Mejor Valor
               </Badge>
               <CardHeader>
-                <CardTitle className="text-xl">Contabilidad Completa</CardTitle>
-                <CardDescription>Sistema profesional de partida doble</CardDescription>
+                <CardTitle className="text-xl">Licencia Completa</CardTitle>
+                <CardDescription>Ambos modos + todas las herramientas</CardDescription>
                 <div className="text-4xl font-bold mt-4">
-                  $10 <span className="text-lg font-normal text-muted-foreground">USD</span>
+                  $12 <span className="text-lg font-normal text-muted-foreground">USD</span>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">Ahorra $5 vs comprar por separado</p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <ul className="space-y-3">
+                <ul className="space-y-2">
                   {[
-                    "Todo de Finanzas Personales",
-                    "Libro Diario con partida doble",
-                    "Libro Mayor por cuenta",
-                    "Balance General automático",
-                    "Estado de Resultados",
-                    "Plan de cuentas profesional",
-                    "Enciclopedia contable integrada",
+                    "Todo de ambos planes",
+                    "Cambio libre entre modos",
+                    "Bolsas en Vivo",
+                    "Tutor Educativo (IA)",
+                    "Chat Financiero (IA)",
+                    "Hasta 3 perfiles",
+                    "Actualizaciones de por vida",
                   ].map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-accent" />
+                      <Check className="h-4 w-4 text-accent flex-shrink-0" />
                       {item}
                     </li>
                   ))}
                 </ul>
                 <Button className="w-full" onClick={() => setPurchaseOpen(true)}>
-                  Seleccionar Plan
+                  Seleccionar
                 </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Comparison Table */}
+          <div className="max-w-4xl mx-auto">
+            <h3 className="text-xl font-semibold text-center mb-6">Comparación Detallada</h3>
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left p-4 font-medium">Función</th>
+                        <th className="text-center p-4 font-medium">
+                          <div>Simples</div>
+                          <div className="text-xs font-normal text-muted-foreground">$7</div>
+                        </th>
+                        <th className="text-center p-4 font-medium">
+                          <div>Tradicional</div>
+                          <div className="text-xs font-normal text-muted-foreground">$10</div>
+                        </th>
+                        <th className="text-center p-4 font-medium">
+                          <div>Completa</div>
+                          <div className="text-xs font-normal text-muted-foreground">$12</div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {planComparison.map((row, idx) => (
+                        <tr key={idx} className={idx % 2 === 0 ? "bg-background" : "bg-muted/20"}>
+                          <td className="p-4">{row.feature}</td>
+                          <td className="text-center p-4">
+                            {row.simple ? (
+                              <Check className="h-4 w-4 text-accent mx-auto" />
+                            ) : (
+                              <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />
+                            )}
+                          </td>
+                          <td className="text-center p-4">
+                            {row.traditional ? (
+                              <Check className="h-4 w-4 text-accent mx-auto" />
+                            ) : (
+                              <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />
+                            )}
+                          </td>
+                          <td className="text-center p-4">
+                            {row.full ? (
+                              <Check className="h-4 w-4 text-accent mx-auto" />
+                            ) : (
+                              <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -239,8 +395,33 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Trust Section */}
+      {/* Testimonials */}
       <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">Lo que dicen nuestros usuarios</h2>
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {testimonios.map((t, idx) => (
+              <Card key={idx} className="border-0 shadow-sm">
+                <CardContent className="pt-6">
+                  <div className="flex gap-1 mb-3">
+                    {Array.from({ length: t.estrellas }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4 italic">"{t.texto}"</p>
+                  <div>
+                    <p className="font-semibold text-sm">{t.nombre}</p>
+                    <p className="text-xs text-muted-foreground">{t.rol}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Section */}
+      <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div>
@@ -275,7 +456,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16" id="faq">
+      <section className="py-16 bg-muted/30" id="faq">
         <div className="container mx-auto px-4 max-w-3xl">
           <h2 className="text-3xl font-bold text-center mb-12">Preguntas Frecuentes</h2>
           <div className="space-y-4">
@@ -311,7 +492,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">¿Listo para organizar tus finanzas?</h2>
           <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-            Descarga Cap Finanzas gratis y comienza tu prueba de 30 días hoy mismo.
+            Descarga Cap Finanzas gratis y comienza tu prueba de 30 días con acceso completo.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="gap-2" asChild>
