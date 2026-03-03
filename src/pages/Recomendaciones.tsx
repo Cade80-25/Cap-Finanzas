@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import { Sparkles, TrendingUp, BookOpen, Target, MessageCircle, Send, LineChart, DollarSign, AlertTriangle, LucideIcon, ShieldAlert, Info, BarChart3 } from "lucide-react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { Sparkles, TrendingUp, BookOpen, Target, MessageCircle, Send, LineChart, DollarSign, AlertTriangle, LucideIcon, ShieldAlert, Info, BarChart3, Lock } from "lucide-react";
+import { useLicense } from "@/hooks/useLicense";
 import MarketExplorer from "@/components/MarketExplorer";
 import { RecommendationDetailDialog } from "@/components/RecommendationDetailDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export default function Recomendaciones() {
+  const { status, purchasedModes } = useLicense();
   const [consulta, setConsulta] = useState("");
   const [respuesta, setRespuesta] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,6 +23,21 @@ export default function Recomendaciones() {
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
   const [isLoadingChat, setIsLoadingChat] = useState(false);
   const [selectedDetail, setSelectedDetail] = useState<{ type: "ahorro" | "inversion" | "educacion"; title: string; icon: LucideIcon } | null>(null);
+
+  // Determine access level based on license
+  const hasFullLicense = useMemo(() => {
+    return purchasedModes.includes("simple") && purchasedModes.includes("traditional");
+  }, [purchasedModes]);
+
+  const hasChatAccess = useMemo(() => {
+    // Trial, traditional, or full license
+    return status === "trial" || purchasedModes.includes("traditional");
+  }, [status, purchasedModes]);
+
+  const hasMarketAccess = useMemo(() => {
+    // Trial or full license only
+    return status === "trial" || hasFullLicense;
+  }, [status, hasFullLicense]);
 
   const recomendacionesAutomaticas = [
     {
@@ -179,11 +196,13 @@ export default function Recomendaciones() {
                 <BookOpen className="h-4 w-4 mr-2" />
                 Tutor Educativo
               </TabsTrigger>
-              <TabsTrigger value="inversiones">
+              <TabsTrigger value="inversiones" disabled={!hasChatAccess}>
+                {!hasChatAccess && <Lock className="h-3 w-3 mr-1" />}
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Chat Financiero
               </TabsTrigger>
-              <TabsTrigger value="mercados">
+              <TabsTrigger value="mercados" disabled={!hasMarketAccess}>
+                {!hasMarketAccess && <Lock className="h-3 w-3 mr-1" />}
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Bolsas en Vivo
               </TabsTrigger>
@@ -255,6 +274,18 @@ export default function Recomendaciones() {
             </TabsContent>
             
             <TabsContent value="inversiones" className="space-y-4 mt-4">
+              {!hasChatAccess ? (
+                <Card className="border-dashed">
+                  <CardContent className="pt-6 text-center space-y-3">
+                    <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
+                    <h3 className="font-semibold text-lg">Chat Financiero</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Disponible con la licencia de <strong>Contabilidad Tradicional</strong> o la <strong>Licencia Completa</strong>.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+              <>
               <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-500/10 text-foreground [&>svg]:text-yellow-500">
                 <ShieldAlert className="h-4 w-4" />
                 <AlertTitle>Información Educativa — No es Asesoría Financiera</AlertTitle>
@@ -332,10 +363,24 @@ export default function Recomendaciones() {
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
+              </>
+              )}
             </TabsContent>
 
             <TabsContent value="mercados" className="mt-4">
-              <MarketExplorer />
+              {!hasMarketAccess ? (
+                <Card className="border-dashed">
+                  <CardContent className="pt-6 text-center space-y-3">
+                    <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
+                    <h3 className="font-semibold text-lg">Bolsas en Vivo</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Disponible exclusivamente con la <strong>Licencia Completa</strong>.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <MarketExplorer />
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
