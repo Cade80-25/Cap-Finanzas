@@ -188,6 +188,27 @@ export default function Recomendaciones() {
           <CardDescription>
             Aprende sobre finanzas y explora información del mercado con ayuda de IA
           </CardDescription>
+          {/* Access level indicator */}
+          <div className="mt-3 p-3 rounded-lg bg-muted/50 border">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Acceso según tu plan:</p>
+            <div className="grid grid-cols-3 gap-2 text-center text-xs">
+              <div className="space-y-1">
+                <p className="font-semibold">Simples <span className="text-muted-foreground">($7)</span></p>
+                <Badge variant="default" className="text-[10px]">Tutor Educativo</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="font-semibold">Tradicional <span className="text-muted-foreground">($10)</span></p>
+                <Badge variant="default" className="text-[10px]">Tutor Educativo</Badge>
+                <Badge variant="default" className="text-[10px]">Chat Financiero</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="font-semibold">Completa <span className="text-muted-foreground">($12)</span></p>
+                <Badge variant="default" className="text-[10px]">Tutor Educativo</Badge>
+                <Badge variant="default" className="text-[10px]">Chat Financiero</Badge>
+                <Badge variant="default" className="text-[10px]">Bolsas en Vivo</Badge>
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="tutor">
@@ -276,12 +297,16 @@ export default function Recomendaciones() {
             <TabsContent value="inversiones" className="space-y-4 mt-4">
               {!hasChatAccess ? (
                 <Card className="border-dashed">
-                  <CardContent className="pt-6 text-center space-y-3">
+                  <CardContent className="pt-6 text-center space-y-4">
                     <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
                     <h3 className="font-semibold text-lg">Chat Financiero</h3>
                     <p className="text-sm text-muted-foreground">
-                      Disponible con la licencia de <strong>Contabilidad Tradicional</strong> o la <strong>Licencia Completa</strong>.
+                      Conversa con la IA sobre mercados, inversiones y estrategias financieras.
                     </p>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-xs font-medium">
+                      <TrendingUp className="h-3.5 w-3.5" />
+                      Requiere: Contabilidad Tradicional ($10) o Licencia Completa ($12)
+                    </div>
                   </CardContent>
                 </Card>
               ) : (
@@ -370,12 +395,16 @@ export default function Recomendaciones() {
             <TabsContent value="mercados" className="mt-4">
               {!hasMarketAccess ? (
                 <Card className="border-dashed">
-                  <CardContent className="pt-6 text-center space-y-3">
+                  <CardContent className="pt-6 text-center space-y-4">
                     <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
                     <h3 className="font-semibold text-lg">Bolsas en Vivo</h3>
                     <p className="text-sm text-muted-foreground">
-                      Disponible exclusivamente con la <strong>Licencia Completa</strong>.
+                      Accede a datos del mercado en tiempo real con widgets de bolsas internacionales.
                     </p>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-xs font-medium">
+                      <BarChart3 className="h-3.5 w-3.5" />
+                      Requiere: Licencia Completa ($12)
+                    </div>
                   </CardContent>
                 </Card>
               ) : (
