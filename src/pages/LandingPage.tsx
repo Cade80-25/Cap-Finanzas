@@ -132,7 +132,7 @@ export default function LandingPage() {
   const [activationOpen, setActivationOpen] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
-  const downloadUrl = "https://github.com/Cade80-25/cap-finanzas/releases/latest/download/Cap-Finanzas-Setup.exe";
+  const downloadUrl = "https://github.com/Cade80-25/Cap-Finanzas/releases/latest/download/Cap-Finanzas-Setup-1.1.0.exe";
 
   return (
     <div className="min-h-screen bg-background">
