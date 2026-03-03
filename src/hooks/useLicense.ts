@@ -257,7 +257,7 @@ export function useLicense() {
 
   // Pricing info
   const pricing = {
-    simple: 5,
+    simple: 7,
     traditional: 10,
     full: 12,
     upgrade: 5,
