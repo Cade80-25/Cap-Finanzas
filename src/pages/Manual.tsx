@@ -167,8 +167,16 @@ const secciones = [
     icono: Sparkles,
     contenido: [
       {
-        subtitulo: "Tutor financiero",
-        texto: "Recibe consejos personalizados para mejorar tu situación financiera. Puedes hacer preguntas y obtener orientación sobre ahorro, inversión y manejo del dinero."
+        subtitulo: "Tutor Educativo",
+        texto: "Disponible en todos los planes. Haz preguntas sobre finanzas personales y recibe respuestas educativas generadas por IA. Ideal para aprender conceptos como ahorro, presupuesto e interés compuesto."
+      },
+      {
+        subtitulo: "Chat Financiero",
+        texto: "Disponible con Contabilidad Tradicional ($10) o Licencia Completa ($12). Conversa con la IA sobre mercados, inversiones y estrategias financieras avanzadas."
+      },
+      {
+        subtitulo: "Bolsas en Vivo",
+        texto: "Exclusivo de la Licencia Completa ($12). Accede a datos del mercado en tiempo real con widgets de bolsas internacionales como NYSE, NASDAQ, BMV y más."
       }
     ]
   },
