@@ -165,7 +165,7 @@ export default function LandingPage() {
                 <CardTitle className="text-xl">Finanzas Personales</CardTitle>
                 <CardDescription>Ideal para controlar tus gastos del día a día</CardDescription>
                 <div className="text-4xl font-bold mt-4">
-                  $5 <span className="text-lg font-normal text-muted-foreground">USD</span>
+                  $7 <span className="text-lg font-normal text-muted-foreground">USD</span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">

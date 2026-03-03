@@ -87,7 +87,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
         "Todo de Finanzas Simples",
         "Todo de Contabilidad Tradicional",
         "Cambio libre entre ambos modos",
-        "Ahorra $3 vs comprar por separado",
+        "Ahorra $5 vs comprar por separado",
         "Actualizaciones gratuitas de por vida",
       ],
       popular: true,

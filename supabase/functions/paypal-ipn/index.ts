@@ -47,7 +47,7 @@ function detectPlanType(
   // Fallback by amount
   if (amount === 12) return "full";
   if (amount === 10) return "traditional";
-  if (amount === 5) return "simple";
+  if (amount === 7) return "simple";
   if (amount === 2) return "account";
   return null;
 }
