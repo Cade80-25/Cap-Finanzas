@@ -96,8 +96,11 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
     },
   ];
 
-  const paypalEmail = "pierresshop48@gmail.com";
-  const paypalLink = "https://paypal.me/pierresshop48";
+  const paypalButtonIds: Record<string, string> = {
+    simple: "SDZEKEWWMXAVQ",
+    traditional: "XSMYNZAHU2BRA",
+    full: "KZXBA5QRWVQV2",
+  };
 
   const getSelectedPrice = () => {
     if (!selectedPlan) return 0;
@@ -114,11 +117,13 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
     return "Contabilidad Tradicional";
   };
 
-  const getPaypalButtonUrl = () => {
-    const amount = getSelectedPrice();
-    const label = getPlanLabel();
-    // PayPal.me with amount
-    return `${paypalLink}/${amount}USD`;
+  const getPaypalButtonId = () => {
+    if (!selectedPlan || selectedPlan === "upgrade") return paypalButtonIds.traditional;
+    return paypalButtonIds[selectedPlan] || paypalButtonIds.simple;
+  };
+
+  const getPaypalFormUrl = () => {
+    return `https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=${getPaypalButtonId()}`;
   };
 
   const handleCheckLicense = async () => {
@@ -254,7 +259,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
               <div className="flex gap-2">
                 <Button 
                   className="flex-1 gap-2"
-                  onClick={() => window.open(getPaypalButtonUrl(), "_blank")}
+                  onClick={() => window.open(getPaypalFormUrl(), "_blank")}
                 >
                   <ArrowRight className="h-4 w-4" />
                   Pagar con PayPal (${getSelectedPrice()})
