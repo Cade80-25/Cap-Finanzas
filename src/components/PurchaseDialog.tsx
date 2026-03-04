@@ -64,7 +64,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
     {
       id: "traditional" as const,
       name: "Contabilidad Tradicional",
-      price: canUpgrade ? pricing.upgrade : pricing.traditional,
+      price: canUpgrade ? pricing.upgradeToTraditional : pricing.traditional,
       description: "Sistema completo de contabilidad de doble entrada",
       features: [
         "Todo de Finanzas Simples",
@@ -76,23 +76,23 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
         "Enciclopedia contable",
       ],
       disabled: hasTraditional || hasBoth,
-      badge: hasTraditional ? "Adquirido" : canUpgrade ? "Upgrade $5" : null,
+      badge: hasTraditional ? "Adquirido" : canUpgrade ? `Upgrade $${pricing.upgradeToTraditional}` : null,
     },
     {
       id: "full" as const,
       name: "Licencia Completa",
-      price: pricing.full,
+      price: canUpgrade ? pricing.upgradeToFull : pricing.full,
       description: "Ambos modos en una sola licencia — la mejor oferta",
       features: [
         "Todo de Finanzas Simples",
         "Todo de Contabilidad Tradicional",
         "Cambio libre entre ambos modos",
-        "Ahorra $5 vs comprar por separado",
+        canUpgrade ? `Upgrade por solo $${pricing.upgradeToFull}` : "Ahorra $5 vs comprar por separado",
         "Actualizaciones gratuitas de por vida",
       ],
       popular: true,
       disabled: hasBoth,
-      badge: hasBoth ? "Adquirido" : null,
+      badge: hasBoth ? "Adquirido" : canUpgrade ? `Upgrade $${pricing.upgradeToFull}` : null,
     },
   ];
 
@@ -101,14 +101,15 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
     traditional: "XSMYNZAHU2BRA",
     full: "KZXBA5QRWVQV2",
     account: "Z9FFB77NMKC94",
+    upgradeToTraditional: "PLACEHOLDER_UPGRADE_TRAD", // TODO: replace with real PayPal button ID
+    upgradeToFull: "PLACEHOLDER_UPGRADE_FULL",         // TODO: replace with real PayPal button ID
   };
 
   const getSelectedPrice = () => {
     if (!selectedPlan) return 0;
-    if (selectedPlan === "full") return pricing.full;
-    if (selectedPlan === "upgrade") return pricing.upgrade;
-    if (selectedPlan === "traditional" && canUpgrade) return pricing.upgrade;
-    return selectedPlan === "simple" ? pricing.simple : pricing.traditional;
+    if (selectedPlan === "full") return canUpgrade ? pricing.upgradeToFull : pricing.full;
+    if (selectedPlan === "traditional") return canUpgrade ? pricing.upgradeToTraditional : pricing.traditional;
+    return selectedPlan === "simple" ? pricing.simple : 0;
   };
 
   const getPlanLabel = () => {
@@ -119,7 +120,9 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
   };
 
   const getPaypalButtonId = () => {
-    if (!selectedPlan || selectedPlan === "upgrade") return paypalButtonIds.traditional;
+    if (!selectedPlan) return paypalButtonIds.simple;
+    if (selectedPlan === "traditional" && canUpgrade) return paypalButtonIds.upgradeToTraditional;
+    if (selectedPlan === "full" && canUpgrade) return paypalButtonIds.upgradeToFull;
     return paypalButtonIds[selectedPlan] || paypalButtonIds.simple;
   };
 
@@ -199,9 +202,9 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold mb-4">
-                  ${plan.id === "traditional" && canUpgrade ? pricing.upgrade : plan.price}
+                  ${plan.price}
                   <span className="text-sm font-normal text-muted-foreground"> USD</span>
-                  {plan.id === "traditional" && canUpgrade && (
+                  {canUpgrade && (plan.id === "traditional" || plan.id === "full") && (
                     <span className="text-sm font-normal text-muted-foreground block">
                       (Upgrade desde Finanzas Simples)
                     </span>
