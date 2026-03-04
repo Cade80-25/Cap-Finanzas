@@ -100,6 +100,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
     simple: "SDZEKEWWMXAVQ",
     traditional: "XSMYNZAHU2BRA",
     full: "KZXBA5QRWVQV2",
+    account: "Z9FFB77NMKC94",
   };
 
   const getSelectedPrice = () => {
@@ -220,11 +221,19 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
         </div>
 
         {/* Extra accounts info */}
-        <div className="bg-muted/50 rounded-lg p-3 mt-2">
+        <div className="bg-muted/50 rounded-lg p-3 mt-2 flex items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
             💼 <strong>¿Necesitas más cuentas?</strong> Todos los planes incluyen 1 cuenta. 
-            Puedes agregar hasta 4 cuentas adicionales por <strong>$2 USD</strong> cada una.
+            Puedes agregar hasta 4 adicionales por <strong>$2 USD</strong> cada una (máximo 5).
           </p>
+          <Button
+            size="sm"
+            variant="outline"
+            className="shrink-0"
+            onClick={() => window.open(`https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=${paypalButtonIds.account}`, "_blank")}
+          >
+            Comprar cuenta ($2)
+          </Button>
         </div>
 
         {selectedPlan && (
