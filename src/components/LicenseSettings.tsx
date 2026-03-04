@@ -208,7 +208,7 @@ export function LicenseSettings() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold">${pricing.upgrade}</p>
+                  <p className="text-2xl font-bold">${pricing.upgradeToTraditional}</p>
                   <p className="text-xs text-muted-foreground">USD</p>
                 </div>
               </div>

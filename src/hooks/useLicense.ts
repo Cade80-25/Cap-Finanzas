@@ -260,7 +260,8 @@ export function useLicense() {
     simple: 7,
     traditional: 10,
     full: 12,
-    upgrade: 5,
+    upgradeToTraditional: 3, // $10 - $7
+    upgradeToFull: 5,        // $12 - $7
     extraAccount: 2,
   };
 
