@@ -124,7 +124,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
   };
 
   const getPaypalFormUrl = () => {
-    return `https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=${getPaypalButtonId()}`;
+    return `https://www.paypal.com/ncp/payment/${getPaypalButtonId()}`;
   };
 
   const handleCheckLicense = async () => {
@@ -230,7 +230,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
             size="sm"
             variant="outline"
             className="shrink-0"
-            onClick={() => window.open(`https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=${paypalButtonIds.account}`, "_blank")}
+            onClick={() => window.open(`https://www.paypal.com/ncp/payment/${paypalButtonIds.account}`, "_blank")}
           >
             Comprar cuenta ($2)
           </Button>
