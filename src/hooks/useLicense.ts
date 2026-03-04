@@ -247,21 +247,32 @@ export function useLicense() {
     [licenseData, setLicenseData]
   );
 
-  // Check if user can upgrade (has simple but not traditional)
-  const canUpgrade = useMemo(() => {
+  // Check upgrade paths
+  const canUpgradeFromSimple = useMemo(() => {
     return (
       licenseData.purchasedModes.includes("simple") &&
       !licenseData.purchasedModes.includes("traditional")
     );
   }, [licenseData.purchasedModes]);
 
+  const canUpgradeFromTraditional = useMemo(() => {
+    return (
+      licenseData.purchasedModes.includes("traditional") &&
+      !licenseData.purchasedModes.includes("simple")
+    );
+  }, [licenseData.purchasedModes]);
+
+  // Legacy alias
+  const canUpgrade = canUpgradeFromSimple;
+
   // Pricing info
   const pricing = {
     simple: 7,
     traditional: 10,
     full: 12,
-    upgradeToTraditional: 3, // $10 - $7
-    upgradeToFull: 5,        // $12 - $7
+    upgradeSimpleToTraditional: 3,  // $10 - $7
+    upgradeSimpleToFull: 5,         // $12 - $7
+    upgradeTraditionalToFull: 2,    // $12 - $10
     extraAccount: 2,
   };
 
@@ -292,6 +303,8 @@ export function useLicense() {
     
     // Upgrade info
     canUpgrade,
+    canUpgradeFromSimple,
+    canUpgradeFromTraditional,
     pricing,
     
     // Account slots & profiles
