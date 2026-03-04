@@ -62,16 +62,22 @@ Deno.serve(async (req) => {
     const body = await req.text();
     const params = new URLSearchParams(body);
 
+    // Detect sandbox vs production
+    const testIpn = params.get("test_ipn");
+    const isSandbox = testIpn === "1";
+    const verifyUrl = isSandbox
+      ? "https://ipnpb.sandbox.paypal.com/cgi-bin/webscr"
+      : "https://ipnpb.paypal.com/cgi-bin/webscr";
+
+    console.log(`IPN mode: ${isSandbox ? "SANDBOX" : "PRODUCTION"}`);
+
     // Step 1: Verify with PayPal
     const verifyBody = `cmd=_notify-validate&${body}`;
-    const verifyRes = await fetch(
-      "https://ipnpb.paypal.com/cgi-bin/webscr",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: verifyBody,
-      }
-    );
+    const verifyRes = await fetch(verifyUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: verifyBody,
+    });
     const verifyText = await verifyRes.text();
 
     if (verifyText !== "VERIFIED") {
