@@ -26,7 +26,7 @@ interface PurchaseDialogProps {
 }
 
 export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }: PurchaseDialogProps) {
-  const { pricing, canUpgrade, purchasedModes } = useLicense();
+  const { pricing, canUpgrade, canUpgradeFromSimple, canUpgradeFromTraditional, purchasedModes } = useLicense();
   const [selectedPlan, setSelectedPlan] = useState<LicenseMode | "upgrade" | "full" | null>(
     highlightMode || null
   );
@@ -64,7 +64,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
     {
       id: "traditional" as const,
       name: "Contabilidad Tradicional",
-      price: canUpgrade ? pricing.upgradeToTraditional : pricing.traditional,
+      price: canUpgradeFromSimple ? pricing.upgradeSimpleToTraditional : pricing.traditional,
       description: "Sistema completo de contabilidad de doble entrada",
       features: [
         "Todo de Finanzas Simples",
@@ -76,23 +76,23 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
         "Enciclopedia contable",
       ],
       disabled: hasTraditional || hasBoth,
-      badge: hasTraditional ? "Adquirido" : canUpgrade ? `Upgrade $${pricing.upgradeToTraditional}` : null,
+      badge: hasTraditional ? "Adquirido" : canUpgradeFromSimple ? `Upgrade $${pricing.upgradeSimpleToTraditional}` : null,
     },
     {
       id: "full" as const,
       name: "Licencia Completa",
-      price: canUpgrade ? pricing.upgradeToFull : pricing.full,
+      price: canUpgradeFromSimple ? pricing.upgradeSimpleToFull : canUpgradeFromTraditional ? pricing.upgradeTraditionalToFull : pricing.full,
       description: "Ambos modos en una sola licencia — la mejor oferta",
       features: [
         "Todo de Finanzas Simples",
         "Todo de Contabilidad Tradicional",
         "Cambio libre entre ambos modos",
-        canUpgrade ? `Upgrade por solo $${pricing.upgradeToFull}` : "Ahorra $5 vs comprar por separado",
+        canUpgradeFromSimple ? `Upgrade por solo $${pricing.upgradeSimpleToFull}` : canUpgradeFromTraditional ? `Upgrade por solo $${pricing.upgradeTraditionalToFull}` : "Ahorra $5 vs comprar por separado",
         "Actualizaciones gratuitas de por vida",
       ],
       popular: true,
       disabled: hasBoth,
-      badge: hasBoth ? "Adquirido" : canUpgrade ? `Upgrade $${pricing.upgradeToFull}` : null,
+      badge: hasBoth ? "Adquirido" : canUpgradeFromSimple ? `Upgrade $${pricing.upgradeSimpleToFull}` : canUpgradeFromTraditional ? `Upgrade $${pricing.upgradeTraditionalToFull}` : null,
     },
   ];
 
@@ -101,14 +101,19 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
     traditional: "XSMYNZAHU2BRA",
     full: "KZXBA5QRWVQV2",
     account: "Z9FFB77NMKC94",
-    upgradeToTraditional: "JHMVWLPAW4MKY",
-    upgradeToFull: "6PFVBF3SYB2ZA",
+    upgradeSimpleToTraditional: "JHMVWLPAW4MKY",
+    upgradeSimpleToFull: "6PFVBF3SYB2ZA",
+    upgradeTraditionalToFull: "KF8ASLVUQBG6J",
   };
 
   const getSelectedPrice = () => {
     if (!selectedPlan) return 0;
-    if (selectedPlan === "full") return canUpgrade ? pricing.upgradeToFull : pricing.full;
-    if (selectedPlan === "traditional") return canUpgrade ? pricing.upgradeToTraditional : pricing.traditional;
+    if (selectedPlan === "full") {
+      if (canUpgradeFromSimple) return pricing.upgradeSimpleToFull;
+      if (canUpgradeFromTraditional) return pricing.upgradeTraditionalToFull;
+      return pricing.full;
+    }
+    if (selectedPlan === "traditional") return canUpgradeFromSimple ? pricing.upgradeSimpleToTraditional : pricing.traditional;
     return selectedPlan === "simple" ? pricing.simple : 0;
   };
 
@@ -121,8 +126,9 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
 
   const getPaypalButtonId = () => {
     if (!selectedPlan) return paypalButtonIds.simple;
-    if (selectedPlan === "traditional" && canUpgrade) return paypalButtonIds.upgradeToTraditional;
-    if (selectedPlan === "full" && canUpgrade) return paypalButtonIds.upgradeToFull;
+    if (selectedPlan === "traditional" && canUpgradeFromSimple) return paypalButtonIds.upgradeSimpleToTraditional;
+    if (selectedPlan === "full" && canUpgradeFromSimple) return paypalButtonIds.upgradeSimpleToFull;
+    if (selectedPlan === "full" && canUpgradeFromTraditional) return paypalButtonIds.upgradeTraditionalToFull;
     return paypalButtonIds[selectedPlan] || paypalButtonIds.simple;
   };
 
@@ -204,9 +210,14 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
                 <div className="text-3xl font-bold mb-4">
                   ${plan.price}
                   <span className="text-sm font-normal text-muted-foreground"> USD</span>
-                  {canUpgrade && (plan.id === "traditional" || plan.id === "full") && (
+                  {canUpgradeFromSimple && (plan.id === "traditional" || plan.id === "full") && (
                     <span className="text-sm font-normal text-muted-foreground block">
                       (Upgrade desde Finanzas Simples)
+                    </span>
+                  )}
+                  {canUpgradeFromTraditional && plan.id === "full" && (
+                    <span className="text-sm font-normal text-muted-foreground block">
+                      (Upgrade desde Contabilidad Tradicional)
                     </span>
                   )}
                 </div>
