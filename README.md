@@ -1,73 +1,144 @@
-# Welcome to your Lovable project
+<p align="center">
+  <img src="public/icon-final.png" alt="Cap Finanzas Logo" width="120" />
+</p>
 
-## Project info
+<h1 align="center">Cap Finanzas</h1>
 
-**URL**: https://lovable.dev/projects/b7b8e05c-c215-4523-a102-712f660885e1
+<p align="center">
+  <strong>Software de contabilidad personal y finanzas — 100% offline, privado y sin suscripciones.</strong>
+</p>
 
-## How can I edit this code?
+<p align="center">
+  <a href="https://capfinanzas.com">🌐 Sitio Web</a> •
+  <a href="https://github.com/Cade80-25/Cap-Finanzas/releases/latest">📥 Descargar</a> •
+  <a href="#características">✨ Características</a> •
+  <a href="#planes-y-precios">💰 Precios</a>
+</p>
 
-There are several ways of editing your application.
+<p align="center">
+  <img src="https://img.shields.io/badge/Plataforma-Windows%2010%2F11-blue?logo=windows" alt="Windows" />
+  <img src="https://img.shields.io/badge/Licencia-Pago%20Único-green" alt="Licencia" />
+  <img src="https://img.shields.io/badge/Prueba-30%20días%20gratis-orange" alt="Prueba gratuita" />
+  <img src="https://img.shields.io/badge/Privacidad-100%25%20Offline-purple" alt="Offline" />
+</p>
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/b7b8e05c-c215-4523-a102-712f660885e1) and start prompting.
+## 📋 ¿Qué es Cap Finanzas?
 
-Changes made via Lovable will be committed automatically to this repo.
+Cap Finanzas es una aplicación de escritorio para **gestión financiera personal y contabilidad** diseñada para ser simple, privada y accesible. Todos tus datos se almacenan localmente en tu computadora — nunca se envían a servidores externos.
 
-**Use your preferred IDE**
+Ideal para:
+- 🏠 **Personas** que quieren controlar sus gastos e ingresos del hogar
+- 📚 **Estudiantes** de contabilidad que necesitan practicar partida doble
+- 💼 **Emprendedores** que buscan una herramienta sencilla sin suscripciones mensuales
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## ✨ Características
 
-Follow these steps:
+### 💵 Finanzas Personales
+- Registro de ingresos y gastos con categorías personalizables
+- Presupuestos mensuales con alertas
+- Calendario financiero interactivo
+- Resumen con gráficos intuitivos
+- Soporte para múltiples monedas
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### 📘 Contabilidad Profesional
+- Libro Diario con partida doble
+- Libro Mayor por cuenta
+- Balance General automático
+- Estado de Resultados
+- Enciclopedia contable integrada
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 🤖 Herramientas con IA
+- **Tutor Educativo** — Aprende contabilidad con explicaciones paso a paso
+- **Chat Financiero** — Consulta dudas financieras en tiempo real
+- **Recomendaciones** — Sugerencias personalizadas basadas en tus datos
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 📈 Mercados en Vivo
+- Cotizaciones de bolsas de valores en tiempo real
+- Explorador de mercados integrado
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+### 🔒 Privacidad y Seguridad
+- 100% offline — sin servidores ni cuentas en la nube
+- Protección con PIN/contraseña
+- Tus datos nunca salen de tu computadora
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 💰 Planes y Precios
 
-**Use GitHub Codespaces**
+**Pago único de por vida. Sin suscripciones.**
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+| Característica | Simples ($8) | Tradicional ($11) | Completa ($13) |
+|---|:---:|:---:|:---:|
+| Registro de ingresos y gastos | ✅ | ✅ | ✅ |
+| Categorías y presupuestos | ✅ | ✅ | ✅ |
+| Calendario financiero | ✅ | ✅ | ✅ |
+| Resumen con gráficos | ✅ | ✅ | ✅ |
+| Múltiples monedas | ✅ | ✅ | ✅ |
+| Tutor Educativo (IA) | ✅ | ✅ | ✅ |
+| Libro Diario (partida doble) | ❌ | ✅ | ✅ |
+| Libro Mayor | ❌ | ✅ | ✅ |
+| Balance General | ❌ | ✅ | ✅ |
+| Estado de Resultados | ❌ | ✅ | ✅ |
+| Enciclopedia contable | ❌ | ✅ | ✅ |
+| Chat Financiero (IA) | ❌ | ✅ | ✅ |
+| Bolsas en Vivo | ❌ | ❌ | ✅ |
+| Cambio libre entre modos | ❌ | ❌ | ✅ |
 
-## What technologies are used for this project?
+> 💡 **Prueba gratuita de 30 días** con acceso completo a todas las funciones. No se requiere tarjeta de crédito.
 
-This project is built with:
+### Mejoras de plan (upgrades)
+- Simples → Tradicional: **$4 USD**
+- Simples → Completa: **$6 USD**
+- Tradicional → Completa: **$3 USD**
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## 📥 Instalación
 
-Simply open [Lovable](https://lovable.dev/projects/b7b8e05c-c215-4523-a102-712f660885e1) and click on Share -> Publish.
+1. Descarga el instalador desde [Releases](https://github.com/Cade80-25/Cap-Finanzas/releases/latest)
+2. Ejecuta `Cap-Finanzas-Setup-x.x.x.exe`
+3. ¡Listo! La app se abrirá automáticamente
 
-## Can I connect a custom domain to my Lovable project?
+**Requisitos:**
+- Windows 10 o Windows 11
+- ~50 MB de espacio en disco
+- No requiere dependencias adicionales
 
-Yes, you can!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🛠️ Stack Tecnológico
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+| Tecnología | Uso |
+|---|---|
+| **React** + **TypeScript** | Frontend UI |
+| **Electron** | Aplicación de escritorio |
+| **Vite** | Build tool |
+| **Tailwind CSS** | Estilos |
+| **shadcn/ui** | Componentes UI |
+| **Recharts** | Gráficos y visualizaciones |
+| **PayPal IPN** | Procesamiento de pagos |
+| **Resend** | Entrega de licencias por email |
+
+---
+
+## 🔗 Enlaces
+
+- 🌐 **Sitio Web:** [capfinanzas.com](https://capfinanzas.com)
+- 📥 **Descargar:** [Última versión](https://github.com/Cade80-25/Cap-Finanzas/releases/latest)
+- 📧 **Soporte:** pierresshop48@gmail.com
+
+---
+
+## 📄 Licencia
+
+Software propietario. Consulta los [términos de uso](https://capfinanzas.com) para más información.
+
+---
+
+<p align="center">
+  Hecho con ❤️ para la comunidad hispanohablante
+</p>
