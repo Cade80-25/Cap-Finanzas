@@ -267,13 +267,13 @@ export function useLicense() {
 
   // Pricing info
   const pricing = {
-    simple: 7,
-    traditional: 10,
-    full: 12,
-    upgradeSimpleToTraditional: 3,  // $10 - $7
-    upgradeSimpleToFull: 5,         // $12 - $7
-    upgradeTraditionalToFull: 2,    // $12 - $10
-    extraAccount: 2,
+    simple: 8,
+    traditional: 11,
+    full: 13,
+    upgradeSimpleToTraditional: 4,  // $11 - $8 (neto ~$3.48)
+    upgradeSimpleToFull: 6,         // $13 - $8 (neto ~$5.38)
+    upgradeTraditionalToFull: 3,    // $13 - $11 (neto ~$2.54)
+    extraAccount: 3,
   };
 
   // Account slots: trial = 3, paid = 1 base + extras (max 5)
