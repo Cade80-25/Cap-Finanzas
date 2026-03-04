@@ -101,8 +101,8 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
     traditional: "XSMYNZAHU2BRA",
     full: "KZXBA5QRWVQV2",
     account: "Z9FFB77NMKC94",
-    upgradeToTraditional: "PLACEHOLDER_UPGRADE_TRAD", // TODO: replace with real PayPal button ID
-    upgradeToFull: "PLACEHOLDER_UPGRADE_FULL",         // TODO: replace with real PayPal button ID
+    upgradeToTraditional: "JHMVWLPAW4MKY",
+    upgradeToFull: "6PFVBF3SYB2ZA",
   };
 
   const getSelectedPrice = () => {
