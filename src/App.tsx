@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound";
 import Instalar from "./pages/Instalar";
 import LandingPage from "./pages/LandingPage";
 import LicenseGenerator from "./pages/LicenseGenerator";
+import Admin from "./pages/Admin";
 import Consolidado from "./pages/Consolidado";
 import { ThemeProvider } from "next-themes";
 import { useNotificationGenerator } from "./hooks/useNotificationGenerator";
@@ -59,6 +60,7 @@ const App = () => (
             <Routes>
               {/* Landing page y rutas públicas */}
               <Route path="/landing" element={<LandingPage />} />
+              <Route path="/admin" element={<Admin />} />
               <Route path="/license-generator" element={<LicenseGenerator />} />
               
               {/* App principal */}
