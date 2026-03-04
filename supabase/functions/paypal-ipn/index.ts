@@ -44,11 +44,11 @@ function detectPlanType(
     if (lower.includes("simple") || lower.includes("personal")) return "simple";
     if (lower.includes("cuenta") || lower.includes("account")) return "account";
   }
-  // Fallback by amount
-  if (amount === 12) return "full";
-  if (amount === 10) return "traditional";
-  if (amount === 7) return "simple";
-  if (amount === 2) return "account";
+  // Fallback by amount (prices include PayPal commission)
+  if (amount === 13) return "full";
+  if (amount === 11) return "traditional";
+  if (amount === 8) return "simple";
+  if (amount === 3) return "account";
   return null;
 }
 
