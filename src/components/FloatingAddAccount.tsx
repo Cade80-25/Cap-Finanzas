@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { Plus, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export function FloatingAddAccount() {
+export const FloatingAddAccount = forwardRef<HTMLDivElement>(function FloatingAddAccount(_, ref) {
   const { wallets, canAddWallet, maxWallets, addWallet, walletIcons } = useWalletContext();
   const { status } = useLicense();
   const [open, setOpen] = useState(false);
@@ -58,7 +58,7 @@ export function FloatingAddAccount() {
   };
 
   return (
-    <>
+    <div ref={ref}>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -126,6 +126,6 @@ export function FloatingAddAccount() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
-}
+});
