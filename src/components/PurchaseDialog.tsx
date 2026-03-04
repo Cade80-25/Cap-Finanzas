@@ -254,15 +254,15 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
                     Haz clic en <strong>"Pagar con PayPal"</strong> abajo
                   </li>
                   <li>
-                    En la <strong>nota del pago</strong>, escribe tu <strong>correo electrónico</strong> y el plan: <strong>{getPlanLabel()}</strong>
-                  </li>
-                  <li>
-                    Completa el pago
+                    Completa el pago con tu cuenta de PayPal
                   </li>
                   <li>
                     Regresa aquí y haz clic en <strong>"Ya pagué, buscar mi licencia"</strong>
                   </li>
                 </ol>
+                <p className="text-xs text-muted-foreground">
+                  Tu licencia se generará automáticamente usando el correo de tu cuenta de PayPal.
+                </p>
               </div>
 
               <div className="flex gap-2">
