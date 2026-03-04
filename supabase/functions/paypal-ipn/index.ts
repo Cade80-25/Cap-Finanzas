@@ -32,23 +32,32 @@ function generateLicenseCode(
 }
 
 // Map PayPal item/amount to plan type
+// Upgrades generate the TARGET license type (e.g., Simple→Full = "full")
 function detectPlanType(
   amount: number,
   itemName?: string
 ): "simple" | "traditional" | "full" | "account" | null {
   if (itemName) {
     const lower = itemName.toLowerCase();
+    // Check for upgrade keywords first (they also contain "completa"/"contabilidad")
+    if (lower.includes("upgrade") || lower.includes("mejora")) {
+      if (lower.includes("completa") || lower.includes("full")) return "full";
+      if (lower.includes("contabilidad") || lower.includes("traditional")) return "traditional";
+    }
     if (lower.includes("completa") || lower.includes("full")) return "full";
-    if (lower.includes("contabilidad") || lower.includes("traditional"))
-      return "traditional";
+    if (lower.includes("contabilidad") || lower.includes("traditional")) return "traditional";
     if (lower.includes("simple") || lower.includes("personal")) return "simple";
     if (lower.includes("cuenta") || lower.includes("account")) return "account";
   }
   // Fallback by amount (prices include PayPal commission)
+  // Direct purchases
   if (amount === 13) return "full";
   if (amount === 11) return "traditional";
   if (amount === 8) return "simple";
-  if (amount === 3) return "account";
+  // Upgrades (mapped to target license type)
+  if (amount === 6) return "full";         // Simple → Full ($6)
+  if (amount === 4) return "traditional";  // Simple → Traditional ($4)
+  if (amount === 3) return "account";      // Account ($3) — same price as Trad→Full, disambiguated by item_name above
   return null;
 }
 
