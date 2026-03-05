@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +35,7 @@ import { Badge } from "@/components/ui/badge";
 import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
 import { toast } from "sonner";
+import QRReceiptScanner from "@/components/QRReceiptScanner";
 
 // Categorías predefinidas para modo simple
 const SIMPLE_CATEGORIES = {
@@ -82,6 +83,21 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing }: Si
   const [description, setDescription] = useState(editing?.description ?? "");
   const [category, setCategory] = useState(editing?.category ?? "");
   const [date, setDate] = useState(editing?.date ?? new Date().toISOString().split("T")[0]);
+
+  const handleQRScanned = useCallback((data: { amount?: number; date?: string; description?: string; type?: "income" | "expense" }) => {
+    if (data.amount) setAmount(String(data.amount));
+    if (data.date) {
+      // Try to normalize date format to YYYY-MM-DD
+      const parts = data.date.split(/[-/]/);
+      if (parts.length === 3) {
+        const [d, m, y] = parts;
+        const year = y.length === 2 ? `20${y}` : y;
+        setDate(`${year}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`);
+      }
+    }
+    if (data.description) setDescription(data.description);
+    if (data.type) setType(data.type);
+  }, []);
 
   const categories = type === "income" ? SIMPLE_CATEGORIES.income : SIMPLE_CATEGORIES.expense;
 
@@ -145,21 +161,28 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing }: Si
         </TabsList>
       </Tabs>
 
-      {/* Amount */}
+      {/* Amount + QR Scanner */}
       <div className="space-y-2">
         <Label htmlFor="amount">Monto</Label>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-          <Input
-            id="amount"
-            type="number"
-            step="0.01"
-            min="0"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
-            className="pl-7 text-lg"
-            autoFocus
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+            <Input
+              id="amount"
+              type="number"
+              step="0.01"
+              min="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.00"
+              className="pl-7 text-lg"
+              autoFocus
+            />
+          </div>
+          <QRReceiptScanner
+            onDataScanned={handleQRScanned}
+            triggerVariant="outline"
+            triggerSize="icon"
           />
         </div>
       </div>
