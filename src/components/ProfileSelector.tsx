@@ -28,8 +28,24 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronDown, Plus, Pencil, Trash2, Users } from "lucide-react";
+import { ChevronDown, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
+
+function ProfileAvatar({ photoUrl, avatar, size = "sm" }: { photoUrl?: string | null; avatar: string; size?: "sm" | "md" }) {
+  const sizeClass = size === "sm" ? "h-6 w-6 text-sm" : "h-8 w-8 text-base";
+
+  if (photoUrl) {
+    return (
+      <img
+        src={photoUrl}
+        alt="Perfil"
+        className={`${sizeClass} rounded-full object-cover`}
+      />
+    );
+  }
+  return <span className={size === "sm" ? "text-base" : "text-lg"}>{avatar}</span>;
+}
 
 export function ProfileSelector() {
   const {
@@ -41,6 +57,7 @@ export function ProfileSelector() {
     addProfile,
     renameProfile,
     deleteProfile,
+    setProfilePhoto,
     profileAvatars,
   } = useWalletContext();
 
@@ -73,11 +90,8 @@ export function ProfileSelector() {
   const handleDelete = () => {
     if (deleteConfirmId) {
       const result = deleteProfile(deleteConfirmId);
-      if (result.success) {
-        toast.success(result.message);
-      } else {
-        toast.error(result.message);
-      }
+      if (result.success) toast.success(result.message);
+      else toast.error(result.message);
       setDeleteConfirmId(null);
     }
   };
@@ -92,10 +106,9 @@ export function ProfileSelector() {
     }
   };
 
-  // Only show if there's more than 1 profile or user can add more
-  if (profiles.length <= 1 && !canAddProfile) {
-    return null;
-  }
+  if (profiles.length <= 1 && !canAddProfile) return null;
+
+  const editingProfile = editingId ? profiles.find((p) => p.id === editingId) : null;
 
   return (
     <>
@@ -103,7 +116,7 @@ export function ProfileSelector() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="gap-2 w-full justify-between text-xs">
             <span className="flex items-center gap-2 truncate">
-              <span className="text-base">{activeProfile.avatar}</span>
+              <ProfileAvatar photoUrl={activeProfile.photoUrl} avatar={activeProfile.avatar} />
               <span className="truncate">{activeProfile.name}</span>
             </span>
             <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
@@ -117,7 +130,7 @@ export function ProfileSelector() {
               onClick={() => setActiveProfile(p.id)}
             >
               <span className="flex items-center gap-2">
-                <span className="text-base">{p.avatar}</span>
+                <ProfileAvatar photoUrl={p.photoUrl} avatar={p.avatar} />
                 <span>{p.name}</span>
               </span>
               <span className="flex gap-1">
@@ -125,10 +138,7 @@ export function ProfileSelector() {
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openEdit(p.id);
-                  }}
+                  onClick={(e) => { e.stopPropagation(); openEdit(p.id); }}
                 >
                   <Pencil className="h-3 w-3" />
                 </Button>
@@ -137,10 +147,7 @@ export function ProfileSelector() {
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6 text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteConfirmId(p.id);
-                    }}
+                    onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(p.id); }}
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -206,21 +213,30 @@ export function ProfileSelector() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddOpen(false)}>
-              Cancelar
-            </Button>
+            <Button variant="outline" onClick={() => setAddOpen(false)}>Cancelar</Button>
             <Button onClick={handleAdd}>Crear Perfil</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Edit profile dialog */}
+      {/* Edit profile dialog with photo upload */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Perfil</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Photo upload section */}
+            {editingId && (
+              <ProfilePhotoUpload
+                profileId={editingId}
+                currentPhotoUrl={editingProfile?.photoUrl}
+                currentAvatar={selectedAvatar}
+                onPhotoUploaded={(url) => setProfilePhoto(editingId, url)}
+                onPhotoRemoved={() => setProfilePhoto(editingId, null)}
+              />
+            )}
+
             <div className="space-y-2">
               <Label>Nombre</Label>
               <Input
@@ -230,7 +246,7 @@ export function ProfileSelector() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Avatar</Label>
+              <Label>Avatar (se usa si no hay foto)</Label>
               <div className="flex flex-wrap gap-2">
                 {profileAvatars.map((avatar) => (
                   <button
@@ -250,9 +266,7 @@ export function ProfileSelector() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditOpen(false)}>
-              Cancelar
-            </Button>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
             <Button onClick={handleEdit}>Guardar</Button>
           </DialogFooter>
         </DialogContent>

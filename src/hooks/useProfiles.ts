@@ -6,6 +6,7 @@ export interface Profile {
   id: string;
   name: string;
   avatar: string;
+  photoUrl?: string | null;
   createdAt: string;
 }
 
@@ -92,6 +93,18 @@ export function useProfiles() {
     [setData]
   );
 
+  const setProfilePhoto = useCallback(
+    (profileId: string, photoUrl: string | null) => {
+      setData((prev) => ({
+        ...prev,
+        profiles: prev.profiles.map((p) =>
+          p.id === profileId ? { ...p, photoUrl } : p
+        ),
+      }));
+    },
+    [setData]
+  );
+
   const deleteProfile = useCallback(
     (profileId: string): { success: boolean; message: string } => {
       if (profileId === DEFAULT_PROFILE_ID) {
@@ -141,6 +154,7 @@ export function useProfiles() {
     addProfile,
     renameProfile,
     deleteProfile,
+    setProfilePhoto,
     profileAvatars: PROFILE_AVATARS,
   };
 }

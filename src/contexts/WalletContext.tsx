@@ -13,6 +13,7 @@ interface WalletContextValue {
   addProfile: (name: string, avatar?: string) => { success: boolean; message: string };
   renameProfile: (id: string, name: string, avatar?: string) => void;
   deleteProfile: (id: string) => { success: boolean; message: string };
+  setProfilePhoto: (id: string, photoUrl: string | null) => void;
   profileAvatars: string[];
 
   // Wallets (scoped to active profile)
