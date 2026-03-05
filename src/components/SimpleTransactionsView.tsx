@@ -70,19 +70,27 @@ interface EditingTransaction {
   date: string;
 }
 
+interface QRPrefillData {
+  amount?: number;
+  date?: string;
+  description?: string;
+  type?: "income" | "expense";
+}
+
 interface SimpleTransactionFormProps {
   onClose: () => void;
   defaultType?: "income" | "expense";
   editing?: EditingTransaction | null;
+  qrPrefill?: QRPrefillData | null;
 }
 
-function SimpleTransactionForm({ onClose, defaultType = "expense", editing }: SimpleTransactionFormProps) {
+function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPrefill }: SimpleTransactionFormProps) {
   const { transactions, setTransactions } = useJournalTransactions();
-  const [type, setType] = useState<"income" | "expense">(editing?.type ?? defaultType);
-  const [amount, setAmount] = useState(editing ? String(editing.amount) : "");
-  const [description, setDescription] = useState(editing?.description ?? "");
+  const [type, setType] = useState<"income" | "expense">(editing?.type ?? qrPrefill?.type ?? defaultType);
+  const [amount, setAmount] = useState(editing ? String(editing.amount) : qrPrefill?.amount ? String(qrPrefill.amount) : "");
+  const [description, setDescription] = useState(editing?.description ?? qrPrefill?.description ?? "");
   const [category, setCategory] = useState(editing?.category ?? "");
-  const [date, setDate] = useState(editing?.date ?? new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(editing?.date ?? qrPrefill?.date ?? new Date().toISOString().split("T")[0]);
 
   const handleQRScanned = useCallback((data: { amount?: number; date?: string; description?: string; type?: "income" | "expense" }) => {
     if (data.amount) setAmount(String(data.amount));
@@ -261,8 +269,11 @@ export function SimpleTransactionsView() {
     toast.success("Todos los movimientos han sido eliminados");
   };
 
+  const [qrPrefill, setQrPrefill] = useState<QRPrefillData | null>(null);
+
   const openDialog = (type: "income" | "expense") => {
     setEditingTx(null);
+    setQrPrefill(null);
     setDefaultType(type);
     setDialogOpen(true);
   };
@@ -362,7 +373,32 @@ export function SimpleTransactionsView() {
         </Card>
       </div>
 
-      {/* Summary cards */}
+      {/* QR Scanner Banner */}
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 hover:border-primary/40 transition-colors">
+        <CardContent className="flex items-center gap-4 p-4">
+          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <QrCode className="h-6 w-6 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm">Escanear Recibo con QR</p>
+            <p className="text-xs text-muted-foreground">
+              Apunta la cámara al código QR de tu factura y se registra automáticamente
+            </p>
+          </div>
+          <QRReceiptScanner
+            onDataScanned={(data) => {
+              // Open dialog pre-filled with QR data
+              setEditingTx(null);
+              setDefaultType(data.type || "expense");
+              setDialogOpen(true);
+              setQrPrefill(data);
+            }}
+            triggerVariant="default"
+            triggerSize="sm"
+          />
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -486,9 +522,10 @@ export function SimpleTransactionsView() {
             </DialogDescription>
           </DialogHeader>
           <SimpleTransactionForm 
-            onClose={() => { setDialogOpen(false); setEditingTx(null); }} 
+            onClose={() => { setDialogOpen(false); setEditingTx(null); setQrPrefill(null); }} 
             defaultType={defaultType}
             editing={editingTx}
+            qrPrefill={qrPrefill}
           />
         </DialogContent>
       </Dialog>
