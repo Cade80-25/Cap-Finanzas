@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, Download, ArrowUpRight } from "lucide-react";
+import { Search, Filter, Download, ArrowUpRight, FileSpreadsheet, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,11 +18,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useAccountingData } from "@/hooks/useAccountingData";
 import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { SimpleTransactionsView } from "@/components/SimpleTransactionsView";
 import { useNavigate } from "react-router-dom";
+import { exportToCSV, exportToExcel, exportToPDF, type ExportTransaction } from "@/lib/export-transactions";
+import { toast } from "sonner";
 
 // Traditional view component
 function TraditionalTransactionsView() {
@@ -81,26 +89,23 @@ function TraditionalTransactionsView() {
     .filter(t => t.tipo === "Gasto")
     .reduce((sum, t) => sum + Math.abs(t.monto), 0);
 
-  const handleDownloadCSV = () => {
-    if (transaccionesFormateadas.length === 0) {
+  const exportData: ExportTransaction[] = transaccionesFormateadas.map((t) => ({
+    fecha: t.fecha,
+    descripcion: t.descripcion,
+    categoria: t.categoria,
+    tipo: t.tipo,
+    monto: t.monto,
+  }));
+
+  const handleExport = (format: "csv" | "excel" | "pdf") => {
+    if (exportData.length === 0) {
+      toast.error("No hay transacciones para exportar");
       return;
     }
-    const headers = ["Fecha", "Descripción", "Cuenta", "Tipo", "Monto"];
-    const rows = transaccionesFormateadas.map((t) => [
-      t.fecha,
-      `"${t.descripcion.replace(/"/g, '""')}"`,
-      `"${t.categoria.replace(/"/g, '""')}"`,
-      t.tipo,
-      t.monto.toFixed(2),
-    ]);
-    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `transacciones_${new Date().toISOString().split("T")[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    if (format === "csv") exportToCSV(exportData);
+    else if (format === "excel") exportToExcel(exportData);
+    else exportToPDF(exportData);
+    toast.success(`Exportando como ${format.toUpperCase()}...`);
   };
 
   return (
@@ -115,9 +120,27 @@ function TraditionalTransactionsView() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={handleDownloadCSV} title="Descargar CSV">
-            <Download className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" title="Exportar">
+                <Download className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport("csv")}>
+                <FileText className="h-4 w-4 mr-2" />
+                Exportar CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("excel")}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Exportar Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                <FileText className="h-4 w-4 mr-2" />
+                Exportar PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button className="shadow-soft" onClick={() => navigate("/libro-diario")}>
             <ArrowUpRight className="h-4 w-4 mr-2" />
             Ir al Libro Diario

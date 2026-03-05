@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,6 +36,13 @@ import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
 import { toast } from "sonner";
 import QRReceiptScanner from "@/components/QRReceiptScanner";
+import { exportToCSV, exportToExcel, exportToPDF, type ExportTransaction } from "@/lib/export-transactions";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Categorías predefinidas para modo simple
 const SIMPLE_CATEGORIES = {
@@ -326,15 +333,69 @@ export function SimpleTransactionsView() {
           </p>
         </div>
         {transactions.length > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-            onClick={() => setConfirmClearOpen(true)}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Borrar Todo
-          </Button>
+          <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => {
+                  const data: ExportTransaction[] = allTransactions.map(t => ({
+                    fecha: t.date,
+                    descripcion: t.description,
+                    categoria: getCategoryLabel(t.category).label,
+                    tipo: t.type === "income" ? "Ingreso" : "Gasto",
+                    monto: t.type === "income" ? t.amount : -t.amount,
+                  }));
+                  exportToCSV(data, `movimientos_${new Date().toISOString().split("T")[0]}.csv`);
+                  toast.success("Exportando CSV...");
+                }}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Exportar CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={async () => {
+                  const data: ExportTransaction[] = allTransactions.map(t => ({
+                    fecha: t.date,
+                    descripcion: t.description,
+                    categoria: getCategoryLabel(t.category).label,
+                    tipo: t.type === "income" ? "Ingreso" : "Gasto",
+                    monto: t.type === "income" ? t.amount : -t.amount,
+                  }));
+                  await exportToExcel(data, `movimientos_${new Date().toISOString().split("T")[0]}.xlsx`);
+                  toast.success("Exportando Excel...");
+                }}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  Exportar Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  const data: ExportTransaction[] = allTransactions.map(t => ({
+                    fecha: t.date,
+                    descripcion: t.description,
+                    categoria: getCategoryLabel(t.category).label,
+                    tipo: t.type === "income" ? "Ingreso" : "Gasto",
+                    monto: t.type === "income" ? t.amount : -t.amount,
+                  }));
+                  exportToPDF(data, `movimientos_${new Date().toISOString().split("T")[0]}.pdf`);
+                  toast.success("Generando PDF...");
+                }}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Exportar PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setConfirmClearOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Borrar Todo
+            </Button>
+          </div>
         )}
       </div>
 
