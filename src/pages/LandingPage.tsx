@@ -511,6 +511,22 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Contact / Support Section */}
+      <section className="py-16 bg-muted/30" id="soporte">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold mb-4">¿Necesitas ayuda?</h2>
+          <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
+            Estamos aquí para ayudarte. Escríbenos y te responderemos lo antes posible.
+          </p>
+          <Button size="lg" className="gap-2" asChild>
+            <a href="mailto:pierresshop48@gmail.com">
+              <Mail className="h-5 w-5" />
+              pierresshop48@gmail.com
+            </a>
+          </Button>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="py-8 border-t">
         <div className="container mx-auto px-4">
@@ -519,14 +535,20 @@ export default function LandingPage() {
               <Calculator className="h-5 w-5 text-primary" />
               <span className="font-semibold">Cap Finanzas</span>
             </div>
-            <div className="flex gap-6 text-sm text-muted-foreground">
+            <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
               <a href="#precios" className="hover:text-foreground">
                 Precios
               </a>
               <a href="#faq" className="hover:text-foreground">
                 FAQ
               </a>
-              <a href="mailto:soporte@capfinanzas.com" className="hover:text-foreground flex items-center gap-1">
+              <a href="/privacidad" className="hover:text-foreground">
+                Privacidad
+              </a>
+              <a href="/terminos" className="hover:text-foreground">
+                Términos
+              </a>
+              <a href="mailto:pierresshop48@gmail.com" className="hover:text-foreground flex items-center gap-1">
                 <Mail className="h-4 w-4" />
                 Soporte
               </a>
