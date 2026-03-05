@@ -27,6 +27,8 @@ import LandingPage from "./pages/LandingPage";
 import LicenseGenerator from "./pages/LicenseGenerator";
 import Admin from "./pages/Admin";
 import Consolidado from "./pages/Consolidado";
+import Privacidad from "./pages/Privacidad";
+import Terminos from "./pages/Terminos";
 import { ThemeProvider } from "next-themes";
 import { useNotificationGenerator } from "./hooks/useNotificationGenerator";
 import { WalletProvider } from "./contexts/WalletContext";
@@ -60,6 +62,8 @@ const App = () => (
             <Routes>
               {/* Landing page y rutas públicas */}
               <Route path="/landing" element={<LandingPage />} />
+              <Route path="/privacidad" element={<Privacidad />} />
+              <Route path="/terminos" element={<Terminos />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/license-generator" element={<LicenseGenerator />} />
               
