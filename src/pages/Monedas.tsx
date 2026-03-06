@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { DollarSign, TrendingUp, ArrowUpDown, RefreshCw } from "lucide-react";
+import { useState, useCallback } from "react";
+import { ArrowUpDown, RefreshCw, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,8 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const monedasData = [
-  // Américas
+const monedasBase = [
   { codigo: "USD", nombre: "Dólar Estadounidense", simbolo: "$", tasaCambio: 1.0, cambio24h: 0, region: "América del Norte" },
   { codigo: "CAD", nombre: "Dólar Canadiense", simbolo: "$", tasaCambio: 1.35, cambio24h: 0.3, region: "América del Norte" },
   { codigo: "MXN", nombre: "Peso Mexicano", simbolo: "$", tasaCambio: 17.15, cambio24h: -0.8, region: "América del Norte" },
@@ -31,8 +31,6 @@ const monedasData = [
   { codigo: "COP", nombre: "Peso Colombiano", simbolo: "$", tasaCambio: 3950.00, cambio24h: -0.5, region: "América del Sur" },
   { codigo: "PEN", nombre: "Sol Peruano", simbolo: "S/", tasaCambio: 3.72, cambio24h: 0.2, region: "América del Sur" },
   { codigo: "UYU", nombre: "Peso Uruguayo", simbolo: "$", tasaCambio: 39.50, cambio24h: 0.6, region: "América del Sur" },
-  
-  // Europa
   { codigo: "EUR", nombre: "Euro", simbolo: "€", tasaCambio: 0.92, cambio24h: 0.5, region: "Europa" },
   { codigo: "GBP", nombre: "Libra Esterlina", simbolo: "£", tasaCambio: 0.79, cambio24h: -0.3, region: "Europa" },
   { codigo: "CHF", nombre: "Franco Suizo", simbolo: "Fr", tasaCambio: 0.88, cambio24h: 0.1, region: "Europa" },
@@ -45,8 +43,6 @@ const monedasData = [
   { codigo: "RON", nombre: "Leu Rumano", simbolo: "lei", tasaCambio: 4.55, cambio24h: 0.2, region: "Europa" },
   { codigo: "RUB", nombre: "Rublo Ruso", simbolo: "₽", tasaCambio: 92.50, cambio24h: 1.8, region: "Europa" },
   { codigo: "TRY", nombre: "Lira Turca", simbolo: "₺", tasaCambio: 32.15, cambio24h: 2.5, region: "Europa" },
-  
-  // Asia
   { codigo: "JPY", nombre: "Yen Japonés", simbolo: "¥", tasaCambio: 149.82, cambio24h: 1.2, region: "Asia" },
   { codigo: "CNY", nombre: "Yuan Chino", simbolo: "¥", tasaCambio: 7.24, cambio24h: 0.3, region: "Asia" },
   { codigo: "KRW", nombre: "Won Surcoreano", simbolo: "₩", tasaCambio: 1320.50, cambio24h: 0.8, region: "Asia" },
@@ -60,19 +56,13 @@ const monedasData = [
   { codigo: "VND", nombre: "Dong Vietnamita", simbolo: "₫", tasaCambio: 24350.00, cambio24h: 0.2, region: "Asia" },
   { codigo: "PKR", nombre: "Rupia Pakistaní", simbolo: "₨", tasaCambio: 278.50, cambio24h: 1.1, region: "Asia" },
   { codigo: "BDT", nombre: "Taka Bangladesí", simbolo: "৳", tasaCambio: 109.50, cambio24h: 0.4, region: "Asia" },
-  
-  // Oceanía
   { codigo: "AUD", nombre: "Dólar Australiano", simbolo: "$", tasaCambio: 1.52, cambio24h: 0.6, region: "Oceanía" },
   { codigo: "NZD", nombre: "Dólar Neozelandés", simbolo: "$", tasaCambio: 1.65, cambio24h: 0.4, region: "Oceanía" },
-  
-  // África
   { codigo: "ZAR", nombre: "Rand Sudafricano", simbolo: "R", tasaCambio: 18.75, cambio24h: 1.2, region: "África" },
   { codigo: "EGP", nombre: "Libra Egipcia", simbolo: "£", tasaCambio: 30.90, cambio24h: 0.8, region: "África" },
   { codigo: "NGN", nombre: "Naira Nigeriana", simbolo: "₦", tasaCambio: 1450.00, cambio24h: 1.5, region: "África" },
   { codigo: "KES", nombre: "Chelín Keniano", simbolo: "KSh", tasaCambio: 129.50, cambio24h: 0.7, region: "África" },
   { codigo: "MAD", nombre: "Dirham Marroquí", simbolo: "د.م.", tasaCambio: 9.95, cambio24h: 0.3, region: "África" },
-  
-  // Medio Oriente
   { codigo: "AED", nombre: "Dirham de EAU", simbolo: "د.إ", tasaCambio: 3.67, cambio24h: 0.0, region: "Medio Oriente" },
   { codigo: "SAR", nombre: "Riyal Saudí", simbolo: "﷼", tasaCambio: 3.75, cambio24h: 0.0, region: "Medio Oriente" },
   { codigo: "ILS", nombre: "Nuevo Shekel Israelí", simbolo: "₪", tasaCambio: 3.65, cambio24h: 0.5, region: "Medio Oriente" },
@@ -84,6 +74,36 @@ export default function Monedas() {
   const [cantidad, setCantidad] = useState("1");
   const [monedaOrigen, setMonedaOrigen] = useState("USD");
   const [monedaDestino, setMonedaDestino] = useState("EUR");
+  const [monedasData, setMonedasData] = useState(monedasBase);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const actualizarTasas = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("https://open.er-api.com/v6/latest/USD");
+      const data = await res.json();
+      if (data.result === "success" && data.rates) {
+        setMonedasData(prev => prev.map(moneda => {
+          const nuevaTasa = data.rates[moneda.codigo];
+          if (nuevaTasa !== undefined) {
+            const cambio = moneda.tasaCambio > 0 
+              ? ((nuevaTasa - moneda.tasaCambio) / moneda.tasaCambio) * 100 
+              : 0;
+            return { ...moneda, tasaCambio: nuevaTasa, cambio24h: parseFloat(cambio.toFixed(2)) };
+          }
+          return moneda;
+        }));
+        toast({ title: "✅ Tasas actualizadas", description: "Se obtuvieron las tasas de cambio más recientes." });
+      } else {
+        throw new Error("API error");
+      }
+    } catch {
+      toast({ title: "Error", description: "No se pudieron actualizar las tasas. Intenta más tarde.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
 
   const calcularConversion = () => {
     const origen = monedasData.find((m) => m.codigo === monedaOrigen);
@@ -107,9 +127,9 @@ export default function Monedas() {
             Gestiona múltiples monedas y realiza conversiones
           </p>
         </div>
-        <Button variant="outline" className="shadow-soft">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Actualizar Tasas
+        <Button variant="outline" className="shadow-soft" onClick={actualizarTasas} disabled={loading}>
+          {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+          {loading ? "Actualizando..." : "Actualizar Tasas"}
         </Button>
       </div>
 
