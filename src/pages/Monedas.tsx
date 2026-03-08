@@ -275,7 +275,7 @@ export default function Monedas() {
                     <TableCell className="text-right">
                       <span className={moneda.cambio24h >= 0 ? "text-success" : "text-destructive"}>
                         {moneda.cambio24h >= 0 ? "+" : ""}
-                        {moneda.cambio24h.toFixed(2)}%
+                        {formatNumber(moneda.cambio24h)}%
                       </span>
                     </TableCell>
                   </TableRow>
