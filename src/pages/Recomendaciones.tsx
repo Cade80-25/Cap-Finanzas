@@ -142,7 +142,7 @@ export default function Recomendaciones() {
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
-      <div>
+      <div data-tutorial="recomendaciones-title">
         <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
           Recomendaciones Inteligentes
         </h1>
