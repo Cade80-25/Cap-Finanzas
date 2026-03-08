@@ -165,6 +165,9 @@ export default function Layout() {
 
           {/* Floating add account button */}
           <FloatingAddAccount />
+
+          {/* First visit tooltip */}
+          <FirstVisitTooltip />
         </div>
       </div>
     </LicenseGate>

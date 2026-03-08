@@ -223,15 +223,32 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         </Select>
       </div>
 
-      {/* Description */}
+      {/* Description with auto-categorization */}
       <div className="space-y-2">
         <Label htmlFor="description">Descripción (opcional)</Label>
         <Input
           id="description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            // Auto-suggest category based on description
+            if (!category || !editing) {
+              const suggested = suggestCategory(e.target.value);
+              if (suggested) {
+                const isValidForType = type === "income"
+                  ? SIMPLE_CATEGORIES.income.some(c => c.id === suggested)
+                  : SIMPLE_CATEGORIES.expense.some(c => c.id === suggested);
+                if (isValidForType) setCategory(suggested);
+              }
+            }
+          }}
           placeholder="Ej: Almuerzo con cliente"
         />
+        {!category && description.length > 2 && suggestCategory(description) && (
+          <p className="text-xs text-muted-foreground">
+            💡 Categoría sugerida automáticamente
+          </p>
+        )}
       </div>
 
       {/* Date */}

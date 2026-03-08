@@ -93,6 +93,9 @@ export default function Dashboard() {
         </p>
       </div>
 
+      {/* Onboarding checklist for new users */}
+      <OnboardingChecklist />
+
       {/* Help for traditional mode when data isn't showing correctly */}
       {!isSimpleMode && hasTransactions && !hasFinancialData && (
         <ContextualHelp
