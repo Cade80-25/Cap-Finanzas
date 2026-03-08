@@ -36,6 +36,9 @@ import {
   Monitor,
   Apple,
   Laptop,
+  Sun,
+  Moon,
+  SunMoon,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -47,6 +50,7 @@ import { ModeSelector } from "@/components/ModeSelector";
 import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { ActivationDialog } from "@/components/ActivationDialog";
 import { useModeFeatures } from "@/hooks/useModeFeatures";
+import { useTheme } from "next-themes";
 
 interface MenuBarProps {
   onSearchClick?: () => void;
