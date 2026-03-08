@@ -173,6 +173,13 @@ export function InteractiveAppTour({ active, onClose }: InteractiveAppTourProps)
       window.removeEventListener("scroll", update, true);
     };
   }, [active, currentStep, ready]);
+  // Prevent page scroll while tour is active
+  useEffect(() => {
+    if (active) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [active]);
 
   const handleNext = useCallback(() => {
     if (step < totalSteps - 1) {
