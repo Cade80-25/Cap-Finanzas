@@ -224,11 +224,7 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
             <MenubarContent>
               <MenubarItem onClick={() => navigate("/manual")}>
                 <Book className="mr-2 h-4 w-4" />
-                Tutoriales Interactivos
-              </MenubarItem>
-              <MenubarItem onClick={() => navigate("/manual")}>
-                <HelpCircle className="mr-2 h-4 w-4" />
-                Manual de Usuario
+                Tutoriales Interactivos y Manual de Usuario
               </MenubarItem>
               {isFeatureAvailable("encyclopedia") && (
                 <MenubarItem onClick={() => navigate("/enciclopedia")}>
