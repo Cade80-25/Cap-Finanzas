@@ -15,7 +15,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Download,
@@ -39,6 +43,20 @@ import {
   Sun,
   Moon,
   SunMoon,
+  Menu,
+  Home,
+  Receipt,
+  Calendar,
+  Target,
+  Tag,
+  PieChart,
+  BarChart3,
+  TrendingUp,
+  Globe,
+  Sparkles,
+  Layers,
+  BookOpen,
+  User,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -51,6 +69,13 @@ import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { ActivationDialog } from "@/components/ActivationDialog";
 import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { useTheme } from "next-themes";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 interface MenuBarProps {
   onSearchClick?: () => void;
@@ -63,12 +88,14 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
   const { unreadCount } = useNotifications();
   const { isSimpleMode, isFeatureAvailable } = useModeFeatures();
   const { setTheme } = useTheme();
+  const isMobile = useIsMobile();
   const [themeVariant, setThemeVariant] = useState(() => localStorage.getItem("cap-finanzas-theme-variant") || "light");
   const isElectron =
     typeof window !== "undefined" && typeof (window as any).electron !== "undefined";
   const [nativeMenuVisible, setNativeMenuVisible] = useState(false);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const [activationOpen, setActivationOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const applyTheme = (value: string) => {
     setThemeVariant(value);
@@ -87,21 +114,16 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
     }
   };
 
-  // Determine where to add transactions based on mode
   const addTransactionRoute = isSimpleMode ? "/transacciones" : "/libro-diario";
   const addTransactionLabel = isSimpleMode ? "Nuevo Movimiento" : "Nueva Transacción";
 
   const handleExport = () => {
-    toast.success("Exportar datos", {
-      description: "Se abrirá el diálogo de exportación...",
-    });
+    toast.success("Exportar datos", { description: "Se abrirá el diálogo de exportación..." });
     navigate("/configuracion");
   };
 
   const handleImport = () => {
-    toast.success("Importar datos", {
-      description: "Selecciona el archivo a importar...",
-    });
+    toast.success("Importar datos", { description: "Selecciona el archivo a importar..." });
     navigate("/configuracion");
   };
 
@@ -109,16 +131,148 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
     setNativeMenuVisible(visible);
     try {
       (window as any).electron?.setNativeMenuVisible?.(visible);
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
   };
 
+  const mobileNavigate = (path: string) => {
+    setMobileMenuOpen(false);
+    navigate(path);
+  };
+
+  // Mobile navigation items
+  const mobileNavItems = [
+    { name: "Panel Principal", href: "/", icon: Home, show: true },
+    { name: isSimpleMode ? "Movimientos" : "Transacciones", href: "/transacciones", icon: Receipt, show: true },
+    { name: "Calendario", href: "/calendario", icon: Calendar, show: isFeatureAvailable("calendar") },
+    { name: "Presupuesto", href: "/presupuesto", icon: Target, show: isFeatureAvailable("budget") },
+    { name: "Monedas", href: "/monedas", icon: Globe, show: isFeatureAvailable("currencies") },
+    { name: "Categorías", href: "/categorias", icon: Tag, show: isFeatureAvailable("categories") },
+    { name: "Resumen", href: "/resumen", icon: PieChart, show: isFeatureAvailable("summary") },
+    { name: "Consolidado", href: "/consolidado", icon: Layers, show: isFeatureAvailable("consolidated") },
+    { name: "Libro Diario", href: "/libro-diario", icon: BookOpen, show: isFeatureAvailable("journal") },
+    { name: "Libro Mayor", href: "/libro-mayor", icon: FileText, show: isFeatureAvailable("ledger") },
+    { name: "Balance General", href: "/balance", icon: BarChart3, show: isFeatureAvailable("balance") },
+    { name: "Estado de Resultados", href: "/resultados", icon: TrendingUp, show: isFeatureAvailable("incomeStatement") },
+    { name: "Recomendaciones", href: "/recomendaciones", icon: Sparkles, show: isFeatureAvailable("recommendations") },
+    { name: "Manual", href: "/manual", icon: Book, show: true },
+    { name: "Notificaciones", href: "/notificaciones", icon: Bell, show: true },
+    { name: "Cuenta", href: "/cuenta", icon: User, show: true },
+    { name: "Configuración", href: "/configuracion", icon: Settings, show: true },
+  ].filter(item => item.show);
+
+  // ===== MOBILE LAYOUT =====
+  if (isMobile) {
+    return (
+      <div className="border-b border-sidebar-border bg-sidebar flex items-center justify-between px-2 h-12">
+        {/* Left: hamburger menu */}
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(true)} className="h-9 w-9">
+            <Menu className="h-5 w-5" />
+          </Button>
+          <span className="text-sm font-bold bg-gradient-primary bg-clip-text text-transparent">
+            Cap Finanzas
+          </span>
+        </div>
+
+        {/* Right: key actions */}
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={onSearchClick} className="h-8 w-8">
+            <Search className="h-4 w-4" />
+          </Button>
+
+          {/* Theme toggle */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                {themeVariant === "dark" ? <Moon className="h-4 w-4" /> : themeVariant === "dim" ? <SunMoon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => applyTheme("light")}>
+                <Sun className="h-4 w-4 mr-2" /> Claro
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => applyTheme("dark")}>
+                <Moon className="h-4 w-4 mr-2" /> Oscuro
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => applyTheme("dim")}>
+                <SunMoon className="h-4 w-4 mr-2" /> Intermedio
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button variant="ghost" size="icon" className="relative h-8 w-8" onClick={() => navigate("/notificaciones")}>
+            <Bell className="h-4 w-4" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium px-1">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </Button>
+        </div>
+
+        {/* Mobile navigation sheet */}
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetContent side="left" className="w-[280px] p-0">
+            <SheetHeader className="p-4 border-b border-border">
+              <SheetTitle className="text-left bg-gradient-primary bg-clip-text text-transparent">
+                Cap Finanzas
+              </SheetTitle>
+            </SheetHeader>
+
+            <div className="p-3">
+              <ModeSelector compact onPurchaseClick={() => { setMobileMenuOpen(false); setPurchaseOpen(true); }} />
+            </div>
+
+            <nav className="flex-1 overflow-y-auto px-2 pb-4">
+              {mobileNavItems.map((item) => (
+                <button
+                  key={item.href}
+                  onClick={() => mobileNavigate(item.href)}
+                  className="flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+                >
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <span>{item.name}</span>
+                </button>
+              ))}
+
+              <div className="border-t border-border mt-3 pt-3 space-y-1">
+                <button
+                  onClick={() => { setMobileMenuOpen(false); setPurchaseOpen(true); }}
+                  className="flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+                >
+                  <ShoppingCart className="h-5 w-5 flex-shrink-0" />
+                  <span>Ver Planes y Comprar</span>
+                </button>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); setActivationOpen(true); }}
+                  className="flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+                >
+                  <Key className="h-5 w-5 flex-shrink-0" />
+                  <span>Activar Licencia</span>
+                </button>
+                <button
+                  onClick={() => mobileNavigate("/instalar")}
+                  className="flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+                >
+                  <Download className="h-5 w-5 flex-shrink-0" />
+                  <span>Descargar App</span>
+                </button>
+              </div>
+            </nav>
+          </SheetContent>
+        </Sheet>
+
+        <PurchaseDialog open={purchaseOpen} onOpenChange={setPurchaseOpen} onActivate={() => { setPurchaseOpen(false); setActivationOpen(true); }} />
+        <ActivationDialog open={activationOpen} onOpenChange={setActivationOpen} />
+      </div>
+    );
+  }
+
+  // ===== DESKTOP LAYOUT =====
   return (
     <div className="border-b border-sidebar-border bg-sidebar backdrop-blur supports-[backdrop-filter]:bg-sidebar/95 flex items-center justify-between px-3 h-12">
       {/* Left section: Toggle + Menu */}
       <div className="flex items-center">
-        {/* Botón para mostrar/ocultar sidebar */}
         <Button
           variant="ghost"
           size="icon"
@@ -126,11 +280,7 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
           className="mr-2 h-9 w-9"
           title={sidebarVisible ? "Ocultar panel lateral" : "Mostrar panel lateral"}
         >
-          {sidebarVisible ? (
-            <PanelLeftClose className="h-5 w-5" />
-          ) : (
-            <PanelLeft className="h-5 w-5" />
-          )}
+          {sidebarVisible ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
         </Button>
 
         <Menubar className="rounded-none border-0 bg-transparent">
@@ -184,7 +334,6 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
                 </>
               )}
 
-              {/* Traditional accounting views - only show in traditional mode */}
               {isFeatureAvailable("journal") && (
                 <MenubarItem onClick={() => navigate("/libro-diario")}>Libro Diario</MenubarItem>
               )}
@@ -203,19 +352,11 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
           <MenubarMenu>
             <MenubarTrigger>Herramientas</MenubarTrigger>
             <MenubarContent>
-              <MenubarItem onClick={() => navigate("/presupuesto")}>
-                Gestor de Presupuesto
-              </MenubarItem>
-              <MenubarItem onClick={() => navigate("/categorias")}>
-                Administrar Categorías
-              </MenubarItem>
-              <MenubarItem onClick={() => navigate("/monedas")}>
-                Conversor de Monedas
-              </MenubarItem>
+              <MenubarItem onClick={() => navigate("/presupuesto")}>Gestor de Presupuesto</MenubarItem>
+              <MenubarItem onClick={() => navigate("/categorias")}>Administrar Categorías</MenubarItem>
+              <MenubarItem onClick={() => navigate("/monedas")}>Conversor de Monedas</MenubarItem>
               <MenubarSeparator />
-              <MenubarItem onClick={() => navigate("/calendario")}>
-                Calendario Financiero
-              </MenubarItem>
+              <MenubarItem onClick={() => navigate("/calendario")}>Calendario Financiero</MenubarItem>
             </MenubarContent>
           </MenubarMenu>
 
@@ -313,17 +454,9 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
     
       {/* Right section: Mode Selector + Search + Tutorial + Notifications */}
       <div className="flex items-center gap-2">
-        <ModeSelector 
-          compact 
-          onPurchaseClick={() => setPurchaseOpen(true)} 
-        />
+        <ModeSelector compact onPurchaseClick={() => setPurchaseOpen(true)} />
         
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onSearchClick}
-          className="gap-2"
-        >
+        <Button variant="outline" size="sm" onClick={onSearchClick} className="gap-2">
           <Search className="h-4 w-4" />
           <span className="hidden md:inline">Buscar</span>
           <kbd className="hidden md:inline pointer-events-none h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
@@ -335,41 +468,25 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8" title="Cambiar tema">
-              {themeVariant === "dark" ? (
-                <Moon className="h-4 w-4" />
-              ) : themeVariant === "dim" ? (
-                <SunMoon className="h-4 w-4" />
-              ) : (
-                <Sun className="h-4 w-4" />
-              )}
+              {themeVariant === "dark" ? <Moon className="h-4 w-4" /> : themeVariant === "dim" ? <SunMoon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => applyTheme("light")} className={themeVariant === "light" ? "bg-accent/20" : ""}>
-              <Sun className="h-4 w-4 mr-2" />
-              Claro
+              <Sun className="h-4 w-4 mr-2" /> Claro
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => applyTheme("dark")} className={themeVariant === "dark" ? "bg-accent/20" : ""}>
-              <Moon className="h-4 w-4 mr-2" />
-              Oscuro
+              <Moon className="h-4 w-4 mr-2" /> Oscuro
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => applyTheme("dim")} className={themeVariant === "dim" ? "bg-accent/20" : ""}>
-              <SunMoon className="h-4 w-4 mr-2" />
-              Intermedio
+              <SunMoon className="h-4 w-4 mr-2" /> Intermedio
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Tutorial/Help Button */}
         <TutorialButton />
         
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative h-8 w-8"
-          onClick={() => navigate("/notificaciones")}
-          title="Notificaciones"
-        >
+        <Button variant="ghost" size="icon" className="relative h-8 w-8" onClick={() => navigate("/notificaciones")} title="Notificaciones">
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium px-1">
@@ -379,18 +496,8 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
         </Button>
       </div>
 
-      <PurchaseDialog
-        open={purchaseOpen}
-        onOpenChange={setPurchaseOpen}
-        onActivate={() => {
-          setPurchaseOpen(false);
-          setActivationOpen(true);
-        }}
-      />
-      <ActivationDialog
-        open={activationOpen}
-        onOpenChange={setActivationOpen}
-      />
+      <PurchaseDialog open={purchaseOpen} onOpenChange={setPurchaseOpen} onActivate={() => { setPurchaseOpen(false); setActivationOpen(true); }} />
+      <ActivationDialog open={activationOpen} onOpenChange={setActivationOpen} />
     </div>
   );
 }
