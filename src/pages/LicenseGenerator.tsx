@@ -171,7 +171,7 @@ export default function LicenseGenerator() {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Completa ($12)</CardDescription>
+              <CardDescription>Completa ($13)</CardDescription>
               <CardTitle className="text-2xl">{fullCount}</CardTitle>
             </CardHeader>
           </Card>
