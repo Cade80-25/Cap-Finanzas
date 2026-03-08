@@ -15,6 +15,7 @@ import { LockScreen } from "@/components/LockScreen";
 import { useSecurity } from "@/hooks/useSecurity";
 import { TutorialOverlay } from "@/components/TutorialOverlay";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
+import { InteractiveAppTour } from "@/components/InteractiveAppTour";
 import { LicenseGate } from "@/components/LicenseGate";
 import { TrialBanner } from "@/components/TrialBanner";
 import { useModeFeatures, FeatureKey } from "@/hooks/useModeFeatures";
