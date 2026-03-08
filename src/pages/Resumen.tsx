@@ -28,12 +28,11 @@ import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 export default function Resumen() {
   const accountingData = useAccountingData();
   const simpleData = useSimpleAccountingData();
+  const { budgets } = useBudgets();
   const navigate = useNavigate();
 
   const isSimple = simpleData.isSimpleMode;
 
-  // En modo simple: crédito=ingreso, débito=gasto (todos los datos)
-  // En modo tradicional: solo cuentas tipo ingreso/gasto
   const totalIngresos = isSimple ? simpleData.totals.totalIngresos : accountingData.estadoResultados.totalIngresos;
   const totalGastos = isSimple ? simpleData.totals.totalGastos : accountingData.estadoResultados.totalGastos;
   const resultadoNeto = totalIngresos - totalGastos;
@@ -41,6 +40,28 @@ export default function Resumen() {
   const resumenMensual = isSimple ? simpleData.monthlySummary : accountingData.resumenMensual;
   const datosCategorias = isSimple ? simpleData.categoryChartData : accountingData.datosCategorias;
   const hasData = resumenMensual.length > 0 || datosCategorias.length > 0;
+
+  // Datos del mes actual
+  const ingresosDelMes = isSimple ? simpleData.totals.ingresosDelMes : 0;
+  const gastosDelMes = isSimple ? simpleData.totals.gastosDelMes : 0;
+
+  // Presupuestos con gastos reales
+  const presupuestosConGastos = budgets.map((item) => {
+    const gastoReal = accountingData.estadoResultados.gastos.find((g) => {
+      const categoria = Object.entries(accountingData.ACCOUNT_CATEGORIES).find(
+        ([key, val]) => val.label === g.name
+      );
+      return categoria?.[0] === item.cuentaAsociada;
+    });
+    return { ...item, gastado: gastoReal?.value || 0 };
+  });
+  const totalPresupuesto = presupuestosConGastos.reduce((acc, i) => acc + i.presupuesto, 0);
+  const totalGastadoPresupuesto = presupuestosConGastos.reduce((acc, i) => acc + i.gastado, 0);
+
+  // Transacciones recientes
+  const recentTx = isSimple
+    ? simpleData.recentTransactions.slice(0, 5)
+    : [];
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
