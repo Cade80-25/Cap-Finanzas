@@ -331,6 +331,35 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
           </kbd>
         </Button>
 
+        {/* Theme Toggle */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" title="Cambiar tema">
+              {themeVariant === "dark" ? (
+                <Moon className="h-4 w-4" />
+              ) : themeVariant === "dim" ? (
+                <SunMoon className="h-4 w-4" />
+              ) : (
+                <Sun className="h-4 w-4" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => applyTheme("light")} className={themeVariant === "light" ? "bg-accent/20" : ""}>
+              <Sun className="h-4 w-4 mr-2" />
+              Claro
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => applyTheme("dark")} className={themeVariant === "dark" ? "bg-accent/20" : ""}>
+              <Moon className="h-4 w-4 mr-2" />
+              Oscuro
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => applyTheme("dim")} className={themeVariant === "dim" ? "bg-accent/20" : ""}>
+              <SunMoon className="h-4 w-4 mr-2" />
+              Intermedio
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         {/* Tutorial/Help Button */}
         <TutorialButton />
         
