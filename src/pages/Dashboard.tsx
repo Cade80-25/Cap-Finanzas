@@ -16,6 +16,7 @@ import { useNumberFormat } from "@/hooks/useNumberFormat";
 export default function Dashboard() {
   const navigate = useNavigate();
   const { isSimpleMode, isFeatureAvailable, labels } = useModeFeatures();
+  const { formatCurrency } = useNumberFormat();
   
   // Use traditional accounting data
   const traditionalData = useAccountingData();
