@@ -173,11 +173,12 @@ export function InteractiveAppTour({ active, onClose }: InteractiveAppTourProps)
       window.removeEventListener("scroll", update, true);
     };
   }, [active, currentStep, ready]);
-  // Prevent page scroll while tour is active
+  // Prevent page scroll while tour is active (target main element, not body)
   useEffect(() => {
     if (active) {
-      document.body.style.overflow = "hidden";
-      return () => { document.body.style.overflow = ""; };
+      const main = document.querySelector("main");
+      if (main) main.style.overflow = "hidden";
+      return () => { if (main) main.style.overflow = ""; };
     }
   }, [active]);
 
