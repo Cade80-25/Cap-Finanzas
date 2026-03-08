@@ -1,6 +1,9 @@
-import { DollarSign, TrendingUp, TrendingDown, Target, PieChart as PieChartIcon } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Target, PieChart as PieChartIcon, Wallet, CalendarDays, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   BarChart,
   Bar,
@@ -18,6 +21,7 @@ import {
 } from "recharts";
 import { useAccountingData } from "@/hooks/useAccountingData";
 import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
+import { useBudgets } from "@/hooks/useBudgets";
 import { useNavigate } from "react-router-dom";
 import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 
