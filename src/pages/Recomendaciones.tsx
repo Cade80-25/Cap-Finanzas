@@ -151,7 +151,7 @@ export default function Recomendaciones() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div data-tutorial="recomendaciones-cards" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {recomendacionesAutomaticas.map((rec, idx) => (
           <Card key={idx} className="shadow-soft hover:shadow-lg transition-shadow">
             <CardHeader>
