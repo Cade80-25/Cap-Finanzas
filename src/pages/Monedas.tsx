@@ -220,10 +220,10 @@ export default function Monedas() {
               <div className="text-center">
                 <p className="text-sm text-muted-foreground mb-2">Resultado</p>
                 <p className="text-3xl font-bold text-primary">
-                  {monedasData.find((m) => m.codigo === monedaDestino)?.simbolo}{resultado.toFixed(2)}
+                  {monedasData.find((m) => m.codigo === monedaDestino)?.simbolo}{formatNumber(resultado)}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {cantidad} {monedaOrigen} = {resultado.toFixed(2)} {monedaDestino}
+                  {cantidad} {monedaOrigen} = {formatNumber(resultado)} {monedaDestino}
                 </p>
               </div>
             </div>
