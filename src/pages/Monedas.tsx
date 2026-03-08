@@ -270,7 +270,7 @@ export default function Monedas() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {moneda.tasaCambio.toFixed(4)}
+                      {formatNumber(moneda.tasaCambio, 4)}
                     </TableCell>
                     <TableCell className="text-right">
                       <span className={moneda.cambio24h >= 0 ? "text-success" : "text-destructive"}>
