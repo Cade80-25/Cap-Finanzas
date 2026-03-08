@@ -111,7 +111,7 @@ function TraditionalTransactionsView() {
   return (
     <div className="p-8 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
+        <div data-tutorial="transacciones-title">
           <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Transacciones
           </h1>
@@ -122,7 +122,7 @@ function TraditionalTransactionsView() {
         <div className="flex gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" title="Exportar">
+              <Button data-tutorial="transacciones-export" variant="outline" size="icon" title="Exportar">
                 <Download className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
