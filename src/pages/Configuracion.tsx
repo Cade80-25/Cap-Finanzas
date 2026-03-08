@@ -94,6 +94,7 @@ type Transaction = {
 export default function Configuracion() {
   const { theme, setTheme } = useTheme();
   const [config, setConfig] = useState<ConfigData>(loadConfig);
+  const [themeVariant, setThemeVariant] = useState(() => localStorage.getItem("cap-finanzas-theme-variant") || theme || "light");
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importPreview, setImportPreview] = useState<Transaction[]>([]);
   const [importing, setImporting] = useState(false);
