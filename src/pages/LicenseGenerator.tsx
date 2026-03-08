@@ -69,7 +69,7 @@ export default function LicenseGenerator() {
     
     toast({
       title: `${quantity} licencia(s) generada(s)`,
-      description: `Tipo: ${selectedType === "simple" ? "Finanzas Simples ($5)" : selectedType === "full" ? "Licencia Completa ($12)" : selectedType === "account" ? "Cuenta Adicional ($2)" : "Contabilidad Completa ($10)"}`,
+      description: `Tipo: ${selectedType === "simple" ? "Finanzas Simples ($8)" : selectedType === "full" ? "Licencia Completa ($13)" : selectedType === "account" ? "Cuenta Adicional ($3)" : "Contabilidad Completa ($11)"}`,
     });
   };
 
