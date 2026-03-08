@@ -14,7 +14,7 @@ import { WeeklySummaryCard } from "@/components/WeeklySummaryCard";
 import { InteractiveAppTour } from "@/components/InteractiveAppTour";
 
 export default function Dashboard() {
-  const [showPresentation, setShowPresentation] = useState(false);
+  const [tourActive, setTourActive] = useState(false);
   const navigate = useNavigate();
   const { isSimpleMode, isFeatureAvailable } = useModeFeatures();
   const { formatCurrency } = useNumberFormat();
