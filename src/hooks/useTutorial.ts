@@ -28,13 +28,15 @@ export const TUTORIAL_SECTIONS: TutorialSection[] = [
         target: "[data-tutorial='dashboard-title']",
         title: "¡Bienvenido al Panel Principal!",
         content: "Aquí verás un resumen de tus finanzas. Este es tu centro de control donde puedes ver balances, ingresos y gastos de un vistazo.",
+        tip: "Puedes cambiar entre modo Simple y Profesional desde el menú lateral.",
         placement: "bottom",
       },
       {
         id: "dashboard-stats",
         target: "[data-tutorial='dashboard-stats']",
         title: "Estadísticas Rápidas",
-        content: "Estas tarjetas muestran tu balance total, ingresos del mes, gastos y ahorros. Se actualizan automáticamente con los datos del Libro Diario.",
+        content: "Estas tarjetas muestran tu balance total, ingresos del mes, gastos y ahorros. Se actualizan automáticamente con tus transacciones.",
+        tip: "Los colores te ayudan a identificar rápidamente: verde = positivo, rojo = gastos.",
         placement: "bottom",
       },
       {
