@@ -76,13 +76,13 @@ export default function Notificaciones() {
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
-        <div>
+        <div data-tutorial="notificaciones-title">
           <h1 className="text-3xl font-bold mb-2">Centro de Notificaciones</h1>
           <p className="text-muted-foreground">
             Gestiona todas tus alertas y avisos del sistema
           </p>
         </div>
-        <div className="flex gap-2">
+        <div data-tutorial="notificaciones-actions" className="flex gap-2">
           <Button variant="outline" onClick={handleOpenSettings}>
             <Settings className="h-4 w-4 mr-2" />
             Configuración
