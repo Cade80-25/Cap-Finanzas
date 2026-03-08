@@ -87,24 +87,12 @@ export default function Dashboard() {
         />
       )}
 
-      <div data-tutorial="dashboard-stats" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div data-tutorial="dashboard-stats" className="grid gap-4 md:grid-cols-2">
         <StatCard
           title="Balance Total"
           value={formatCurrency(totales.balance)}
           icon={Wallet}
           variant="default"
-        />
-        <StatCard
-          title="Ingresos del Mes"
-          value={formatCurrency(totales.ingresosDelMes)}
-          icon={TrendingUp}
-          variant="success"
-        />
-        <StatCard
-          title="Gastos del Mes"
-          value={formatCurrency(totales.gastosDelMes)}
-          icon={TrendingDown}
-          variant="destructive"
         />
         <StatCard
           title="Ahorros"
@@ -160,66 +148,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
-      )}
-
-      {/* Quick navigation to detailed views */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Button variant="outline" className="h-auto py-3 flex flex-col gap-1" onClick={() => navigate("/resumen")}>
-          <span className="text-lg">📊</span>
-          <span className="text-xs">Ver Resumen</span>
-        </Button>
-        <Button variant="outline" className="h-auto py-3 flex flex-col gap-1" onClick={() => navigate("/presupuesto")}>
-          <span className="text-lg">🎯</span>
-          <span className="text-xs">Presupuesto</span>
-        </Button>
-        <Button variant="outline" className="h-auto py-3 flex flex-col gap-1" onClick={() => navigate(addTransactionRoute)}>
-          <span className="text-lg">📝</span>
-          <span className="text-xs">{isSimpleMode ? "Movimientos" : "Libro Diario"}</span>
-        </Button>
-        <Button variant="outline" className="h-auto py-3 flex flex-col gap-1" onClick={() => navigate("/recomendaciones")}>
-          <span className="text-lg">✨</span>
-          <span className="text-xs">Recomendaciones</span>
-        </Button>
-      </div>
-
-      {/* Help card */}
-      {isSimpleMode ? (
-        <Card className="shadow-soft bg-gradient-primary">
-          <CardHeader>
-            <CardTitle className="text-primary-foreground">Registrar Movimiento</CardTitle>
-            <CardDescription className="text-primary-foreground/80">
-              Agrega rápidamente un ingreso o gasto
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col sm:flex-row gap-3">
-            <Button variant="secondary" className="flex-1" onClick={() => navigate("/transacciones")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Agregar Movimiento
-            </Button>
-            <Button variant="secondary" className="flex-1" onClick={() => navigate("/recomendaciones")}>
-              Obtener Recomendaciones
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="shadow-soft bg-gradient-primary">
-          <CardHeader>
-            <CardTitle className="text-primary-foreground">¿Necesitas Ayuda?</CardTitle>
-            <CardDescription className="text-primary-foreground/80">
-              Aprende sobre conceptos contables básicos y obtén recomendaciones personalizadas
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col sm:flex-row gap-3">
-            {isFeatureAvailable("encyclopedia") && (
-              <Button variant="secondary" className="flex-1" onClick={() => navigate("/enciclopedia")}>
-                Ir a Enciclopedia
-              </Button>
-            )}
-            <Button variant="secondary" className="flex-1" onClick={() => navigate("/recomendaciones")}>
-              Obtener Recomendaciones
-            </Button>
-          </CardContent>
-        </Card>
       )}
     </div>
   );
