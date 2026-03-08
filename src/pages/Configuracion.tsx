@@ -1,4 +1,4 @@
-import { Database, Bell, Shield, Download, Upload, Palette, Zap, RefreshCw, CheckCircle, FileText, FileSpreadsheet, File, AlertCircle, Table, Lock, Key, CloudUpload, Terminal, ScrollText, Trash2 } from "lucide-react";
+import { Database, Bell, Shield, Download, Upload, Palette, Zap, RefreshCw, CheckCircle, FileText, FileSpreadsheet, File, AlertCircle, Table, Lock, Key, CloudUpload, Terminal, ScrollText, Trash2, Globe } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -33,6 +33,7 @@ import { useAdvancedFeatures } from "@/hooks/useAdvancedFeatures";
 import { ChangePinDialog, BackupDialog, TwoFactorDialog } from "@/components/SecurityDialogs";
 import { LogsDialog, SyncDialog, ResetDialog } from "@/components/AdvancedFeaturesDialogs";
 import { LicenseSettings } from "@/components/LicenseSettings";
+import { useNumberFormat } from "@/hooks/useNumberFormat";
 
 const STORAGE_KEY = "cap-finanzas-config";
 
@@ -116,6 +117,9 @@ export default function Configuracion() {
   
   // Advanced features hook
   const advanced = useAdvancedFeatures();
+  
+  // Number format hook
+  const { format: numberFormat, setFormat: setNumberFormat } = useNumberFormat();
   
   const updateConfig = (updates: Partial<ConfigData>) => {
     setConfig(prev => {
@@ -954,6 +958,30 @@ export default function Configuracion() {
                   <SelectItem value="small">Pequeño</SelectItem>
                   <SelectItem value="medium">Mediano</SelectItem>
                   <SelectItem value="large">Grande</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                Formato Numérico
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Formato de separadores decimales y miles
+              </p>
+              <Select value={numberFormat} onValueChange={(value: "dot" | "comma") => {
+                setNumberFormat(value);
+                toast.success(value === "dot" ? "Formato: 1,234.56" : "Formato: 1.234,56");
+              }}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dot">Punto decimal — 1,234.56</SelectItem>
+                  <SelectItem value="comma">Coma decimal — 1.234,56</SelectItem>
                 </SelectContent>
               </Select>
             </div>

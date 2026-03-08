@@ -6,6 +6,7 @@ export type TutorialStep = {
   target: string; // CSS selector for the target element
   title: string;
   content: string;
+  tip?: string; // Optional tip shown in a highlight box
   placement?: "top" | "bottom" | "left" | "right";
   page?: string; // Optional: only show on specific page
 };
@@ -27,13 +28,15 @@ export const TUTORIAL_SECTIONS: TutorialSection[] = [
         target: "[data-tutorial='dashboard-title']",
         title: "¡Bienvenido al Panel Principal!",
         content: "Aquí verás un resumen de tus finanzas. Este es tu centro de control donde puedes ver balances, ingresos y gastos de un vistazo.",
+        tip: "Puedes cambiar entre modo Simple y Profesional desde el menú lateral.",
         placement: "bottom",
       },
       {
         id: "dashboard-stats",
         target: "[data-tutorial='dashboard-stats']",
         title: "Estadísticas Rápidas",
-        content: "Estas tarjetas muestran tu balance total, ingresos del mes, gastos y ahorros. Se actualizan automáticamente con los datos del Libro Diario.",
+        content: "Estas tarjetas muestran tu balance total, ingresos del mes, gastos y ahorros. Se actualizan automáticamente con tus transacciones.",
+        tip: "Los colores te ayudan a identificar rápidamente: verde = positivo, rojo = gastos.",
         placement: "bottom",
       },
       {
@@ -81,7 +84,8 @@ export const TUTORIAL_SECTIONS: TutorialSection[] = [
         id: "diario-debe-haber",
         target: "[data-tutorial='diario-debe-haber']",
         title: "Debe y Haber",
-        content: "💡 TIP: 'Debe' es para gastos y aumento de activos. 'Haber' es para ingresos y aumento de pasivos. ¡Solo usa uno por transacción!",
+        content: "'Debe' es para gastos y aumento de activos. 'Haber' es para ingresos y aumento de pasivos.",
+        tip: "¡Solo usa uno por transacción! Si algo entra al Debe, otra cuenta debe ir al Haber.",
         placement: "top",
       },
     ],
