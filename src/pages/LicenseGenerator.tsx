@@ -165,7 +165,7 @@ export default function LicenseGenerator() {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Contabilidad ($10)</CardDescription>
+              <CardDescription>Contabilidad ($11)</CardDescription>
               <CardTitle className="text-2xl">{traditionalCount}</CardTitle>
             </CardHeader>
           </Card>
