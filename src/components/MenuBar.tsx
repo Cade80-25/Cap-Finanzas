@@ -12,6 +12,12 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Download,
   Upload,
   Settings,
