@@ -277,7 +277,7 @@ export default function Presupuesto() {
         </Card>
       </div>
 
-      <Card>
+      <Card data-tutorial="presupuesto-lista">
         <CardHeader>
           <CardTitle>Presupuesto por Categoría</CardTitle>
           <CardDescription>

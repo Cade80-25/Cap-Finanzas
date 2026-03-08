@@ -129,7 +129,7 @@ export default function Categorias() {
         </Card>
       </div>
 
-      <Card>
+      <Card data-tutorial="categorias-lista">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>

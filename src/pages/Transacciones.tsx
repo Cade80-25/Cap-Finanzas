@@ -176,7 +176,7 @@ function TraditionalTransactionsView() {
         </Card>
       </div>
 
-      <Card>
+      <Card data-tutorial="transacciones-tabla">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
