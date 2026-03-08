@@ -932,7 +932,8 @@ export default function Configuracion() {
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <Label>Tema</Label>
-              <Select value={localStorage.getItem("cap-finanzas-theme-variant") || theme || "light"} onValueChange={(value) => {
+              <Select value={themeVariant} onValueChange={(value) => {
+                setThemeVariant(value);
                 if (value === "dim") {
                   setTheme("light");
                   document.documentElement.setAttribute("data-theme", "dim");
