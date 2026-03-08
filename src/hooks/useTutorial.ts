@@ -6,6 +6,7 @@ export type TutorialStep = {
   target: string; // CSS selector for the target element
   title: string;
   content: string;
+  tip?: string; // Optional tip shown in a highlight box
   placement?: "top" | "bottom" | "left" | "right";
   page?: string; // Optional: only show on specific page
 };
