@@ -87,24 +87,12 @@ export default function Dashboard() {
         />
       )}
 
-      <div data-tutorial="dashboard-stats" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div data-tutorial="dashboard-stats" className="grid gap-4 md:grid-cols-2">
         <StatCard
           title="Balance Total"
           value={formatCurrency(totales.balance)}
           icon={Wallet}
           variant="default"
-        />
-        <StatCard
-          title="Ingresos del Mes"
-          value={formatCurrency(totales.ingresosDelMes)}
-          icon={TrendingUp}
-          variant="success"
-        />
-        <StatCard
-          title="Gastos del Mes"
-          value={formatCurrency(totales.gastosDelMes)}
-          icon={TrendingDown}
-          variant="destructive"
         />
         <StatCard
           title="Ahorros"
