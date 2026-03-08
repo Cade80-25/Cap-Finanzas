@@ -7,71 +7,77 @@ All colors MUST be HSL.
 */
 
 @layer base {
+  /* ═══════════════════════════════════════════
+     TEMA CLARO — Llamativo, vibrante pero elegante
+     ═══════════════════════════════════════════ */
   :root {
-    --background: 0 0% 99%;
-    --foreground: 240 15% 20%;
+    --background: 245 30% 97%;
+    --foreground: 240 20% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 15% 20%;
+    --card-foreground: 240 20% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 15% 20%;
+    --popover-foreground: 240 20% 16%;
 
-    --primary: 245 58% 56%;
+    --primary: 245 65% 55%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 255 55% 66%;
+    --primary-glow: 260 60% 65%;
 
-    --secondary: 240 20% 96%;
-    --secondary-foreground: 240 15% 20%;
+    --secondary: 245 30% 94%;
+    --secondary-foreground: 240 20% 16%;
 
-    --muted: 240 15% 95%;
-    --muted-foreground: 240 8% 50%;
+    --muted: 240 20% 94%;
+    --muted-foreground: 240 10% 46%;
 
-    --accent: 255 50% 62%;
+    --accent: 260 55% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 152 55% 40%;
+    --success: 152 60% 38%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 82% 52%;
+    --warning: 38 90% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 60% 55%;
+    --destructive: 0 68% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 12% 92%;
-    --input: 240 12% 92%;
-    --ring: 245 58% 56%;
+    --border: 245 18% 90%;
+    --input: 245 18% 90%;
+    --ring: 245 65% 55%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 15% 20%;
-    --sidebar-primary: 245 58% 56%;
+    --sidebar-background: 245 25% 98%;
+    --sidebar-foreground: 240 20% 16%;
+    --sidebar-primary: 245 65% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 245 25% 97%;
-    --sidebar-accent-foreground: 240 15% 20%;
-    --sidebar-border: 240 12% 92%;
-    --sidebar-ring: 245 58% 56%;
+    --sidebar-accent: 245 30% 95%;
+    --sidebar-accent-foreground: 240 20% 16%;
+    --sidebar-border: 245 18% 90%;
+    --sidebar-ring: 245 65% 55%;
 
     /* Custom design tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(245 58% 56%), hsl(255 55% 66%));
-    --gradient-success: linear-gradient(135deg, hsl(152 55% 40%), hsl(152 50% 50%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(240 15% 99%));
-    --card-widget: 240 15% 96%;
-    --shadow-soft: 0 2px 8px -2px hsl(245 58% 56% / 0.07);
-    --shadow-medium: 0 4px 16px -4px hsl(245 58% 56% / 0.1);
+    --gradient-primary: linear-gradient(135deg, hsl(245 65% 55%), hsl(260 60% 65%));
+    --gradient-success: linear-gradient(135deg, hsl(152 60% 38%), hsl(152 55% 48%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(245 25% 98%));
+    --card-widget: 245 20% 95%;
+    --shadow-soft: 0 2px 10px -2px hsl(245 65% 55% / 0.1);
+    --shadow-medium: 0 4px 20px -4px hsl(245 65% 55% / 0.15);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  /* ═══════════════════════════════════════════
+     TEMA OSCURO — Profundo y elegante
+     ═══════════════════════════════════════════ */
   .dark {
-    --background: 240 15% 8%;
+    --background: 240 18% 8%;
     --foreground: 240 15% 93%;
 
-    --card: 240 15% 11%;
+    --card: 240 18% 12%;
     --card-foreground: 240 15% 93%;
 
-    --popover: 240 15% 11%;
+    --popover: 240 18% 12%;
     --popover-foreground: 240 15% 93%;
 
     --primary: 245 55% 62%;
@@ -100,7 +106,7 @@ All colors MUST be HSL.
     --input: 240 15% 18%;
     --ring: 245 55% 62%;
 
-    --sidebar-background: 240 15% 11%;
+    --sidebar-background: 240 18% 10%;
     --sidebar-foreground: 240 15% 93%;
     --sidebar-primary: 245 55% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -111,10 +117,67 @@ All colors MUST be HSL.
 
     --gradient-primary: linear-gradient(135deg, hsl(245 55% 62%), hsl(255 50% 70%));
     --gradient-success: linear-gradient(135deg, hsl(152 50% 44%), hsl(152 50% 54%));
-    --gradient-card: linear-gradient(180deg, hsl(240 15% 11%), hsl(240 15% 13%));
-    --card-widget: 240 12% 14%;
+    --gradient-card: linear-gradient(180deg, hsl(240 18% 12%), hsl(240 18% 14%));
+    --card-widget: 240 14% 15%;
     --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
     --shadow-medium: 0 4px 16px -4px hsl(0 0% 0% / 0.4);
+  }
+
+  /* ═══════════════════════════════════════════
+     TEMA INTERMEDIO (dim) — Mezcla suave entre claro y oscuro
+     Se activa con [data-theme="dim"]
+     ═══════════════════════════════════════════ */
+  [data-theme="dim"] {
+    --background: 240 15% 22%;
+    --foreground: 240 12% 90%;
+
+    --card: 240 15% 26%;
+    --card-foreground: 240 12% 90%;
+
+    --popover: 240 15% 26%;
+    --popover-foreground: 240 12% 90%;
+
+    --primary: 245 60% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 260 55% 68%;
+
+    --secondary: 240 14% 30%;
+    --secondary-foreground: 240 12% 90%;
+
+    --muted: 240 14% 30%;
+    --muted-foreground: 240 10% 62%;
+
+    --accent: 258 52% 64%;
+    --accent-foreground: 0 0% 100%;
+
+    --success: 152 52% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 85% 52%;
+    --warning-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 54%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 14% 32%;
+    --input: 240 14% 32%;
+    --ring: 245 60% 60%;
+
+    --sidebar-background: 240 15% 24%;
+    --sidebar-foreground: 240 12% 90%;
+    --sidebar-primary: 245 60% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 14% 30%;
+    --sidebar-accent-foreground: 240 12% 90%;
+    --sidebar-border: 240 14% 32%;
+    --sidebar-ring: 245 60% 60%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(245 60% 60%), hsl(260 55% 68%));
+    --gradient-success: linear-gradient(135deg, hsl(152 52% 42%), hsl(152 50% 52%));
+    --gradient-card: linear-gradient(180deg, hsl(240 15% 26%), hsl(240 15% 28%));
+    --card-widget: 240 14% 28%;
+    --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.2);
+    --shadow-medium: 0 4px 16px -4px hsl(0 0% 0% / 0.3);
   }
 }
 
