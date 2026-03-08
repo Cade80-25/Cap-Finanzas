@@ -57,10 +57,10 @@ All colors MUST be HSL.
     /* Custom design tokens */
     --gradient-primary: linear-gradient(135deg, hsl(245 58% 56%), hsl(255 55% 66%));
     --gradient-success: linear-gradient(135deg, hsl(152 55% 40%), hsl(152 50% 50%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(240 20% 98%));
-    --card-widget: 240 15% 93%;
-    --shadow-soft: 0 2px 8px -2px hsl(245 58% 56% / 0.1);
-    --shadow-medium: 0 4px 16px -4px hsl(245 58% 56% / 0.15);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(240 15% 99%));
+    --card-widget: 240 15% 96%;
+    --shadow-soft: 0 2px 8px -2px hsl(245 58% 56% / 0.07);
+    --shadow-medium: 0 4px 16px -4px hsl(245 58% 56% / 0.1);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
