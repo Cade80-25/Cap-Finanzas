@@ -46,13 +46,41 @@ export default function LicenseGenerator() {
   const [selectedType, setSelectedType] = useState<"simple" | "traditional" | "full" | "account">("traditional");
   const [customerEmail, setCustomerEmail] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
 
   const saveLicenses = (newLicenses: GeneratedLicense[]) => {
     setLicenses(newLicenses);
     localStorage.setItem("cap-finanzas-generated-licenses", JSON.stringify(newLicenses));
   };
 
-  const generateLicenses = () => {
+  const sendLicenseEmail = async (email: string, code: string, type: string) => {
+    setSendingEmail(code);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-license-email", {
+        body: { email, licenseCode: code, licenseType: type },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email enviado ✉️",
+        description: `Licencia enviada a ${email}`,
+      });
+      return true;
+    } catch (err: any) {
+      console.error("Error sending email:", err);
+      toast({
+        title: "Error al enviar email",
+        description: err.message || "No se pudo enviar el correo",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setSendingEmail(null);
+    }
+  };
+
+  const generateLicenses = async () => {
     const newLicenses: GeneratedLicense[] = [];
     
     for (let i = 0; i < quantity; i++) {
@@ -66,12 +94,20 @@ export default function LicenseGenerator() {
     }
     
     saveLicenses([...newLicenses, ...licenses]);
-    setCustomerEmail("");
     
     toast({
       title: `${quantity} licencia(s) generada(s)`,
       description: `Tipo: ${selectedType === "simple" ? "Finanzas Simples ($8)" : selectedType === "full" ? "Licencia Completa ($13)" : selectedType === "account" ? "Cuenta Adicional ($3)" : "Contabilidad Completa ($11)"}`,
     });
+
+    // Auto-send email if customer email provided
+    if (customerEmail) {
+      for (const lic of newLicenses) {
+        await sendLicenseEmail(customerEmail, lic.code, lic.type);
+      }
+    }
+
+    setCustomerEmail("");
   };
 
   const copyToClipboard = (code: string) => {
