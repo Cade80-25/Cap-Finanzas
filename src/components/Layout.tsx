@@ -3,26 +3,9 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { WalletSelector } from "@/components/WalletSelector";
 import { ProfileSelector } from "@/components/ProfileSelector";
 import {
-  Home,
-  Receipt,
-  Calendar,
-  Target,
-  User,
-  Tag,
-  PieChart,
-  Settings,
-  BookOpen,
-  FileText,
-  BarChart3,
-  TrendingUp,
-  HelpCircle,
-  X,
-  Sparkles,
-  Globe,
-  Bell,
-  Book,
-  Layers,
-  LucideIcon,
+  Home, Receipt, Calendar, Target, User, Tag, PieChart, Settings,
+  BookOpen, FileText, BarChart3, TrendingUp, HelpCircle, X, Sparkles,
+  Globe, Bell, Book, Layers, LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,6 +21,7 @@ import { useModeFeatures, FeatureKey } from "@/hooks/useModeFeatures";
 import { Badge } from "@/components/ui/badge";
 import { FloatingAddAccount } from "@/components/FloatingAddAccount";
 import { FirstVisitTooltip } from "@/components/FirstVisitTooltip";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type NavItem = {
   name: string;
@@ -74,13 +58,12 @@ export default function Layout() {
   const location = useLocation();
   const { isLocked, unlock, hasMasterPin } = useSecurity();
   const { isFeatureAvailable, isSimpleMode } = useModeFeatures();
+  const isMobile = useIsMobile();
 
-  // Filter navigation based on current mode
   const navigation = useMemo(() => {
     return allNavigation.filter((item) => isFeatureAvailable(item.featureKey));
   }, [isFeatureAvailable]);
 
-  // Show lock screen if app is locked
   if (isLocked && hasMasterPin) {
     return <LockScreen onUnlock={unlock} />;
   }
@@ -88,14 +71,10 @@ export default function Layout() {
   return (
     <LicenseGate>
       <div className="flex flex-col h-screen overflow-hidden bg-background">
-        {/* Tutorial components */}
         <WelcomeDialog />
         <TutorialOverlay />
-
-        {/* Trial banner - shows days remaining */}
         <TrialBanner />
 
-        {/* MenuBar siempre visible en la parte superior */}
         <MenuBar 
           onSearchClick={() => setSearchOpen(true)} 
           onToggleSidebar={() => setSidebarVisible(!sidebarVisible)}
@@ -105,8 +84,8 @@ export default function Layout() {
         <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar - visible solo cuando sidebarVisible es true */}
-          {sidebarVisible && (
+          {/* Sidebar - hidden on mobile (mobile uses MenuBar's Sheet) */}
+          {!isMobile && sidebarVisible && (
             <aside className="flex flex-col w-64 bg-sidebar border-r border-sidebar-border transition-all duration-300">
               <div className="flex h-12 items-center justify-between px-4 border-b border-sidebar-border flex-shrink-0">
                 <div className="flex items-center gap-2">
@@ -129,7 +108,6 @@ export default function Layout() {
                 </Button>
               </div>
 
-              {/* Profile & Wallet selectors */}
               <div className="px-3 pb-2 space-y-1">
                 <ProfileSelector />
                 <WalletSelector />
@@ -163,10 +141,7 @@ export default function Layout() {
             <Outlet />
           </main>
 
-          {/* Floating add account button */}
           <FloatingAddAccount />
-
-          {/* First visit tooltip */}
           <FirstVisitTooltip />
         </div>
       </div>
