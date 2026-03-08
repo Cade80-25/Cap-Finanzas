@@ -744,7 +744,7 @@ export default function Configuracion() {
       {/* License Settings Section */}
       <LicenseSettings />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div data-tutorial="configuracion-datos" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

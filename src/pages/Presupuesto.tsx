@@ -157,7 +157,7 @@ export default function Presupuesto() {
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="shadow-soft">
+            <Button data-tutorial="presupuesto-nuevo" className="shadow-soft">
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Presupuesto
             </Button>
