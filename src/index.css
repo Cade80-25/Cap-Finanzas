@@ -49,13 +49,13 @@
 
     --radius: 0.75rem;
 
-    --sidebar-background: 225 18% 97%;
-    --sidebar-foreground: 222 20% 18%;
+    --sidebar-background: 245 22% 88%;
+    --sidebar-foreground: 240 20% 16%;
     --sidebar-primary: 238 55% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 20% 93%;
-    --sidebar-accent-foreground: 222 20% 18%;
-    --sidebar-border: 225 15% 88%;
+    --sidebar-accent: 245 20% 84%;
+    --sidebar-accent-foreground: 240 20% 16%;
+    --sidebar-border: 245 18% 82%;
     --sidebar-ring: 238 55% 52%;
 
     /* Custom design tokens */

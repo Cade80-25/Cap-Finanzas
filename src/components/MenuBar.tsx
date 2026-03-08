@@ -86,7 +86,7 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
   };
 
   return (
-    <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-3 h-12">
+    <div className="border-b border-sidebar-border bg-sidebar backdrop-blur supports-[backdrop-filter]:bg-sidebar/95 flex items-center justify-between px-3 h-12">
       {/* Left section: Toggle + Menu */}
       <div className="flex items-center">
         {/* Botón para mostrar/ocultar sidebar */}
