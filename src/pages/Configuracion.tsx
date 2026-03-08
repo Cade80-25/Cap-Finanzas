@@ -33,6 +33,7 @@ import { useAdvancedFeatures } from "@/hooks/useAdvancedFeatures";
 import { ChangePinDialog, BackupDialog, TwoFactorDialog } from "@/components/SecurityDialogs";
 import { LogsDialog, SyncDialog, ResetDialog } from "@/components/AdvancedFeaturesDialogs";
 import { LicenseSettings } from "@/components/LicenseSettings";
+import { useNumberFormat } from "@/hooks/useNumberFormat";
 
 const STORAGE_KEY = "cap-finanzas-config";
 
