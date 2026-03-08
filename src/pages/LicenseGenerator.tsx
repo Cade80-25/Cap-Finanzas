@@ -348,6 +348,21 @@ export default function LicenseGenerator() {
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
+                          {license.customerEmail && !license.used && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => sendLicenseEmail(license.customerEmail!, license.code, license.type)}
+                              disabled={sendingEmail === license.code}
+                              title="Enviar por email"
+                            >
+                              {sendingEmail === license.code ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Mail className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
                           {!license.used && (
                             <Button
                               variant="ghost"
