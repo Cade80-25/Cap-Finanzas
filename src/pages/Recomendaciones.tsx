@@ -305,7 +305,7 @@ export default function Recomendaciones() {
                     </p>
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-xs font-medium">
                       <TrendingUp className="h-3.5 w-3.5" />
-                      Requiere: Contabilidad Tradicional ($10) o Licencia Completa ($12)
+                      Requiere: Contabilidad Tradicional ($11) o Licencia Completa ($13)
                     </div>
                   </CardContent>
                 </Card>
