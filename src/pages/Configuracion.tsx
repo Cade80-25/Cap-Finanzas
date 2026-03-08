@@ -919,7 +919,7 @@ export default function Configuracion() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tutorial="configuracion-tema">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5" />

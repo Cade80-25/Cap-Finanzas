@@ -164,7 +164,7 @@ export default function Resumen() {
         </Card>
       </div>
 
-      <Tabs defaultValue="tendencias" className="space-y-4">
+      <Tabs data-tutorial="resumen-grafico" defaultValue="tendencias" className="space-y-4">
         <TabsList>
           <TabsTrigger value="tendencias">Tendencias</TabsTrigger>
           <TabsTrigger value="categorias">Por Categorías</TabsTrigger>
