@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, LayoutDashboard, Plus, Sparkles, Info } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, PiggyBank, LayoutDashboard, Sparkles, Navigation } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAccountingData } from "@/hooks/useAccountingData";
@@ -11,10 +11,10 @@ import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { WeeklySummaryCard } from "@/components/WeeklySummaryCard";
-import { WelcomePresentation } from "@/components/WelcomePresentation";
+import { InteractiveAppTour } from "@/components/InteractiveAppTour";
 
 export default function Dashboard() {
-  const [showPresentation, setShowPresentation] = useState(false);
+  const [tourActive, setTourActive] = useState(false);
   const navigate = useNavigate();
   const { isSimpleMode, isFeatureAvailable } = useModeFeatures();
   const { formatCurrency } = useNumberFormat();
@@ -42,13 +42,13 @@ export default function Dashboard() {
               : "Resumen general de tus finanzas"}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setShowPresentation(true)} className="self-start">
-          <Info className="h-4 w-4 mr-1" />
-          ¿Cómo funciona?
+        <Button variant="outline" size="sm" onClick={() => setTourActive(true)} className="self-start">
+          <Navigation className="h-4 w-4 mr-1" />
+          Tour guiado
         </Button>
       </div>
 
-      <WelcomePresentation open={showPresentation} onOpenChange={setShowPresentation} />
+      <InteractiveAppTour active={tourActive} onClose={() => setTourActive(false)} />
 
       <WeeklySummaryCard />
 
