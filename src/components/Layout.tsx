@@ -21,6 +21,7 @@ import { useModeFeatures, FeatureKey } from "@/hooks/useModeFeatures";
 import { Badge } from "@/components/ui/badge";
 import { FloatingAddAccount } from "@/components/FloatingAddAccount";
 import { FirstVisitTooltip } from "@/components/FirstVisitTooltip";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 type NavItem = {
