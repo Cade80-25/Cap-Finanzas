@@ -931,14 +931,25 @@ export default function Configuracion() {
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <Label>Tema</Label>
-              <Select value={theme} onValueChange={setTheme}>
+              <Select value={theme} onValueChange={(value) => {
+                if (value === "dim") {
+                  setTheme("light");
+                  document.documentElement.setAttribute("data-theme", "dim");
+                  document.documentElement.classList.remove("dark");
+                  localStorage.setItem("cap-finanzas-theme-variant", "dim");
+                } else {
+                  document.documentElement.removeAttribute("data-theme");
+                  localStorage.setItem("cap-finanzas-theme-variant", value);
+                  setTheme(value);
+                }
+              }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="light">Claro</SelectItem>
-                  <SelectItem value="dark">Oscuro</SelectItem>
-                  <SelectItem value="system">Sistema</SelectItem>
+                  <SelectItem value="light">☀️ Claro</SelectItem>
+                  <SelectItem value="dark">🌙 Oscuro</SelectItem>
+                  <SelectItem value="dim">🌗 Intermedio</SelectItem>
                 </SelectContent>
               </Select>
             </div>
