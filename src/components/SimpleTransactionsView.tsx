@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { cn } from "@/lib/utils";
 import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
