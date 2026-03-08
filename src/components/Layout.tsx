@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { WalletSelector } from "@/components/WalletSelector";
 import { ProfileSelector } from "@/components/ProfileSelector";
@@ -15,6 +15,7 @@ import { LockScreen } from "@/components/LockScreen";
 import { useSecurity } from "@/hooks/useSecurity";
 import { TutorialOverlay } from "@/components/TutorialOverlay";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
+import { InteractiveAppTour } from "@/components/InteractiveAppTour";
 import { LicenseGate } from "@/components/LicenseGate";
 import { TrialBanner } from "@/components/TrialBanner";
 import { useModeFeatures, FeatureKey } from "@/hooks/useModeFeatures";
@@ -56,10 +57,18 @@ const allNavigation: NavItem[] = [
 export default function Layout() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [tourActive, setTourActive] = useState(false);
   const location = useLocation();
   const { isLocked, unlock, hasMasterPin } = useSecurity();
   const { isFeatureAvailable, isSimpleMode } = useModeFeatures();
   const isMobile = useIsMobile();
+
+  // Listen for tour start events from Dashboard
+  useEffect(() => {
+    const handler = () => setTourActive(true);
+    window.addEventListener("start-app-tour", handler);
+    return () => window.removeEventListener("start-app-tour", handler);
+  }, []);
 
   const navigation = useMemo(() => {
     return allNavigation.filter((item) => isFeatureAvailable(item.featureKey));
@@ -74,6 +83,7 @@ export default function Layout() {
       <div className="flex flex-col h-screen overflow-hidden bg-background">
         <WelcomeDialog />
         <TutorialOverlay />
+        <InteractiveAppTour active={tourActive} onClose={() => setTourActive(false)} />
         <TrialBanner />
 
         <MenuBar 
