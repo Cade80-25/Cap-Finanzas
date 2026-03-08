@@ -118,6 +118,9 @@ export default function Configuracion() {
   // Advanced features hook
   const advanced = useAdvancedFeatures();
   
+  // Number format hook
+  const { format: numberFormat, setFormat: setNumberFormat } = useNumberFormat();
+  
   const updateConfig = (updates: Partial<ConfigData>) => {
     setConfig(prev => {
       const newConfig = { ...prev, ...updates };
