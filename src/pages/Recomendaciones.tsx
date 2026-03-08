@@ -202,7 +202,7 @@ export default function Recomendaciones() {
                 <Badge variant="default" className="text-[10px]">Chat Financiero</Badge>
               </div>
               <div className="space-y-1">
-                <p className="font-semibold">Completa <span className="text-muted-foreground">($12)</span></p>
+                <p className="font-semibold">Completa <span className="text-muted-foreground">($13)</span></p>
                 <Badge variant="default" className="text-[10px]">Tutor Educativo</Badge>
                 <Badge variant="default" className="text-[10px]">Chat Financiero</Badge>
                 <Badge variant="default" className="text-[10px]">Bolsas en Vivo</Badge>
