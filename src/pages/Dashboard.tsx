@@ -85,7 +85,7 @@ export default function Dashboard() {
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
       <div data-tutorial="dashboard-title">
-        <h1 className="text-3xl font-bold mb-2">Panel Principal</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Panel Principal</h1>
         <p className="text-muted-foreground">
           {isSimpleMode 
             ? "Resumen de tus ingresos y gastos" 
