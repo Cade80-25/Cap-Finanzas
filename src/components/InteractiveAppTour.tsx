@@ -131,28 +131,33 @@ export function InteractiveAppTour({ active, onClose }: InteractiveAppTourProps)
     setHighlightRect(null);
 
     // Navigate if needed
-    if (location.pathname !== currentStep.route) {
+    const needsNavigation = location.pathname !== currentStep.route;
+    if (needsNavigation) {
       navigate(currentStep.route);
     }
 
-    const delay = currentStep.delay || 200;
-    const timer = setTimeout(() => {
+    const delay = needsNavigation ? 800 : (currentStep.delay || 300);
+    
+    const findElement = (retriesLeft: number) => {
       if (currentStep.target) {
         const el = document.querySelector(currentStep.target) as HTMLElement;
         if (el) {
           el.scrollIntoView({ behavior: "smooth", block: "center" });
-          // Wait for scroll
           setTimeout(() => {
             setHighlightRect(el.getBoundingClientRect());
             setReady(true);
           }, 300);
+        } else if (retriesLeft > 0) {
+          setTimeout(() => findElement(retriesLeft - 1), 300);
         } else {
           setReady(true);
         }
       } else {
         setReady(true);
       }
-    }, delay);
+    };
+
+    const timer = setTimeout(() => findElement(3), delay);
 
     return () => clearTimeout(timer);
   }, [active, step, currentStep, navigate, location.pathname]);
