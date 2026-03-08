@@ -11,6 +11,7 @@ import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
 import { useBudgets } from "@/hooks/useBudgets";
 import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
+import { useNumberFormat } from "@/hooks/useNumberFormat";
 
 export default function Dashboard() {
   const navigate = useNavigate();
