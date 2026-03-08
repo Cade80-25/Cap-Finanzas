@@ -57,10 +57,18 @@ const allNavigation: NavItem[] = [
 export default function Layout() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [tourActive, setTourActive] = useState(false);
   const location = useLocation();
   const { isLocked, unlock, hasMasterPin } = useSecurity();
   const { isFeatureAvailable, isSimpleMode } = useModeFeatures();
   const isMobile = useIsMobile();
+
+  // Listen for tour start events from Dashboard
+  useEffect(() => {
+    const handler = () => setTourActive(true);
+    window.addEventListener("start-app-tour", handler);
+    return () => window.removeEventListener("start-app-tour", handler);
+  }, []);
 
   const navigation = useMemo(() => {
     return allNavigation.filter((item) => isFeatureAvailable(item.featureKey));
