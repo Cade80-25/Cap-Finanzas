@@ -934,15 +934,19 @@ export default function Configuracion() {
               <Label>Tema</Label>
               <Select value={themeVariant} onValueChange={(value) => {
                 setThemeVariant(value);
+                localStorage.setItem("cap-finanzas-theme-variant", value);
                 if (value === "dim") {
-                  setTheme("light");
                   document.documentElement.setAttribute("data-theme", "dim");
                   document.documentElement.classList.remove("dark");
-                  localStorage.setItem("cap-finanzas-theme-variant", "dim");
+                  // Force next-themes to "dark" first then back, to ensure it doesn't skip
+                  setTheme("light");
+                } else if (value === "dark") {
+                  document.documentElement.removeAttribute("data-theme");
+                  setTheme("dark");
                 } else {
                   document.documentElement.removeAttribute("data-theme");
-                  localStorage.setItem("cap-finanzas-theme-variant", value);
-                  setTheme(value);
+                  document.documentElement.classList.remove("dark");
+                  setTheme("light");
                 }
               }}>
                 <SelectTrigger>
