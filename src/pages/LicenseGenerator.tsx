@@ -283,7 +283,7 @@ export default function LicenseGenerator() {
                       <TableCell className="font-mono font-medium">{license.code}</TableCell>
                       <TableCell>
                         <Badge variant={license.type === "simple" ? "secondary" : license.type === "full" ? "outline" : license.type === "account" ? "secondary" : "default"}>
-                          {license.type === "simple" ? "Simple $5" : license.type === "full" ? "Completa $12" : license.type === "account" ? "Cuenta $2" : "Contabilidad $10"}
+                          {license.type === "simple" ? "Simple $8" : license.type === "full" ? "Completa $13" : license.type === "account" ? "Cuenta $3" : "Contabilidad $11"}
                         </Badge>
                       </TableCell>
                       <TableCell>{new Date(license.createdAt).toLocaleDateString()}</TableCell>

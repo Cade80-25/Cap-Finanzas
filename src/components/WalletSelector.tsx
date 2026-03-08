@@ -168,7 +168,7 @@ export function WalletSelector() {
               <DropdownMenuSeparator />
               <DropdownMenuItem disabled className="text-xs text-muted-foreground">
                 <Wallet className="h-3 w-3 mr-2" />
-                Activa una cuenta extra ($2) para agregar más
+                Activa una cuenta extra ($3) para agregar más
               </DropdownMenuItem>
             </>
           )}

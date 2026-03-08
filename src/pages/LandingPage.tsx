@@ -105,7 +105,7 @@ const faqs = [
   },
   {
     question: "¿Cuál es la diferencia entre los planes?",
-    answer: "Finanzas Simples ($7) incluye control de gastos y Tutor Educativo. Contabilidad Tradicional ($10) agrega partida doble y Chat Financiero. La Licencia Completa ($12) incluye todo más Bolsas en Vivo.",
+    answer: "Finanzas Simples ($8) incluye control de gastos y Tutor Educativo. Contabilidad Tradicional ($11) agrega partida doble y Chat Financiero. La Licencia Completa ($13) incluye todo más Bolsas en Vivo.",
   },
 ];
 

@@ -176,7 +176,7 @@ const secciones = [
       },
       {
         subtitulo: "Bolsas en Vivo",
-        texto: "Exclusivo de la Licencia Completa ($12). Accede a datos del mercado en tiempo real con widgets de bolsas internacionales como NYSE, NASDAQ, BMV y más."
+        texto: "Exclusivo de la Licencia Completa ($13). Accede a datos del mercado en tiempo real con widgets de bolsas internacionales como NYSE, NASDAQ, BMV y más."
       }
     ]
   },

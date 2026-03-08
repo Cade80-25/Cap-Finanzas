@@ -403,7 +403,7 @@ export default function Recomendaciones() {
                     </p>
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-xs font-medium">
                       <BarChart3 className="h-3.5 w-3.5" />
-                      Requiere: Licencia Completa ($12)
+                      Requiere: Licencia Completa ($13)
                     </div>
                   </CardContent>
                 </Card>
