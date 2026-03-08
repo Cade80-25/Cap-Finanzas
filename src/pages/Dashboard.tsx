@@ -13,6 +13,7 @@ import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
+import { WeeklySummaryCard } from "@/components/WeeklySummaryCard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
