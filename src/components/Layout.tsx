@@ -83,6 +83,7 @@ export default function Layout() {
       <div className="flex flex-col h-screen overflow-hidden bg-background">
         <WelcomeDialog />
         <TutorialOverlay />
+        <InteractiveAppTour active={tourActive} onClose={() => setTourActive(false)} />
         <TrialBanner />
 
         <MenuBar 
