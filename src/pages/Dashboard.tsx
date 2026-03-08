@@ -1,14 +1,10 @@
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, AlertTriangle, LayoutDashboard, Plus, Sparkles } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, LayoutDashboard, Plus, Sparkles } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { useAccountingData } from "@/hooks/useAccountingData";
 import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
-import { useBudgets } from "@/hooks/useBudgets";
 import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
@@ -17,69 +13,18 @@ import { WeeklySummaryCard } from "@/components/WeeklySummaryCard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { isSimpleMode, isFeatureAvailable, labels } = useModeFeatures();
+  const { isSimpleMode, isFeatureAvailable } = useModeFeatures();
   const { formatCurrency } = useNumberFormat();
   
-  // Use traditional accounting data
   const traditionalData = useAccountingData();
-  
-  // Use simplified accounting data
   const simpleData = useSimpleAccountingData();
-  
-  const { budgets: presupuestoData } = useBudgets();
 
-  // Choose data based on mode
   const totales = isSimpleMode ? simpleData.totals : traditionalData.totales;
-  const resumenMensual = isSimpleMode ? simpleData.monthlySummary : traditionalData.resumenMensual;
-  const datosCategorias = isSimpleMode ? simpleData.categoryChartData : traditionalData.datosCategorias;
   const transaccionesRecientes = isSimpleMode ? simpleData.recentTransactions : traditionalData.transaccionesRecientes;
-  const estadoResultados = traditionalData.estadoResultados;
-  const ACCOUNT_CATEGORIES = traditionalData.ACCOUNT_CATEGORIES;
 
-  // Calcular alertas de presupuesto (desde Presupuesto + Libro Diario)
-  const budgetAlerts = presupuestoData
-    .filter((p) => p.presupuesto > 0)
-    .map((p) => {
-      const cuentaLabel = p.cuentaAsociada
-        ? ACCOUNT_CATEGORIES[p.cuentaAsociada]?.label
-        : undefined;
-
-      // In simple mode, use simple category totals
-      let spent = 0;
-      if (isSimpleMode) {
-        const simpleCat = simpleData.categories.find((c) => 
-          c.id === p.cuentaAsociada || 
-          c.nombre.toLowerCase().includes(p.categoria.toLowerCase())
-        );
-        spent = simpleCat?.gastos || 0;
-      } else {
-        const gastoRelacionado = cuentaLabel
-          ? estadoResultados.gastos.find((g) => g.name === cuentaLabel)
-          : estadoResultados.gastos.find((g) => {
-              const a = g.name.toLowerCase();
-              const b = p.categoria.toLowerCase();
-              return a.includes(b) || b.includes(a);
-            });
-        spent = gastoRelacionado?.value || 0;
-      }
-
-      const percentage = p.presupuesto > 0 ? Math.round((spent / p.presupuesto) * 100) : 0;
-
-      return {
-        category: p.categoria,
-        spent,
-        budget: p.presupuesto,
-        percentage,
-      };
-    })
-    .filter((a) => a.percentage >= 70)
-    .sort((a, b) => b.percentage - a.percentage)
-    .slice(0, 3);
-
-  const hasFinancialData = totales.ingresosDelMes > 0 || totales.gastosDelMes > 0 || resumenMensual.length > 0;
+  const hasFinancialData = totales.ingresosDelMes > 0 || totales.gastosDelMes > 0;
   const hasTransactions = transaccionesRecientes.length > 0;
 
-  // Determine where to navigate for adding transactions
   const addTransactionRoute = isSimpleMode ? "/transacciones" : "/libro-diario";
   const addTransactionLabel = isSimpleMode ? "Agregar Movimiento" : "Ir al Libro Diario";
 
@@ -94,13 +39,10 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Weekly summary for simple mode */}
       <WeeklySummaryCard />
 
-      {/* Onboarding checklist for new users */}
       <OnboardingChecklist />
 
-      {/* Help for traditional mode when data isn't showing correctly */}
       {!isSimpleMode && hasTransactions && !hasFinancialData && (
         <ContextualHelp
           id="dashboard-no-financial-data"
@@ -172,166 +114,6 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card data-tutorial="dashboard-chart" className="shadow-soft lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Ingresos vs Gastos</CardTitle>
-            <CardDescription>Comparativa de los últimos meses</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {resumenMensual.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={resumenMensual}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="mes" className="text-xs" />
-                  <YAxis className="text-xs" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px"
-                    }}
-                    formatter={(value) => `$${Number(value).toFixed(2)}`}
-                  />
-                  <Legend />
-                  <Bar dataKey="ingresos" fill="hsl(var(--success))" name="Ingresos" radius={[8, 8, 0, 0]} />
-                  <Bar dataKey="gastos" fill="hsl(var(--destructive))" name="Gastos" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-[250px] text-muted-foreground">
-                <p>No hay datos disponibles</p>
-                <Button variant="link" onClick={() => navigate(addTransactionRoute)}>
-                  {addTransactionLabel}
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-soft">
-          <CardHeader>
-            <CardTitle>Gastos por Categoría</CardTitle>
-            <CardDescription>Distribución del período</CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            {datosCategorias.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={datosCategorias}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {datosCategorias.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px"
-                    }}
-                    formatter={(value) => `$${Number(value).toFixed(2)}`}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-[250px] text-muted-foreground">
-                No hay datos disponibles
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card data-tutorial="dashboard-transactions" className="shadow-soft">
-          <CardHeader>
-            <CardTitle>{isSimpleMode ? "Movimientos Recientes" : "Transacciones Recientes"}</CardTitle>
-            <CardDescription>
-              {isSimpleMode ? "Últimos ingresos y gastos" : "Últimas transacciones del Libro Diario"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {transaccionesRecientes.length > 0 ? (
-              <div className="space-y-4">
-                {transaccionesRecientes.map((transaction) => (
-                  <div
-                    key={transaction.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-gradient-card border border-border hover-scale"
-                  >
-                    <div>
-                      <p className="font-medium">{transaction.description}</p>
-                      <p className="text-sm text-muted-foreground">{transaction.date}</p>
-                    </div>
-                    <span
-                      className={`font-bold ${
-                        transaction.type === "income" ? "text-success" : "text-destructive"
-                      }`}
-                    >
-                      {transaction.amount > 0 ? "+" : ""}${Math.abs(transaction.amount).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-[100px] text-muted-foreground">
-                {isSimpleMode ? "No hay movimientos registrados" : "No hay transacciones registradas"}
-              </div>
-            )}
-            <Button variant="outline" className="w-full mt-4" onClick={() => navigate(addTransactionRoute)}>
-              <ArrowUpRight className="h-4 w-4 mr-2" />
-              {addTransactionLabel}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-soft">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-warning" />
-              Alertas de Presupuesto
-            </CardTitle>
-            <CardDescription>
-              Categorías cerca o sobre el límite
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {budgetAlerts.length > 0 ? (
-              <div className="space-y-4">
-                {budgetAlerts.map((alert, idx) => (
-                  <div key={idx} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">{alert.category}</span>
-                      <Badge variant={alert.percentage > 100 ? "destructive" : alert.percentage > 80 ? "secondary" : "default"}>
-                        {alert.percentage}%
-                      </Badge>
-                    </div>
-                    <Progress value={Math.min(alert.percentage, 100)} className="h-2" />
-                    <p className="text-xs text-muted-foreground">
-                      ${alert.spent.toFixed(2)} de ${alert.budget.toFixed(2)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-[100px] text-muted-foreground">
-                {presupuestoData.length === 0 ? "Configura tu presupuesto" : "Sin alertas de presupuesto"}
-              </div>
-            )}
-            <Button variant="outline" className="w-full mt-4" onClick={() => navigate("/presupuesto")}>
-              Gestionar Presupuesto
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Quick actions for simple mode */}
       {isSimpleMode && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -380,7 +162,27 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Original action card */}
+      {/* Quick navigation to detailed views */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Button variant="outline" className="h-auto py-3 flex flex-col gap-1" onClick={() => navigate("/resumen")}>
+          <span className="text-lg">📊</span>
+          <span className="text-xs">Ver Resumen</span>
+        </Button>
+        <Button variant="outline" className="h-auto py-3 flex flex-col gap-1" onClick={() => navigate("/presupuesto")}>
+          <span className="text-lg">🎯</span>
+          <span className="text-xs">Presupuesto</span>
+        </Button>
+        <Button variant="outline" className="h-auto py-3 flex flex-col gap-1" onClick={() => navigate(addTransactionRoute)}>
+          <span className="text-lg">📝</span>
+          <span className="text-xs">{isSimpleMode ? "Movimientos" : "Libro Diario"}</span>
+        </Button>
+        <Button variant="outline" className="h-auto py-3 flex flex-col gap-1" onClick={() => navigate("/recomendaciones")}>
+          <span className="text-lg">✨</span>
+          <span className="text-xs">Recomendaciones</span>
+        </Button>
+      </div>
+
+      {/* Help card */}
       {isSimpleMode ? (
         <Card className="shadow-soft bg-gradient-primary">
           <CardHeader>
