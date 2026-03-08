@@ -12,6 +12,12 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Download,
   Upload,
   Settings,
@@ -30,6 +36,9 @@ import {
   Monitor,
   Apple,
   Laptop,
+  Sun,
+  Moon,
+  SunMoon,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -41,6 +50,7 @@ import { ModeSelector } from "@/components/ModeSelector";
 import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { ActivationDialog } from "@/components/ActivationDialog";
 import { useModeFeatures } from "@/hooks/useModeFeatures";
+import { useTheme } from "next-themes";
 
 interface MenuBarProps {
   onSearchClick?: () => void;
@@ -52,11 +62,30 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
   const { isSimpleMode, isFeatureAvailable } = useModeFeatures();
+  const { setTheme } = useTheme();
+  const [themeVariant, setThemeVariant] = useState(() => localStorage.getItem("cap-finanzas-theme-variant") || "light");
   const isElectron =
     typeof window !== "undefined" && typeof (window as any).electron !== "undefined";
   const [nativeMenuVisible, setNativeMenuVisible] = useState(false);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const [activationOpen, setActivationOpen] = useState(false);
+
+  const applyTheme = (value: string) => {
+    setThemeVariant(value);
+    localStorage.setItem("cap-finanzas-theme-variant", value);
+    if (value === "dim") {
+      document.documentElement.setAttribute("data-theme", "dim");
+      document.documentElement.classList.remove("dark");
+      setTheme("light");
+    } else if (value === "dark") {
+      document.documentElement.removeAttribute("data-theme");
+      setTheme("dark");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+      document.documentElement.classList.remove("dark");
+      setTheme("light");
+    }
+  };
 
   // Determine where to add transactions based on mode
   const addTransactionRoute = isSimpleMode ? "/transacciones" : "/libro-diario";
@@ -301,6 +330,35 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
             <span className="text-xs">⌘</span>K
           </kbd>
         </Button>
+
+        {/* Theme Toggle */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" title="Cambiar tema">
+              {themeVariant === "dark" ? (
+                <Moon className="h-4 w-4" />
+              ) : themeVariant === "dim" ? (
+                <SunMoon className="h-4 w-4" />
+              ) : (
+                <Sun className="h-4 w-4" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => applyTheme("light")} className={themeVariant === "light" ? "bg-accent/20" : ""}>
+              <Sun className="h-4 w-4 mr-2" />
+              Claro
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => applyTheme("dark")} className={themeVariant === "dark" ? "bg-accent/20" : ""}>
+              <Moon className="h-4 w-4 mr-2" />
+              Oscuro
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => applyTheme("dim")} className={themeVariant === "dim" ? "bg-accent/20" : ""}>
+              <SunMoon className="h-4 w-4 mr-2" />
+              Intermedio
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Tutorial/Help Button */}
         <TutorialButton />
