@@ -210,7 +210,7 @@ export default function Monedas() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tutorial="monedas-tasas">
           <CardHeader>
             <CardTitle>Tasas de Cambio</CardTitle>
             <CardDescription>

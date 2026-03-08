@@ -179,7 +179,7 @@ export default function Recomendaciones() {
         ))}
       </div>
 
-      <Card className="shadow-soft">
+      <Card data-tutorial="recomendaciones-chat" className="shadow-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <LineChart className="h-6 w-6 text-primary" />

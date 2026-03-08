@@ -103,7 +103,7 @@ export default function Calendario() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tutorial="calendario-detalle">
           <CardHeader>
             <CardTitle>Transacciones del Día</CardTitle>
             <CardDescription>

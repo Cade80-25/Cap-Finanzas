@@ -658,7 +658,7 @@ export default function Configuracion() {
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
-      <div>
+      <div data-tutorial="configuracion-title">
         <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
           Configuración
         </h1>
