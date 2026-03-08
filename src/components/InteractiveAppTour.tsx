@@ -197,7 +197,7 @@ export function InteractiveAppTour({ active, onClose }: InteractiveAppTourProps)
 
   const isCentered = currentStep.position === "center" || !currentStep.target;
 
-  // Calculate tooltip position
+  // Calculate tooltip position - always keep within viewport
   let tooltipStyle: React.CSSProperties = {};
   if (isCentered) {
     tooltipStyle = {
@@ -207,33 +207,36 @@ export function InteractiveAppTour({ active, onClose }: InteractiveAppTourProps)
     };
   } else if (highlightRect) {
     const padding = 16;
+    const tooltipHeight = 260;
+    const tooltipWidth = 380;
     const pos = currentStep.position || "bottom";
-    switch (pos) {
-      case "bottom":
-        tooltipStyle = {
-          top: highlightRect.bottom + padding,
-          left: Math.max(padding, Math.min(highlightRect.left + highlightRect.width / 2 - 190, window.innerWidth - 396)),
-        };
-        break;
-      case "top":
-        tooltipStyle = {
-          bottom: window.innerHeight - highlightRect.top + padding,
-          left: Math.max(padding, Math.min(highlightRect.left + highlightRect.width / 2 - 190, window.innerWidth - 396)),
-        };
-        break;
-      case "left":
-        tooltipStyle = {
-          top: highlightRect.top + highlightRect.height / 2 - 100,
-          right: window.innerWidth - highlightRect.left + padding,
-        };
-        break;
-      case "right":
-        tooltipStyle = {
-          top: highlightRect.top + highlightRect.height / 2 - 100,
-          left: highlightRect.right + padding,
-        };
-        break;
+    
+    let top = 0;
+    let left = Math.max(padding, Math.min(highlightRect.left + highlightRect.width / 2 - tooltipWidth / 2, window.innerWidth - tooltipWidth - padding));
+
+    if (pos === "bottom") {
+      top = highlightRect.bottom + padding;
+    } else if (pos === "top") {
+      top = highlightRect.top - tooltipHeight - padding;
+    } else if (pos === "left") {
+      top = highlightRect.top + highlightRect.height / 2 - tooltipHeight / 2;
+      left = highlightRect.left - tooltipWidth - padding;
+    } else if (pos === "right") {
+      top = highlightRect.top + highlightRect.height / 2 - tooltipHeight / 2;
+      left = highlightRect.right + padding;
     }
+
+    // Clamp to viewport
+    if (top + tooltipHeight > window.innerHeight - padding) {
+      top = window.innerHeight - tooltipHeight - padding;
+    }
+    if (top < padding) top = padding;
+    if (left < padding) left = padding;
+    if (left + tooltipWidth > window.innerWidth - padding) {
+      left = window.innerWidth - tooltipWidth - padding;
+    }
+
+    tooltipStyle = { top, left };
   }
 
   return createPortal(
