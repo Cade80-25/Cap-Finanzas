@@ -8,24 +8,24 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 220 30% 99%;
-    --foreground: 240 15% 15%;
+    --background: 0 0% 99%;
+    --foreground: 240 15% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 15% 15%;
+    --card-foreground: 240 15% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 15% 15%;
+    --popover-foreground: 240 15% 20%;
 
     --primary: 245 58% 56%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 255 55% 66%;
 
-    --secondary: 245 20% 92%;
-    --secondary-foreground: 240 15% 15%;
+    --secondary: 240 20% 96%;
+    --secondary-foreground: 240 15% 20%;
 
-    --muted: 240 15% 91%;
-    --muted-foreground: 240 10% 46%;
+    --muted: 240 15% 95%;
+    --muted-foreground: 240 8% 50%;
 
     --accent: 255 50% 62%;
     --accent-foreground: 0 0% 100%;
@@ -39,28 +39,28 @@ All colors MUST be HSL.
     --destructive: 0 60% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 15% 89%;
-    --input: 240 15% 89%;
+    --border: 240 12% 92%;
+    --input: 240 12% 92%;
     --ring: 245 58% 56%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 15% 15%;
+    --sidebar-foreground: 240 15% 20%;
     --sidebar-primary: 245 58% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 245 20% 95%;
-    --sidebar-accent-foreground: 240 15% 15%;
-    --sidebar-border: 240 15% 89%;
+    --sidebar-accent: 245 25% 97%;
+    --sidebar-accent-foreground: 240 15% 20%;
+    --sidebar-border: 240 12% 92%;
     --sidebar-ring: 245 58% 56%;
 
     /* Custom design tokens */
     --gradient-primary: linear-gradient(135deg, hsl(245 58% 56%), hsl(255 55% 66%));
     --gradient-success: linear-gradient(135deg, hsl(152 55% 40%), hsl(152 50% 50%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(240 20% 98%));
-    --card-widget: 240 15% 93%;
-    --shadow-soft: 0 2px 8px -2px hsl(245 58% 56% / 0.1);
-    --shadow-medium: 0 4px 16px -4px hsl(245 58% 56% / 0.15);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(240 15% 99%));
+    --card-widget: 240 15% 96%;
+    --shadow-soft: 0 2px 8px -2px hsl(245 58% 56% / 0.07);
+    --shadow-medium: 0 4px 16px -4px hsl(245 58% 56% / 0.1);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
