@@ -206,21 +206,25 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
       {/* Category */}
       <div className="space-y-2">
         <Label>Categoría</Label>
-        <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecciona una categoría" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id}>
-                <span className="flex items-center gap-2">
-                  <span>{cat.icon}</span>
-                  <span>{cat.label}</span>
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Category chips */}
+        <div className="flex flex-wrap gap-2">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setCategory(cat.id)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium border transition-all",
+                category === cat.id
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm scale-105"
+                  : "bg-muted/50 text-foreground border-border hover:bg-muted hover:border-muted-foreground/30"
+              )}
+            >
+              <span className="text-base">{cat.icon}</span>
+              <span>{cat.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Description with auto-categorization */}

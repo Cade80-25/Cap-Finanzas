@@ -94,6 +94,9 @@ export default function Dashboard() {
         </p>
       </div>
 
+      {/* Weekly summary for simple mode */}
+      <WeeklySummaryCard />
+
       {/* Onboarding checklist for new users */}
       <OnboardingChecklist />
 
