@@ -78,7 +78,7 @@ export default function Monedas() {
   const [monedasData, setMonedasData] = useState(monedasBase);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
+  const { formatNumber } = useNumberFormat();
   // Auto-fetch on mount and every 5 minutes
   useEffect(() => {
     actualizarTasasSilencioso();
