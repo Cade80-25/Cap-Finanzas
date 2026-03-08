@@ -62,11 +62,30 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
   const { isSimpleMode, isFeatureAvailable } = useModeFeatures();
+  const { setTheme } = useTheme();
+  const [themeVariant, setThemeVariant] = useState(() => localStorage.getItem("cap-finanzas-theme-variant") || "light");
   const isElectron =
     typeof window !== "undefined" && typeof (window as any).electron !== "undefined";
   const [nativeMenuVisible, setNativeMenuVisible] = useState(false);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const [activationOpen, setActivationOpen] = useState(false);
+
+  const applyTheme = (value: string) => {
+    setThemeVariant(value);
+    localStorage.setItem("cap-finanzas-theme-variant", value);
+    if (value === "dim") {
+      document.documentElement.setAttribute("data-theme", "dim");
+      document.documentElement.classList.remove("dark");
+      setTheme("light");
+    } else if (value === "dark") {
+      document.documentElement.removeAttribute("data-theme");
+      setTheme("dark");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+      document.documentElement.classList.remove("dark");
+      setTheme("light");
+    }
+  };
 
   // Determine where to add transactions based on mode
   const addTransactionRoute = isSimpleMode ? "/transacciones" : "/libro-diario";
