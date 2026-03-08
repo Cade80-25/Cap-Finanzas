@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Key, Copy, Plus, Download, Trash2, Check, Shield } from "lucide-react";
+import { Key, Copy, Plus, Download, Trash2, Check, Shield, Mail, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface GeneratedLicense {
   code: string;
@@ -45,13 +46,41 @@ export default function LicenseGenerator() {
   const [selectedType, setSelectedType] = useState<"simple" | "traditional" | "full" | "account">("traditional");
   const [customerEmail, setCustomerEmail] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
 
   const saveLicenses = (newLicenses: GeneratedLicense[]) => {
     setLicenses(newLicenses);
     localStorage.setItem("cap-finanzas-generated-licenses", JSON.stringify(newLicenses));
   };
 
-  const generateLicenses = () => {
+  const sendLicenseEmail = async (email: string, code: string, type: string) => {
+    setSendingEmail(code);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-license-email", {
+        body: { email, licenseCode: code, licenseType: type },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email enviado ✉️",
+        description: `Licencia enviada a ${email}`,
+      });
+      return true;
+    } catch (err: any) {
+      console.error("Error sending email:", err);
+      toast({
+        title: "Error al enviar email",
+        description: err.message || "No se pudo enviar el correo",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setSendingEmail(null);
+    }
+  };
+
+  const generateLicenses = async () => {
     const newLicenses: GeneratedLicense[] = [];
     
     for (let i = 0; i < quantity; i++) {
@@ -65,12 +94,20 @@ export default function LicenseGenerator() {
     }
     
     saveLicenses([...newLicenses, ...licenses]);
-    setCustomerEmail("");
     
     toast({
       title: `${quantity} licencia(s) generada(s)`,
       description: `Tipo: ${selectedType === "simple" ? "Finanzas Simples ($8)" : selectedType === "full" ? "Licencia Completa ($13)" : selectedType === "account" ? "Cuenta Adicional ($3)" : "Contabilidad Completa ($11)"}`,
     });
+
+    // Auto-send email if customer email provided
+    if (customerEmail) {
+      for (const lic of newLicenses) {
+        await sendLicenseEmail(customerEmail, lic.code, lic.type);
+      }
+    }
+
+    setCustomerEmail("");
   };
 
   const copyToClipboard = (code: string) => {
@@ -311,6 +348,21 @@ export default function LicenseGenerator() {
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
+                          {license.customerEmail && !license.used && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => sendLicenseEmail(license.customerEmail!, license.code, license.type)}
+                              disabled={sendingEmail === license.code}
+                              title="Enviar por email"
+                            >
+                              {sendingEmail === license.code ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Mail className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
                           {!license.used && (
                             <Button
                               variant="ghost"
