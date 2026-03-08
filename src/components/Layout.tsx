@@ -37,6 +37,7 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { useModeFeatures, FeatureKey } from "@/hooks/useModeFeatures";
 import { Badge } from "@/components/ui/badge";
 import { FloatingAddAccount } from "@/components/FloatingAddAccount";
+import { FirstVisitTooltip } from "@/components/FirstVisitTooltip";
 
 type NavItem = {
   name: string;
@@ -164,6 +165,9 @@ export default function Layout() {
 
           {/* Floating add account button */}
           <FloatingAddAccount />
+
+          {/* First visit tooltip */}
+          <FirstVisitTooltip />
         </div>
       </div>
     </LicenseGate>

@@ -1,4 +1,4 @@
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, AlertTriangle, LayoutDashboard, Plus } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, AlertTriangle, LayoutDashboard, Plus, Sparkles } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { useBudgets } from "@/hooks/useBudgets";
 import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -91,6 +92,9 @@ export default function Dashboard() {
             : "Resumen general de tus finanzas (datos desde Libro Diario)"}
         </p>
       </div>
+
+      {/* Onboarding checklist for new users */}
+      <OnboardingChecklist />
 
       {/* Help for traditional mode when data isn't showing correctly */}
       {!isSimpleMode && hasTransactions && !hasFinancialData && (
@@ -324,7 +328,55 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Quick action card for simple mode */}
+      {/* Quick actions for simple mode */}
+      {isSimpleMode && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card 
+            className="cursor-pointer hover:border-success/50 transition-colors group shadow-soft"
+            onClick={() => navigate("/transacciones?action=income")}
+          >
+            <CardContent className="flex items-center gap-3 p-5">
+              <div className="h-11 w-11 rounded-full bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">
+                <TrendingUp className="h-5 w-5 text-success" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Agregar Ingreso</p>
+                <p className="text-xs text-muted-foreground">Salario, ventas...</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card 
+            className="cursor-pointer hover:border-destructive/50 transition-colors group shadow-soft"
+            onClick={() => navigate("/transacciones?action=expense")}
+          >
+            <CardContent className="flex items-center gap-3 p-5">
+              <div className="h-11 w-11 rounded-full bg-destructive/10 flex items-center justify-center group-hover:bg-destructive/20 transition-colors">
+                <TrendingDown className="h-5 w-5 text-destructive" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Agregar Gasto</p>
+                <p className="text-xs text-muted-foreground">Compras, servicios...</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card 
+            className="cursor-pointer hover:border-primary/50 transition-colors group shadow-soft"
+            onClick={() => navigate("/recomendaciones")}
+          >
+            <CardContent className="flex items-center gap-3 p-5">
+              <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Recomendaciones</p>
+                <p className="text-xs text-muted-foreground">Consejos con IA</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Original action card */}
       {isSimpleMode ? (
         <Card className="shadow-soft bg-gradient-primary">
           <CardHeader>
