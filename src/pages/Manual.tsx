@@ -1,8 +1,13 @@
-import { Book, ChevronRight, Home, Receipt, Calendar, Target, Globe, Tag, PieChart, BookOpen, FileText, BarChart3, TrendingUp, HelpCircle, Sparkles, User, Settings, Bell, Search } from "lucide-react";
+import { Book, ChevronRight, Home, Receipt, Calendar, Target, Globe, Tag, PieChart, BookOpen, FileText, BarChart3, TrendingUp, HelpCircle, Sparkles, User, Settings, Bell, Search, Play, CheckCircle2, RotateCcw, GraduationCap } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { useTutorial } from "@/hooks/useTutorial";
+import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 const secciones = [
   {
