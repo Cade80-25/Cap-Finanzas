@@ -658,7 +658,7 @@ export default function Configuracion() {
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
-      <div>
+      <div data-tutorial="configuracion-title">
         <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
           Configuración
         </h1>
@@ -744,7 +744,7 @@ export default function Configuracion() {
       {/* License Settings Section */}
       <LicenseSettings />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div data-tutorial="configuracion-datos" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -919,7 +919,7 @@ export default function Configuracion() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tutorial="configuracion-tema">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5" />

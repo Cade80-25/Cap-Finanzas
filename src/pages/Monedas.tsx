@@ -119,7 +119,7 @@ export default function Monedas() {
   return (
     <div className="p-8 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
+        <div data-tutorial="monedas-title">
           <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Monedas y Conversiones
           </h1>
@@ -134,7 +134,7 @@ export default function Monedas() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card data-tutorial="monedas-conversor">
           <CardHeader>
             <CardTitle>Conversor de Monedas</CardTitle>
             <CardDescription>
@@ -210,7 +210,7 @@ export default function Monedas() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tutorial="monedas-tasas">
           <CardHeader>
             <CardTitle>Tasas de Cambio</CardTitle>
             <CardDescription>

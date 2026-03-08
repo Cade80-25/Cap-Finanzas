@@ -72,7 +72,7 @@ export default function Categorias() {
   return (
     <div className="p-8 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
+        <div data-tutorial="categorias-title">
           <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Categorías
           </h1>
@@ -88,7 +88,7 @@ export default function Categorias() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div data-tutorial="categorias-stats" className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Ingresos</CardTitle>
@@ -129,7 +129,7 @@ export default function Categorias() {
         </Card>
       </div>
 
-      <Card>
+      <Card data-tutorial="categorias-lista">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>

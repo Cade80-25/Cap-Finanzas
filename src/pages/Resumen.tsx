@@ -116,7 +116,7 @@ export default function Resumen() {
         </ContextualHelp>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div data-tutorial="resumen-stats" className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Ingresos</CardTitle>
@@ -164,7 +164,7 @@ export default function Resumen() {
         </Card>
       </div>
 
-      <Tabs defaultValue="tendencias" className="space-y-4">
+      <Tabs data-tutorial="resumen-grafico" defaultValue="tendencias" className="space-y-4">
         <TabsList>
           <TabsTrigger value="tendencias">Tendencias</TabsTrigger>
           <TabsTrigger value="categorias">Por Categorías</TabsTrigger>

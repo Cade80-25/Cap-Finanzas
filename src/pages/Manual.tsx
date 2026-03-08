@@ -238,12 +238,19 @@ const preguntasFrecuentes = [
 
 const SECTION_ROUTES: Record<string, string> = {
   "dashboard": "/",
+  "transacciones": "/transacciones",
+  "calendario": "/calendario",
+  "presupuesto": "/presupuesto",
+  "monedas": "/monedas",
+  "categorias": "/categorias",
+  "resumen": "/resumen",
   "libro-diario": "/libro-diario",
   "libro-mayor": "/libro-mayor",
   "balance": "/balance",
   "estado-resultados": "/resultados",
-  "resumen": "/resumen",
-  "presupuesto": "/presupuesto",
+  "recomendaciones": "/recomendaciones",
+  "notificaciones": "/notificaciones",
+  "configuracion": "/configuracion",
 };
 
 export default function Manual() {

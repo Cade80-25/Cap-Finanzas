@@ -16,13 +16,20 @@ import { HelpSettingsDialog } from "@/components/HelpSettingsDialog";
 
 const ROUTE_TO_SECTION: Record<string, string> = {
   "/": "dashboard",
+  "/transacciones": "transacciones",
+  "/calendario": "calendario",
+  "/presupuesto": "presupuesto",
+  "/monedas": "monedas",
+  "/categorias": "categorias",
+  "/resumen": "resumen",
   "/libro-diario": "libro-diario",
   "/libro-mayor": "libro-mayor",
   "/balance": "balance",
   "/estado-resultados": "estado-resultados",
   "/resultados": "estado-resultados",
-  "/resumen": "resumen",
-  "/presupuesto": "presupuesto",
+  "/recomendaciones": "recomendaciones",
+  "/notificaciones": "notificaciones",
+  "/configuracion": "configuracion",
 };
 
 export function TutorialButton() {

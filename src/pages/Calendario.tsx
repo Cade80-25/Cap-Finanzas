@@ -60,7 +60,7 @@ export default function Calendario() {
   return (
     <div className="p-8 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
+        <div data-tutorial="calendario-title">
           <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Calendario Financiero
           </h1>
@@ -74,7 +74,7 @@ export default function Calendario() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
+        <Card data-tutorial="calendario-calendar" className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Calendario</CardTitle>
             <CardDescription>
@@ -103,7 +103,7 @@ export default function Calendario() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tutorial="calendario-detalle">
           <CardHeader>
             <CardTitle>Transacciones del Día</CardTitle>
             <CardDescription>

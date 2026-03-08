@@ -142,7 +142,7 @@ export default function Recomendaciones() {
 
   return (
     <div className="p-8 space-y-6 animate-fade-in">
-      <div>
+      <div data-tutorial="recomendaciones-title">
         <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
           Recomendaciones Inteligentes
         </h1>
@@ -151,7 +151,7 @@ export default function Recomendaciones() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div data-tutorial="recomendaciones-cards" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {recomendacionesAutomaticas.map((rec, idx) => (
           <Card key={idx} className="shadow-soft hover:shadow-lg transition-shadow">
             <CardHeader>
@@ -179,7 +179,7 @@ export default function Recomendaciones() {
         ))}
       </div>
 
-      <Card className="shadow-soft">
+      <Card data-tutorial="recomendaciones-chat" className="shadow-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <LineChart className="h-6 w-6 text-primary" />
