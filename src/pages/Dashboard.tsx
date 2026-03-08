@@ -13,6 +13,7 @@ import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
+import { WeeklySummaryCard } from "@/components/WeeklySummaryCard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -92,6 +93,9 @@ export default function Dashboard() {
             : "Resumen general de tus finanzas (datos desde Libro Diario)"}
         </p>
       </div>
+
+      {/* Weekly summary for simple mode */}
+      <WeeklySummaryCard />
 
       {/* Onboarding checklist for new users */}
       <OnboardingChecklist />

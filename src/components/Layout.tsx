@@ -21,6 +21,7 @@ import { useModeFeatures, FeatureKey } from "@/hooks/useModeFeatures";
 import { Badge } from "@/components/ui/badge";
 import { FloatingAddAccount } from "@/components/FloatingAddAccount";
 import { FirstVisitTooltip } from "@/components/FirstVisitTooltip";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 type NavItem = {
@@ -137,12 +138,13 @@ export default function Layout() {
           )}
 
           {/* Main Content */}
-          <main className="flex-1 overflow-auto">
+          <main className={cn("flex-1 overflow-auto", isMobile && "pb-14")}>
             <Outlet />
           </main>
 
           <FloatingAddAccount />
           <FirstVisitTooltip />
+          <MobileBottomNav />
         </div>
       </div>
     </LicenseGate>
