@@ -1,4 +1,5 @@
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, LayoutDashboard, Plus, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Wallet, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, LayoutDashboard, Plus, Sparkles, Info } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,8 +11,10 @@ import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { WeeklySummaryCard } from "@/components/WeeklySummaryCard";
+import { WelcomePresentation } from "@/components/WelcomePresentation";
 
 export default function Dashboard() {
+  const [showPresentation, setShowPresentation] = useState(false);
   const navigate = useNavigate();
   const { isSimpleMode, isFeatureAvailable } = useModeFeatures();
   const { formatCurrency } = useNumberFormat();
