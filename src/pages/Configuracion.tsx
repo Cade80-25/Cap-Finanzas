@@ -961,6 +961,30 @@ export default function Configuracion() {
 
             <Separator />
 
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                Formato Numérico
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Formato de separadores decimales y miles
+              </p>
+              <Select value={numberFormat} onValueChange={(value: "dot" | "comma") => {
+                setNumberFormat(value);
+                toast.success(value === "dot" ? "Formato: 1,234.56" : "Formato: 1.234,56");
+              }}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dot">Punto decimal — 1,234.56</SelectItem>
+                  <SelectItem value="comma">Coma decimal — 1.234,56</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Separator />
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Animaciones</Label>
