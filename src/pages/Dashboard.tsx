@@ -33,14 +33,22 @@ export default function Dashboard() {
 
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
-      <div data-tutorial="dashboard-title">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Panel Principal</h1>
-        <p className="text-muted-foreground">
-          {isSimpleMode 
-            ? "Resumen de tus ingresos y gastos" 
-            : "Resumen general de tus finanzas (datos desde Libro Diario)"}
-        </p>
+      <div data-tutorial="dashboard-title" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1">Panel Principal</h1>
+          <p className="text-muted-foreground text-sm">
+            {isSimpleMode 
+              ? "Resumen de tus ingresos y gastos" 
+              : "Resumen general de tus finanzas"}
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => setShowPresentation(true)} className="self-start">
+          <Info className="h-4 w-4 mr-1" />
+          ¿Cómo funciona?
+        </Button>
       </div>
+
+      <WelcomePresentation open={showPresentation} onOpenChange={setShowPresentation} />
 
       <WeeklySummaryCard />
 
