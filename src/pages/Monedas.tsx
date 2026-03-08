@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ArrowUpDown, RefreshCw, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -77,6 +77,34 @@ export default function Monedas() {
   const [monedasData, setMonedasData] = useState(monedasBase);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  // Auto-fetch on mount and every 5 minutes
+  useEffect(() => {
+    actualizarTasasSilencioso();
+    const interval = setInterval(actualizarTasasSilencioso, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const actualizarTasasSilencioso = async () => {
+    try {
+      const res = await fetch("https://open.er-api.com/v6/latest/USD");
+      const data = await res.json();
+      if (data.result === "success" && data.rates) {
+        setMonedasData(prev => prev.map(moneda => {
+          const nuevaTasa = data.rates[moneda.codigo];
+          if (nuevaTasa !== undefined) {
+            const cambio = moneda.tasaCambio > 0 
+              ? ((nuevaTasa - moneda.tasaCambio) / moneda.tasaCambio) * 100 
+              : 0;
+            return { ...moneda, tasaCambio: nuevaTasa, cambio24h: parseFloat(cambio.toFixed(2)) };
+          }
+          return moneda;
+        }));
+      }
+    } catch {
+      // Silent fail for auto-updates
+    }
+  };
 
   const actualizarTasas = useCallback(async () => {
     setLoading(true);
