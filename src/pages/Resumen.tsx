@@ -282,6 +282,128 @@ export default function Resumen() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Sección de Presupuesto */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              Presupuesto
+            </CardTitle>
+            <CardDescription>
+              {budgets.length > 0
+                ? `${budgets.length} categoría(s) · Gastado $${totalGastadoPresupuesto.toFixed(2)} de $${totalPresupuesto.toFixed(2)}`
+                : "Configura tus presupuestos para controlar tus gastos"}
+            </CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate("/presupuesto")}>
+            {budgets.length > 0 ? "Ver todo" : "Configurar"}
+            <ArrowRight className="ml-1 h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {presupuestosConGastos.length > 0 ? (
+            <div className="space-y-4">
+              {presupuestosConGastos.slice(0, 4).map((item) => {
+                const porcentaje = item.presupuesto > 0 ? (item.gastado / item.presupuesto) * 100 : 0;
+                const excedido = porcentaje > 100;
+                return (
+                  <div key={item.id} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">{item.categoria}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={excedido ? "text-destructive font-semibold" : "text-muted-foreground"}>
+                          ${item.gastado.toFixed(2)} / ${item.presupuesto.toFixed(2)}
+                        </span>
+                        {excedido && <Badge variant="destructive" className="text-xs">Excedido</Badge>}
+                      </div>
+                    </div>
+                    <Progress value={Math.min(porcentaje, 100)} className={excedido ? "[&>div]:bg-destructive" : ""} />
+                  </div>
+                );
+              })}
+              {presupuestosConGastos.length > 4 && (
+                <p className="text-xs text-muted-foreground text-center">
+                  +{presupuestosConGastos.length - 4} más...
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-muted-foreground">
+              <Target className="h-10 w-10 mx-auto mb-2 opacity-40" />
+              <p className="text-sm">No tienes presupuestos configurados</p>
+              <Button variant="link" size="sm" onClick={() => navigate("/presupuesto")}>
+                Crear mi primer presupuesto
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Resumen del Mes + Transacciones recientes */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Resumen del Mes */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <CalendarDays className="h-5 w-5 text-primary" />
+              Este Mes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Ingresos del mes</span>
+              <span className="font-semibold text-success">${ingresosDelMes.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Gastos del mes</span>
+              <span className="font-semibold text-destructive">${gastosDelMes.toFixed(2)}</span>
+            </div>
+            <div className="border-t pt-3 flex justify-between items-center">
+              <span className="text-sm font-medium">Balance del mes</span>
+              <span className={`font-bold text-lg ${ingresosDelMes - gastosDelMes >= 0 ? "text-success" : "text-destructive"}`}>
+                ${(ingresosDelMes - gastosDelMes).toFixed(2)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Últimos movimientos */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Wallet className="h-5 w-5 text-primary" />
+              Últimos Movimientos
+            </CardTitle>
+            <Button variant="outline" size="sm" onClick={() => navigate(isSimple ? "/transacciones" : "/libro-diario")}>
+              Ver todos <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {recentTx.length > 0 ? (
+              <div className="space-y-3">
+                {recentTx.map((tx) => (
+                  <div key={tx.id} className="flex items-center justify-between text-sm">
+                    <div className="flex flex-col">
+                      <span className="font-medium truncate max-w-[200px]">{tx.description}</span>
+                      <span className="text-xs text-muted-foreground">{tx.date}</span>
+                    </div>
+                    <span className={tx.type === "income" ? "text-success font-semibold" : "text-destructive font-semibold"}>
+                      {tx.type === "income" ? "+" : ""}${Math.abs(tx.amount).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <Wallet className="h-10 w-10 mx-auto mb-2 opacity-40" />
+                <p className="text-sm">Sin movimientos recientes</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
