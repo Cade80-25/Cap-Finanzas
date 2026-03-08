@@ -42,13 +42,13 @@ export default function Dashboard() {
               : "Resumen general de tus finanzas"}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setShowPresentation(true)} className="self-start">
-          <Info className="h-4 w-4 mr-1" />
-          ¿Cómo funciona?
+        <Button variant="outline" size="sm" onClick={() => setTourActive(true)} className="self-start">
+          <Navigation className="h-4 w-4 mr-1" />
+          Tour guiado
         </Button>
       </div>
 
-      <WelcomePresentation open={showPresentation} onOpenChange={setShowPresentation} />
+      <InteractiveAppTour active={tourActive} onClose={() => setTourActive(false)} />
 
       <WeeklySummaryCard />
 
