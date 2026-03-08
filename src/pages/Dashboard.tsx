@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Wallet, TrendingUp, TrendingDown, PiggyBank, LayoutDashboard, Sparkles, Navigation } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,10 +10,8 @@ import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { WeeklySummaryCard } from "@/components/WeeklySummaryCard";
-import { InteractiveAppTour } from "@/components/InteractiveAppTour";
 
 export default function Dashboard() {
-  const [tourActive, setTourActive] = useState(false);
   const navigate = useNavigate();
   const { isSimpleMode, isFeatureAvailable } = useModeFeatures();
   const { formatCurrency } = useNumberFormat();
@@ -31,6 +28,11 @@ export default function Dashboard() {
   const addTransactionRoute = isSimpleMode ? "/transacciones" : "/libro-diario";
   const addTransactionLabel = isSimpleMode ? "Agregar Movimiento" : "Ir al Libro Diario";
 
+  // Dispatch custom event to start tour from Layout
+  const startTour = () => {
+    window.dispatchEvent(new CustomEvent("start-app-tour"));
+  };
+
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
       <div data-tutorial="dashboard-title" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -42,13 +44,11 @@ export default function Dashboard() {
               : "Resumen general de tus finanzas"}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setTourActive(true)} className="self-start">
+        <Button variant="outline" size="sm" onClick={startTour} className="self-start">
           <Navigation className="h-4 w-4 mr-1" />
           Tour guiado
         </Button>
       </div>
-
-      <InteractiveAppTour active={tourActive} onClose={() => setTourActive(false)} />
 
       <WeeklySummaryCard />
 
