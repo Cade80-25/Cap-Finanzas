@@ -203,10 +203,10 @@ export default function LicenseGenerator() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="simple">Finanzas Simples ($5)</SelectItem>
-                    <SelectItem value="traditional">Contabilidad Completa ($10)</SelectItem>
-                    <SelectItem value="full">Licencia Completa ($12)</SelectItem>
-                    <SelectItem value="account">Cuenta Adicional ($2)</SelectItem>
+                    <SelectItem value="simple">Finanzas Simples ($8)</SelectItem>
+                    <SelectItem value="traditional">Contabilidad Completa ($11)</SelectItem>
+                    <SelectItem value="full">Licencia Completa ($13)</SelectItem>
+                    <SelectItem value="account">Cuenta Adicional ($3)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
