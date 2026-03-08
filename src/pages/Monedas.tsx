@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { ArrowUpDown, RefreshCw, Loader2 } from "lucide-react";
+import { useNumberFormat } from "@/hooks/useNumberFormat";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -77,7 +78,7 @@ export default function Monedas() {
   const [monedasData, setMonedasData] = useState(monedasBase);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
+  const { formatNumber } = useNumberFormat();
   // Auto-fetch on mount and every 5 minutes
   useEffect(() => {
     actualizarTasasSilencioso();
@@ -219,10 +220,10 @@ export default function Monedas() {
               <div className="text-center">
                 <p className="text-sm text-muted-foreground mb-2">Resultado</p>
                 <p className="text-3xl font-bold text-primary">
-                  {monedasData.find((m) => m.codigo === monedaDestino)?.simbolo}{resultado.toFixed(2)}
+                  {monedasData.find((m) => m.codigo === monedaDestino)?.simbolo}{formatNumber(resultado)}
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {cantidad} {monedaOrigen} = {resultado.toFixed(2)} {monedaDestino}
+                  {cantidad} {monedaOrigen} = {formatNumber(resultado)} {monedaDestino}
                 </p>
               </div>
             </div>
@@ -269,12 +270,12 @@ export default function Monedas() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {moneda.tasaCambio.toFixed(4)}
+                      {formatNumber(moneda.tasaCambio, 4)}
                     </TableCell>
                     <TableCell className="text-right">
                       <span className={moneda.cambio24h >= 0 ? "text-success" : "text-destructive"}>
                         {moneda.cambio24h >= 0 ? "+" : ""}
-                        {moneda.cambio24h.toFixed(2)}%
+                        {formatNumber(moneda.cambio24h)}%
                       </span>
                     </TableCell>
                   </TableRow>
