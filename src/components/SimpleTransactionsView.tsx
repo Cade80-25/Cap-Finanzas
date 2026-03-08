@@ -346,12 +346,12 @@ export function SimpleTransactionsView() {
   };
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">Mis Movimientos</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">Mis Movimientos</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Registra tus ingresos y gastos de forma sencilla
           </p>
         </div>

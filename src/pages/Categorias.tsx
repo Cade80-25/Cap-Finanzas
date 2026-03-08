@@ -70,13 +70,13 @@ export default function Categorias() {
   const actionRoute = isSimpleMode ? "/transacciones" : "/libro-diario";
 
   return (
-    <div className="p-8 space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+    <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div data-tutorial="categorias-title">
-          <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             Categorías
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
             {isSimpleMode
               ? "Categorías generadas automáticamente desde tus movimientos"
               : "Categorías generadas automáticamente desde el Libro Diario"}
