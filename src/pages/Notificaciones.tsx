@@ -74,7 +74,7 @@ export default function Notificaciones() {
   };
 
   return (
-    <div className="p-6 space-y-6 animate-in fade-in duration-500">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div data-tutorial="notificaciones-title">
           <h1 className="text-3xl font-bold mb-2">Centro de Notificaciones</h1>

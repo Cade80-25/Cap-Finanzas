@@ -294,7 +294,7 @@ export default function Enciclopedia() {
   const categories = Array.from(new Set(terms.map((term) => term.category)));
 
   return (
-    <div className="p-6 space-y-6 animate-in fade-in duration-500">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
       <div>
         <h1 className="text-3xl font-bold mb-2">Enciclopedia Financiera</h1>
         <p className="text-muted-foreground">
