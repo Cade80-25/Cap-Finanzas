@@ -69,7 +69,7 @@ export default function LicenseGenerator() {
     
     toast({
       title: `${quantity} licencia(s) generada(s)`,
-      description: `Tipo: ${selectedType === "simple" ? "Finanzas Simples ($5)" : selectedType === "full" ? "Licencia Completa ($12)" : selectedType === "account" ? "Cuenta Adicional ($2)" : "Contabilidad Completa ($10)"}`,
+      description: `Tipo: ${selectedType === "simple" ? "Finanzas Simples ($8)" : selectedType === "full" ? "Licencia Completa ($13)" : selectedType === "account" ? "Cuenta Adicional ($3)" : "Contabilidad Completa ($11)"}`,
     });
   };
 
@@ -159,25 +159,25 @@ export default function LicenseGenerator() {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Finanzas Simples ($5)</CardDescription>
+              <CardDescription>Finanzas Simples ($8)</CardDescription>
               <CardTitle className="text-2xl">{simpleCount}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Contabilidad ($10)</CardDescription>
+              <CardDescription>Contabilidad ($11)</CardDescription>
               <CardTitle className="text-2xl">{traditionalCount}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Completa ($12)</CardDescription>
+              <CardDescription>Completa ($13)</CardDescription>
               <CardTitle className="text-2xl">{fullCount}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Cuenta Extra ($2)</CardDescription>
+              <CardDescription>Cuenta Extra ($3)</CardDescription>
               <CardTitle className="text-2xl">{accountCount}</CardTitle>
             </CardHeader>
           </Card>
@@ -203,10 +203,10 @@ export default function LicenseGenerator() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="simple">Finanzas Simples ($5)</SelectItem>
-                    <SelectItem value="traditional">Contabilidad Completa ($10)</SelectItem>
-                    <SelectItem value="full">Licencia Completa ($12)</SelectItem>
-                    <SelectItem value="account">Cuenta Adicional ($2)</SelectItem>
+                    <SelectItem value="simple">Finanzas Simples ($8)</SelectItem>
+                    <SelectItem value="traditional">Contabilidad Completa ($11)</SelectItem>
+                    <SelectItem value="full">Licencia Completa ($13)</SelectItem>
+                    <SelectItem value="account">Cuenta Adicional ($3)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -283,7 +283,7 @@ export default function LicenseGenerator() {
                       <TableCell className="font-mono font-medium">{license.code}</TableCell>
                       <TableCell>
                         <Badge variant={license.type === "simple" ? "secondary" : license.type === "full" ? "outline" : license.type === "account" ? "secondary" : "default"}>
-                          {license.type === "simple" ? "Simple $5" : license.type === "full" ? "Completa $12" : license.type === "account" ? "Cuenta $2" : "Contabilidad $10"}
+                          {license.type === "simple" ? "Simple $8" : license.type === "full" ? "Completa $13" : license.type === "account" ? "Cuenta $3" : "Contabilidad $11"}
                         </Badge>
                       </TableCell>
                       <TableCell>{new Date(license.createdAt).toLocaleDateString()}</TableCell>

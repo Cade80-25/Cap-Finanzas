@@ -202,7 +202,7 @@ export default function Recomendaciones() {
                 <Badge variant="default" className="text-[10px]">Chat Financiero</Badge>
               </div>
               <div className="space-y-1">
-                <p className="font-semibold">Completa <span className="text-muted-foreground">($12)</span></p>
+                <p className="font-semibold">Completa <span className="text-muted-foreground">($13)</span></p>
                 <Badge variant="default" className="text-[10px]">Tutor Educativo</Badge>
                 <Badge variant="default" className="text-[10px]">Chat Financiero</Badge>
                 <Badge variant="default" className="text-[10px]">Bolsas en Vivo</Badge>
@@ -305,7 +305,7 @@ export default function Recomendaciones() {
                     </p>
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-xs font-medium">
                       <TrendingUp className="h-3.5 w-3.5" />
-                      Requiere: Contabilidad Tradicional ($10) o Licencia Completa ($12)
+                      Requiere: Contabilidad Tradicional ($11) o Licencia Completa ($13)
                     </div>
                   </CardContent>
                 </Card>
@@ -403,7 +403,7 @@ export default function Recomendaciones() {
                     </p>
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-xs font-medium">
                       <BarChart3 className="h-3.5 w-3.5" />
-                      Requiere: Licencia Completa ($12)
+                      Requiere: Licencia Completa ($13)
                     </div>
                   </CardContent>
                 </Card>

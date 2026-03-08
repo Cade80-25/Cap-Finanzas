@@ -172,11 +172,11 @@ const secciones = [
       },
       {
         subtitulo: "Chat Financiero",
-        texto: "Disponible con Contabilidad Tradicional ($10) o Licencia Completa ($12). Conversa con la IA sobre mercados, inversiones y estrategias financieras avanzadas."
+        texto: "Disponible con Contabilidad Tradicional ($11) o Licencia Completa ($13). Conversa con la IA sobre mercados, inversiones y estrategias financieras avanzadas."
       },
       {
         subtitulo: "Bolsas en Vivo",
-        texto: "Exclusivo de la Licencia Completa ($12). Accede a datos del mercado en tiempo real con widgets de bolsas internacionales como NYSE, NASDAQ, BMV y más."
+        texto: "Exclusivo de la Licencia Completa ($13). Accede a datos del mercado en tiempo real con widgets de bolsas internacionales como NYSE, NASDAQ, BMV y más."
       }
     ]
   },
