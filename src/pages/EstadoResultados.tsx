@@ -56,7 +56,7 @@ export default function EstadoResultados() {
   const COLORS = ["hsl(var(--primary))", "hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--destructive))", "hsl(var(--accent))"];
 
   return (
-    <div className="p-6 space-y-6 animate-in fade-in duration-500">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
       <div data-tutorial="resultados-title">
         <h1 className="text-3xl font-bold mb-2">Estado de Resultados</h1>
         <p className="text-muted-foreground">

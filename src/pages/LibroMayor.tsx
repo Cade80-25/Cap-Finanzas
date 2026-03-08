@@ -14,7 +14,7 @@ export default function LibroMayor() {
   const { libroMayor } = useAccountingData();
 
   return (
-    <div className="p-6 space-y-6 animate-in fade-in duration-500">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
       <div data-tutorial="mayor-title">
         <h1 className="text-3xl font-bold mb-2">Libro Mayor</h1>
         <p className="text-muted-foreground">
