@@ -1,8 +1,13 @@
-import { Book, ChevronRight, Home, Receipt, Calendar, Target, Globe, Tag, PieChart, BookOpen, FileText, BarChart3, TrendingUp, HelpCircle, Sparkles, User, Settings, Bell, Search } from "lucide-react";
+import { Book, ChevronRight, Home, Receipt, Calendar, Target, Globe, Tag, PieChart, BookOpen, FileText, BarChart3, TrendingUp, HelpCircle, Sparkles, User, Settings, Bell, Search, Play, CheckCircle2, RotateCcw, GraduationCap } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { useTutorial } from "@/hooks/useTutorial";
+import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 const secciones = [
   {
@@ -231,7 +236,33 @@ const preguntasFrecuentes = [
   }
 ];
 
+const SECTION_ROUTES: Record<string, string> = {
+  "dashboard": "/",
+  "libro-diario": "/libro-diario",
+  "libro-mayor": "/libro-mayor",
+  "balance": "/balance",
+  "estado-resultados": "/resultados",
+  "resumen": "/resumen",
+  "presupuesto": "/presupuesto",
+};
+
 export default function Manual() {
+  const navigate = useNavigate();
+  const { allSections, isSectionCompleted, startTutorial, resetTutorial, completedSections } = useTutorial();
+
+  const completedCount = completedSections.length;
+  const totalCount = allSections.length;
+  const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
+  const handleStartTutorial = (sectionId: string) => {
+    const route = SECTION_ROUTES[sectionId];
+    if (route) {
+      navigate(route);
+      // Small delay to let the page render before starting tutorial
+      setTimeout(() => startTutorial(sectionId), 300);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div>
@@ -240,6 +271,76 @@ export default function Manual() {
           Guía completa para aprovechar al máximo Cap Finanzas
         </p>
       </div>
+
+      {/* Tutoriales Interactivos */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="h-5 w-5 text-primary" />
+                Tutoriales Interactivos
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Aprende a usar cada sección con guías paso a paso
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={resetTutorial} className="gap-1.5">
+              <RotateCcw className="h-3.5 w-3.5" />
+              Reiniciar
+            </Button>
+          </div>
+          {/* Progress */}
+          <div className="space-y-1.5 pt-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Progreso general</span>
+              <span className="font-medium">{completedCount}/{totalCount} completados</span>
+            </div>
+            <Progress value={progressPercent} className="h-2" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {allSections.map((section) => {
+              const completed = isSectionCompleted(section.id);
+              const hasRoute = !!SECTION_ROUTES[section.id];
+              return (
+                <button
+                  key={section.id}
+                  onClick={() => handleStartTutorial(section.id)}
+                  disabled={!hasRoute}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-xl border text-left transition-all",
+                    completed
+                      ? "bg-primary/5 border-primary/20 hover:bg-primary/10"
+                      : "bg-card hover:bg-muted border-border",
+                    !hasRoute && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <div className={cn(
+                    "flex items-center justify-center h-9 w-9 rounded-lg shrink-0",
+                    completed ? "bg-primary/10" : "bg-muted"
+                  )}>
+                    {completed ? (
+                      <CheckCircle2 className="h-5 w-5 text-primary" />
+                    ) : (
+                      <Play className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className={cn("text-sm font-medium truncate", completed && "text-primary")}>
+                      {section.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {section.steps.length} pasos {completed && "· ✓ Completado"}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Índice rápido */}
       <Card>
