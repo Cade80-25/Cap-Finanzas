@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, ArrowUpRight, LayoutDashboard, Plus, Sparkles, Info } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, PiggyBank, LayoutDashboard, Sparkles, Navigation } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAccountingData } from "@/hooks/useAccountingData";
@@ -11,7 +11,7 @@ import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { WeeklySummaryCard } from "@/components/WeeklySummaryCard";
-import { WelcomePresentation } from "@/components/WelcomePresentation";
+import { InteractiveAppTour } from "@/components/InteractiveAppTour";
 
 export default function Dashboard() {
   const [showPresentation, setShowPresentation] = useState(false);
