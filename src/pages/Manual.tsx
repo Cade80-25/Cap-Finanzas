@@ -273,7 +273,7 @@ export default function Manual() {
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Manual de Usuario</h1>
+        <h1 className="text-3xl font-bold mb-2">Tutoriales y Manual de Usuario</h1>
         <p className="text-muted-foreground">
           Guía completa para aprovechar al máximo Cap Finanzas
         </p>
