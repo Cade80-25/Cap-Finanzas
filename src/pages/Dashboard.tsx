@@ -1,4 +1,4 @@
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, LayoutDashboard, Sparkles, Navigation } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, PiggyBank, LayoutDashboard, Sparkles, Navigation, PieChart, Target, Receipt, Globe, ArrowRight } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,45 @@ import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { WeeklySummaryCard } from "@/components/WeeklySummaryCard";
+
+const exploreCards = [
+  {
+    name: "Transacciones",
+    description: "Registra ingresos y gastos",
+    href: "/transacciones",
+    icon: Receipt,
+    gradient: "from-primary/15 to-primary/5",
+    iconColor: "text-primary",
+    emoji: "💸",
+  },
+  {
+    name: "Presupuesto",
+    description: "Controla tus límites de gasto",
+    href: "/presupuesto",
+    icon: Target,
+    gradient: "from-warning/15 to-warning/5",
+    iconColor: "text-warning",
+    emoji: "🎯",
+  },
+  {
+    name: "Resumen",
+    description: "Gráficos y estadísticas",
+    href: "/resumen",
+    icon: PieChart,
+    gradient: "from-success/15 to-success/5",
+    iconColor: "text-success",
+    emoji: "📊",
+  },
+  {
+    name: "Monedas",
+    description: "Tipos de cambio en vivo",
+    href: "/monedas",
+    icon: Globe,
+    gradient: "from-accent/15 to-accent/5",
+    iconColor: "text-accent",
+    emoji: "🌍",
+  },
+];
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -28,7 +67,6 @@ export default function Dashboard() {
   const addTransactionRoute = isSimpleMode ? "/transacciones" : "/libro-diario";
   const addTransactionLabel = isSimpleMode ? "Agregar Movimiento" : "Ir al Libro Diario";
 
-  // Dispatch custom event to start tour from Layout
   const startTour = () => {
     window.dispatchEvent(new CustomEvent("start-app-tour"));
   };
@@ -160,6 +198,38 @@ export default function Dashboard() {
           </Card>
         </div>
       )}
+
+      {/* Explore section - encourages navigation to reduce bounce rate */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <span>🧭</span> Explora la app
+          </h2>
+          <Button variant="ghost" size="sm" onClick={startTour} className="text-xs text-muted-foreground">
+            Tour completo
+            <ArrowRight className="h-3 w-3 ml-1" />
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {exploreCards.map((card) => (
+            <Card
+              key={card.href}
+              className="cursor-pointer group hover:shadow-medium transition-all duration-300 hover:-translate-y-0.5 border-border/60"
+              onClick={() => navigate(card.href)}
+            >
+              <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+                <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                  <card.icon className={`h-6 w-6 ${card.iconColor}`} />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">{card.name}</p>
+                  <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{card.description}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
