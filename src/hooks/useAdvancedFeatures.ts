@@ -39,7 +39,7 @@ export function useAdvancedFeatures() {
   const [logs, setLogs] = useLocalStorage<LogEntry[]>(LOGS_KEY, []);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
-  const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Add a log entry
   const addLog = useCallback((

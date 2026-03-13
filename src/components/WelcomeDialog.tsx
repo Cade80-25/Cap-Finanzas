@@ -23,7 +23,10 @@ export function WelcomeDialog() {
   const handleStartTutorial = () => {
     setFormat(selectedFormat);
     markWelcomeSeen();
-    startTutorial("dashboard");
+    // Start the interactive app tour instead of the old tutorial
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent("start-app-tour"));
+    }, 500);
   };
 
   const handleSkip = () => {

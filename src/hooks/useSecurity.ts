@@ -55,7 +55,7 @@ export function useSecurity() {
   });
   
   const lastActivityRef = useRef<number>(Date.now());
-  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Update activity timestamp
   const updateActivity = useCallback(() => {
