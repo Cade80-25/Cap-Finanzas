@@ -20,6 +20,18 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     }
   });
 
+  // Re-read from localStorage when key changes
+  useEffect(() => {
+    try {
+      const item = localStorage.getItem(key);
+      const parsed = item ? (JSON.parse(item) as T) : initialValue;
+      setStoredValue(parsed);
+    } catch (error) {
+      console.error(`Error re-reading ${key} from localStorage:`, error);
+      setStoredValue(initialValue);
+    }
+  }, [key]);
+
   // Sincronizar cambios entre distintos componentes (mismo window) y pestañas (storage)
   useEffect(() => {
     const syncFromStorage = (raw: string | null) => {
