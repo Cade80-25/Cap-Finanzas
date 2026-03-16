@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      calendar_reminders: {
+        Row: {
+          created_at: string
+          description: string | null
+          email: string | null
+          event_date: string
+          event_id: string
+          event_time: string
+          id: string
+          methods: string[]
+          phone: string | null
+          processed_at: string | null
+          reminder_at: string
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          event_date: string
+          event_id: string
+          event_time: string
+          id?: string
+          methods?: string[]
+          phone?: string | null
+          processed_at?: string | null
+          reminder_at: string
+          status?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          event_date?: string
+          event_id?: string
+          event_time?: string
+          id?: string
+          methods?: string[]
+          phone?: string | null
+          processed_at?: string | null
+          reminder_at?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       licenses: {
         Row: {
           code: string
