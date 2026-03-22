@@ -69,10 +69,6 @@ export function ReminderPreferencesDialog({
       toast.error("Ingresa tu email para recibir recordatorios por correo");
       return;
     }
-    if (methods.includes("sms") && !phone.trim()) {
-      toast.error("Ingresa tu teléfono para recibir recordatorios por SMS");
-      return;
-    }
 
     onSave({
       email: email.trim(),
