@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ReminderPreferences } from "@/hooks/useCalendarEvents";
-import { Mail, MessageSquare, Settings, Smartphone } from "lucide-react";
+import { Mail, Settings, Smartphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
