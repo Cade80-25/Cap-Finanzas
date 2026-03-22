@@ -61,7 +61,7 @@ export function CalendarEventDialog({
   const [color, setColor] = useState(eventColors[0]);
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [minutesBefore, setMinutesBefore] = useState("15");
-  const [methods, setMethods] = useState<("app" | "email" | "sms")[]>(["app"]);
+  const [methods, setMethods] = useState<("app" | "email")[]>(["app"]);
 
   useEffect(() => {
     if (editEvent) {
