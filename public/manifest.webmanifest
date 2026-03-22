@@ -1,26 +1,30 @@
 {
   "name": "Cap Finanzas - Finanzas Personales",
   "short_name": "Cap Finanzas",
-  "description": "Aplicación educativa de finanzas personales fácil de usar",
+  "description": "Software de finanzas personales y contabilidad 100% offline. Control de gastos, presupuestos, libros contables y tutor con IA.",
   "theme_color": "#1a1a2e",
   "background_color": "#1a1a2e",
   "display": "standalone",
-  "orientation": "portrait",
-  "start_url": "./",
-  "scope": "./",
+  "orientation": "any",
+  "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "categories": ["finance", "productivity", "education"],
+  "lang": "es",
+  "dir": "ltr",
   "icons": [
     {
-      "src": "icons/icon-final.png",
+      "src": "/icons/icon-final.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-final.png",
+      "src": "/icon-final.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "icon-final.png",
+      "src": "/icon-final.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

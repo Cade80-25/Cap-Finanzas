@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { CalendarEvent, ReminderPreferences } from "@/hooks/useCalendarEvents";
-import { Bell, Mail, MessageSquare, Smartphone } from "lucide-react";
+import { Bell, Mail, Smartphone } from "lucide-react";
 
 interface CalendarEventDialogProps {
   open: boolean;
@@ -61,7 +61,7 @@ export function CalendarEventDialog({
   const [color, setColor] = useState(eventColors[0]);
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [minutesBefore, setMinutesBefore] = useState("15");
-  const [methods, setMethods] = useState<("app" | "email" | "sms")[]>(["app"]);
+  const [methods, setMethods] = useState<("app" | "email")[]>(["app"]);
 
   useEffect(() => {
     if (editEvent) {
@@ -85,7 +85,7 @@ export function CalendarEventDialog({
     }
   }, [open, editEvent, initialDate, eventColors, preferences]);
 
-  const toggleMethod = (method: "app" | "email" | "sms") => {
+  const toggleMethod = (method: "app" | "email") => {
     setMethods((prev) =>
       prev.includes(method) ? prev.filter((m) => m !== method) : [...prev, method]
     );
@@ -96,9 +96,6 @@ export function CalendarEventDialog({
 
     // Validate email/phone if those methods are selected
     if (methods.includes("email") && !preferences.email) {
-      return;
-    }
-    if (methods.includes("sms") && !preferences.phone) {
       return;
     }
 
@@ -249,24 +246,11 @@ export function CalendarEventDialog({
                       <Mail className="h-3 w-3" />
                       Email
                     </Badge>
-                    <Badge
-                      variant={methods.includes("sms") ? "default" : "outline"}
-                      className="cursor-pointer gap-1"
-                      onClick={() => toggleMethod("sms")}
-                    >
-                      <MessageSquare className="h-3 w-3" />
-                      SMS
-                    </Badge>
                   </div>
 
                   {methods.includes("email") && !preferences.email && (
                     <p className="text-xs text-destructive">
                       ⚠️ Configura tu email en Preferencias de Recordatorio
-                    </p>
-                  )}
-                  {methods.includes("sms") && !preferences.phone && (
-                    <p className="text-xs text-destructive">
-                      ⚠️ Configura tu teléfono en Preferencias de Recordatorio
                     </p>
                   )}
                 </div>

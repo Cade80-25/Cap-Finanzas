@@ -10,8 +10,8 @@ export interface CalendarEvent {
   color: string;
   reminder: {
     enabled: boolean;
-    minutesBefore: number; // 5, 10, 15, 30, 60, 1440 (1 day)
-    methods: ("app" | "email" | "sms")[];
+    minutesBefore: number;
+    methods: ("app" | "email")[];
   };
   createdAt: string;
 }
@@ -19,7 +19,7 @@ export interface CalendarEvent {
 export interface ReminderPreferences {
   email: string;
   phone: string;
-  defaultMethod: ("app" | "email" | "sms")[];
+  defaultMethod: ("app" | "email")[];
   defaultMinutesBefore: number;
 }
 

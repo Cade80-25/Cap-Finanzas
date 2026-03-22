@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ReminderPreferences } from "@/hooks/useCalendarEvents";
-import { Mail, MessageSquare, Settings, Smartphone } from "lucide-react";
+import { Mail, Settings, Smartphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -46,7 +46,7 @@ export function ReminderPreferencesDialog({
 }: ReminderPreferencesDialogProps) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [methods, setMethods] = useState<("app" | "email" | "sms")[]>(["app"]);
+  const [methods, setMethods] = useState<("app" | "email")[]>(["app"]);
   const [minutesBefore, setMinutesBefore] = useState("15");
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export function ReminderPreferencesDialog({
     }
   }, [open, preferences]);
 
-  const toggleMethod = (method: "app" | "email" | "sms") => {
+  const toggleMethod = (method: "app" | "email") => {
     setMethods((prev) =>
       prev.includes(method) ? prev.filter((m) => m !== method) : [...prev, method]
     );
@@ -67,10 +67,6 @@ export function ReminderPreferencesDialog({
   const handleSave = () => {
     if (methods.includes("email") && !email.trim()) {
       toast.error("Ingresa tu email para recibir recordatorios por correo");
-      return;
-    }
-    if (methods.includes("sms") && !phone.trim()) {
-      toast.error("Ingresa tu teléfono para recibir recordatorios por SMS");
       return;
     }
 
@@ -112,21 +108,6 @@ export function ReminderPreferencesDialog({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="pref-phone" className="flex items-center gap-1">
-              <MessageSquare className="h-3 w-3" /> Teléfono (con código de país)
-            </Label>
-            <Input
-              id="pref-phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+1 555 123 4567"
-            />
-            <p className="text-xs text-muted-foreground">
-              Formato internacional: +1 para EE.UU., +52 para México, etc.
-            </p>
-          </div>
 
           {/* Default methods */}
           <div className="space-y-2">
@@ -147,14 +128,6 @@ export function ReminderPreferencesDialog({
               >
                 <Mail className="h-3 w-3" />
                 Email
-              </Badge>
-              <Badge
-                variant={methods.includes("sms") ? "default" : "outline"}
-                className="cursor-pointer gap-1"
-                onClick={() => toggleMethod("sms")}
-              >
-                <MessageSquare className="h-3 w-3" />
-                SMS
               </Badge>
             </div>
           </div>
