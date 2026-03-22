@@ -249,24 +249,11 @@ export function CalendarEventDialog({
                       <Mail className="h-3 w-3" />
                       Email
                     </Badge>
-                    <Badge
-                      variant={methods.includes("sms") ? "default" : "outline"}
-                      className="cursor-pointer gap-1"
-                      onClick={() => toggleMethod("sms")}
-                    >
-                      <MessageSquare className="h-3 w-3" />
-                      SMS
-                    </Badge>
                   </div>
 
                   {methods.includes("email") && !preferences.email && (
                     <p className="text-xs text-destructive">
                       ⚠️ Configura tu email en Preferencias de Recordatorio
-                    </p>
-                  )}
-                  {methods.includes("sms") && !preferences.phone && (
-                    <p className="text-xs text-destructive">
-                      ⚠️ Configura tu teléfono en Preferencias de Recordatorio
                     </p>
                   )}
                 </div>
