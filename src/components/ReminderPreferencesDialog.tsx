@@ -58,7 +58,7 @@ export function ReminderPreferencesDialog({
     }
   }, [open, preferences]);
 
-  const toggleMethod = (method: "app" | "email" | "sms") => {
+  const toggleMethod = (method: "app" | "email") => {
     setMethods((prev) =>
       prev.includes(method) ? prev.filter((m) => m !== method) : [...prev, method]
     );
