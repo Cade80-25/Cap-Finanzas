@@ -19,7 +19,7 @@ export interface CalendarEvent {
 export interface ReminderPreferences {
   email: string;
   phone: string;
-  defaultMethod: ("app" | "email" | "sms")[];
+  defaultMethod: ("app" | "email")[];
   defaultMinutesBefore: number;
 }
 
