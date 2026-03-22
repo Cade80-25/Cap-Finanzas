@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { CalendarEvent, ReminderPreferences } from "@/hooks/useCalendarEvents";
-import { Bell, Mail, MessageSquare, Smartphone } from "lucide-react";
+import { Bell, Mail, Smartphone } from "lucide-react";
 
 interface CalendarEventDialogProps {
   open: boolean;
