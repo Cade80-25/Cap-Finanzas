@@ -133,14 +133,6 @@ export function ReminderPreferencesDialog({
                 <Mail className="h-3 w-3" />
                 Email
               </Badge>
-              <Badge
-                variant={methods.includes("sms") ? "default" : "outline"}
-                className="cursor-pointer gap-1"
-                onClick={() => toggleMethod("sms")}
-              >
-                <MessageSquare className="h-3 w-3" />
-                SMS
-              </Badge>
             </div>
           </div>
 
