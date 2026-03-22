@@ -98,9 +98,6 @@ export function CalendarEventDialog({
     if (methods.includes("email") && !preferences.email) {
       return;
     }
-    if (methods.includes("sms") && !preferences.phone) {
-      return;
-    }
 
     onSave({
       title: title.trim(),

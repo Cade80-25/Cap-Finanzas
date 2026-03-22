@@ -106,14 +106,13 @@ export default function Calendario() {
     return () => clearInterval(interval);
   }, [calendarEvents, addNotification]);
 
-  // Schedule backend reminder (email/sms)
+  // Schedule backend reminder (email)
   const scheduleBackendReminder = useCallback(
     async (event: CalendarEvent) => {
       if (!event.reminder.enabled) return;
-      const backendMethods = event.reminder.methods.filter((m) => m === "email" || m === "sms");
+      const backendMethods = event.reminder.methods.filter((m) => m === "email");
       if (backendMethods.length === 0) return;
       if (backendMethods.includes("email") && !preferences.email) return;
-      if (backendMethods.includes("sms") && !preferences.phone) return;
 
       try {
         const eventDateTime = new Date(`${event.date}T${event.time}`);
