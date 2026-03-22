@@ -46,7 +46,7 @@ export function ReminderPreferencesDialog({
 }: ReminderPreferencesDialogProps) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [methods, setMethods] = useState<("app" | "email" | "sms")[]>(["app"]);
+  const [methods, setMethods] = useState<("app" | "email")[]>(["app"]);
   const [minutesBefore, setMinutesBefore] = useState("15");
 
   useEffect(() => {
