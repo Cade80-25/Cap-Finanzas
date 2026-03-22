@@ -112,21 +112,6 @@ export function ReminderPreferencesDialog({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="pref-phone" className="flex items-center gap-1">
-              <MessageSquare className="h-3 w-3" /> Teléfono (con código de país)
-            </Label>
-            <Input
-              id="pref-phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+1 555 123 4567"
-            />
-            <p className="text-xs text-muted-foreground">
-              Formato internacional: +1 para EE.UU., +52 para México, etc.
-            </p>
-          </div>
 
           {/* Default methods */}
           <div className="space-y-2">
