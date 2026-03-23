@@ -101,7 +101,7 @@ const testimonios = [
 const faqs = [
   {
     question: "¿Necesito conexión a internet?",
-    answer: "No. Cap Finanzas funciona 100% offline. Una vez instalado, no necesitas internet para nada. Solo se requiere internet para el Tutor Educativo con IA y las Bolsas en Vivo.",
+    answer: "No. Cap Finanzas funciona 100% offline. Solo se requiere internet para el Tutor Educativo con IA, Chat Financiero y las Bolsas en Vivo.",
   },
   {
     question: "¿Dónde se guardan mis datos?",
@@ -109,37 +109,37 @@ const faqs = [
   },
   {
     question: "¿Qué incluye la prueba gratuita?",
-    answer: "La prueba de 30 días incluye acceso completo a todas las funciones, incluyendo Tutor Educativo, Chat Financiero y Bolsas en Vivo.",
+    answer: "La prueba de 30 días incluye acceso completo a todas las funciones: ambos modos, Tutor Educativo, Chat Financiero y Bolsas en Vivo.",
   },
   {
     question: "¿Cómo recibo mi código de licencia?",
-    answer: "Después de completar tu pago por PayPal, recibirás tu código automáticamente. También puedes recuperarlo desde la app ingresando tu correo.",
+    answer: "Después de completar tu pago de $10 USD por PayPal, recibirás tu código automáticamente por correo. También puedes recuperarlo desde la app.",
   },
   {
     question: "¿Hay pagos mensuales o anuales?",
-    answer: "No. Es un pago único de por vida. Sin suscripciones ni costos ocultos.",
+    answer: "No. Es un pago único de $10 USD de por vida. Sin suscripciones ni costos ocultos.",
   },
   {
-    question: "¿Cuál es la diferencia entre los planes?",
-    answer: "Finanzas Simples ($7) incluye control de gastos y Tutor Educativo. Contabilidad Tradicional ($10) agrega partida doble y Chat Financiero. La Licencia Completa ($12) incluye todo más Bolsas en Vivo.",
+    question: "¿Qué incluye la licencia?",
+    answer: "Todo: Finanzas Simples, Contabilidad Tradicional con partida doble, Tutor IA, Chat Financiero, Bolsas en Vivo, hasta 5 cuentas, 3 perfiles y actualizaciones de por vida.",
   },
 ];
 
-const planComparison = [
-  { feature: "Registro de ingresos y gastos", simple: true, traditional: true, full: true },
-  { feature: "Categorías y presupuestos", simple: true, traditional: true, full: true },
-  { feature: "Calendario financiero", simple: true, traditional: true, full: true },
-  { feature: "Resumen con gráficos", simple: true, traditional: true, full: true },
-  { feature: "Múltiples monedas", simple: true, traditional: true, full: true },
-  { feature: "Tutor Educativo (IA)", simple: true, traditional: true, full: true },
-  { feature: "Libro Diario (partida doble)", simple: false, traditional: true, full: true },
-  { feature: "Libro Mayor", simple: false, traditional: true, full: true },
-  { feature: "Balance General", simple: false, traditional: true, full: true },
-  { feature: "Estado de Resultados", simple: false, traditional: true, full: true },
-  { feature: "Enciclopedia contable", simple: false, traditional: true, full: true },
-  { feature: "Chat Financiero (IA)", simple: false, traditional: true, full: true },
-  { feature: "Bolsas en Vivo", simple: false, traditional: false, full: true },
-  { feature: "Cambio libre entre modos", simple: false, traditional: false, full: true },
+const allFeatures = [
+  "Registro de ingresos y gastos",
+  "Categorías y presupuestos",
+  "Calendario financiero con recordatorios",
+  "Resumen con gráficos y exportación",
+  "Múltiples monedas",
+  "Tutor Educativo (IA)",
+  "Contabilidad de partida doble",
+  "Libro Diario, Mayor, Balance y Estado de Resultados",
+  "Enciclopedia contable",
+  "Chat Financiero (IA)",
+  "Bolsas en Vivo",
+  "Cambio libre entre modos",
+  "Hasta 5 cuentas y 3 perfiles",
+  "Actualizaciones gratuitas de por vida",
 ];
 
 // Animated counter hook
