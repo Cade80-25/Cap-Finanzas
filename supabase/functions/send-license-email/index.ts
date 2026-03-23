@@ -6,13 +6,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const planNames: Record<string, string> = {
-  simple: "Finanzas Simples",
-  traditional: "Contabilidad Tradicional",
-  full: "Licencia Completa",
-  account: "Cuenta Adicional",
-};
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -21,9 +14,9 @@ Deno.serve(async (req) => {
   try {
     const { email, licenseCode, licenseType } = await req.json();
 
-    if (!email || !licenseCode || !licenseType) {
+    if (!email || !licenseCode) {
       return new Response(
-        JSON.stringify({ error: "Missing email, licenseCode, or licenseType" }),
+        JSON.stringify({ error: "Missing email or licenseCode" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -36,8 +29,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const planLabel = planNames[licenseType] || licenseType;
-
     const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -47,7 +38,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: "Cap Finanzas <noreply@capfinanzas.com>",
         to: [email],
-        subject: `Tu licencia de Cap Finanzas — ${planLabel}`,
+        subject: "Tu licencia de Cap Finanzas — Acceso Completo",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h1 style="color: #2563eb; text-align: center;">¡Gracias por tu compra!</h1>
@@ -57,7 +48,7 @@ Deno.serve(async (req) => {
                 ${licenseCode}
               </p>
               <p style="margin: 12px 0 0; color: #64748b; font-size: 14px;">
-                ${planLabel}
+                Acceso Completo — Cap Finanzas
               </p>
             </div>
             <h2 style="color: #1e293b;">¿Cómo activar?</h2>
