@@ -101,7 +101,7 @@ const testimonios = [
 const faqs = [
   {
     question: "¿Necesito conexión a internet?",
-    answer: "No. Cap Finanzas funciona 100% offline. Una vez instalado, no necesitas internet para nada. Solo se requiere internet para el Tutor Educativo con IA y las Bolsas en Vivo.",
+    answer: "No. Cap Finanzas funciona 100% offline. Solo se requiere internet para el Tutor Educativo con IA, Chat Financiero y las Bolsas en Vivo.",
   },
   {
     question: "¿Dónde se guardan mis datos?",
@@ -109,37 +109,37 @@ const faqs = [
   },
   {
     question: "¿Qué incluye la prueba gratuita?",
-    answer: "La prueba de 30 días incluye acceso completo a todas las funciones, incluyendo Tutor Educativo, Chat Financiero y Bolsas en Vivo.",
+    answer: "La prueba de 30 días incluye acceso completo a todas las funciones: ambos modos, Tutor Educativo, Chat Financiero y Bolsas en Vivo.",
   },
   {
     question: "¿Cómo recibo mi código de licencia?",
-    answer: "Después de completar tu pago por PayPal, recibirás tu código automáticamente. También puedes recuperarlo desde la app ingresando tu correo.",
+    answer: "Después de completar tu pago de $10 USD por PayPal, recibirás tu código automáticamente por correo. También puedes recuperarlo desde la app.",
   },
   {
     question: "¿Hay pagos mensuales o anuales?",
-    answer: "No. Es un pago único de por vida. Sin suscripciones ni costos ocultos.",
+    answer: "No. Es un pago único de $10 USD de por vida. Sin suscripciones ni costos ocultos.",
   },
   {
-    question: "¿Cuál es la diferencia entre los planes?",
-    answer: "Finanzas Simples ($7) incluye control de gastos y Tutor Educativo. Contabilidad Tradicional ($10) agrega partida doble y Chat Financiero. La Licencia Completa ($12) incluye todo más Bolsas en Vivo.",
+    question: "¿Qué incluye la licencia?",
+    answer: "Todo: Finanzas Simples, Contabilidad Tradicional con partida doble, Tutor IA, Chat Financiero, Bolsas en Vivo, hasta 5 cuentas, 3 perfiles y actualizaciones de por vida.",
   },
 ];
 
-const planComparison = [
-  { feature: "Registro de ingresos y gastos", simple: true, traditional: true, full: true },
-  { feature: "Categorías y presupuestos", simple: true, traditional: true, full: true },
-  { feature: "Calendario financiero", simple: true, traditional: true, full: true },
-  { feature: "Resumen con gráficos", simple: true, traditional: true, full: true },
-  { feature: "Múltiples monedas", simple: true, traditional: true, full: true },
-  { feature: "Tutor Educativo (IA)", simple: true, traditional: true, full: true },
-  { feature: "Libro Diario (partida doble)", simple: false, traditional: true, full: true },
-  { feature: "Libro Mayor", simple: false, traditional: true, full: true },
-  { feature: "Balance General", simple: false, traditional: true, full: true },
-  { feature: "Estado de Resultados", simple: false, traditional: true, full: true },
-  { feature: "Enciclopedia contable", simple: false, traditional: true, full: true },
-  { feature: "Chat Financiero (IA)", simple: false, traditional: true, full: true },
-  { feature: "Bolsas en Vivo", simple: false, traditional: false, full: true },
-  { feature: "Cambio libre entre modos", simple: false, traditional: false, full: true },
+const allFeatures = [
+  "Registro de ingresos y gastos",
+  "Categorías y presupuestos",
+  "Calendario financiero con recordatorios",
+  "Resumen con gráficos y exportación",
+  "Múltiples monedas",
+  "Tutor Educativo (IA)",
+  "Contabilidad de partida doble",
+  "Libro Diario, Mayor, Balance y Estado de Resultados",
+  "Enciclopedia contable",
+  "Chat Financiero (IA)",
+  "Bolsas en Vivo",
+  "Cambio libre entre modos",
+  "Hasta 5 cuentas y 3 perfiles",
+  "Actualizaciones gratuitas de por vida",
 ];
 
 // Animated counter hook
@@ -346,138 +346,32 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-16">
-            {/* Plan Simple */}
-            <Card className="relative hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-xl">Finanzas Simples</CardTitle>
-                <CardDescription>Control básico de gastos e ingresos</CardDescription>
-                <div className="text-4xl font-bold mt-4">
-                  $7 <span className="text-lg font-normal text-muted-foreground">USD</span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-2">
-                  {["Registro de ingresos y gastos", "Categorías y presupuestos", "Resumen con gráficos", "Calendario financiero", "Múltiples monedas", "Tutor Educativo (IA)"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                  {["Chat Financiero", "Bolsas en Vivo"].map((item, i) => (
-                    <li key={`no-${i}`} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <X className="h-4 w-4 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <Button className="w-full" variant="outline" onClick={() => setPurchaseOpen(true)}>
-                  Seleccionar
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Plan Tradicional */}
-            <Card className="relative hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-xl">Contabilidad Tradicional</CardTitle>
-                <CardDescription>Sistema profesional de partida doble</CardDescription>
-                <div className="text-4xl font-bold mt-4">
+          {/* Single Plan Card */}
+          <div className="max-w-md mx-auto">
+            <Card className="relative border-primary shadow-lg shadow-primary/10 hover:shadow-xl transition-all">
+              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <Star className="h-3 w-3 mr-1" /> Acceso Completo
+              </Badge>
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl">Cap Finanzas</CardTitle>
+                <CardDescription>Finanzas personales + Contabilidad profesional</CardDescription>
+                <div className="text-5xl font-bold mt-4 text-primary">
                   $10 <span className="text-lg font-normal text-muted-foreground">USD</span>
                 </div>
+                <p className="text-sm text-muted-foreground mt-1">Pago único · Para siempre</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-2">
-                  {["Todo de Finanzas Simples", "Libro Diario (partida doble)", "Libro Mayor por cuenta", "Balance General automático", "Estado de Resultados", "Enciclopedia contable", "Chat Financiero (IA)"].map((item, i) => (
+                  {allFeatures.map((item, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                  {["Bolsas en Vivo"].map((item, i) => (
-                    <li key={`no-${i}`} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <X className="h-4 w-4 flex-shrink-0" />
+                      <Check className="h-4 w-4 text-primary flex-shrink-0" />
                       {item}
                     </li>
                   ))}
                 </ul>
-                <Button className="w-full" variant="outline" onClick={() => setPurchaseOpen(true)}>
-                  Seleccionar
+                <Button className="w-full" size="lg" onClick={() => setPurchaseOpen(true)}>
+                  Comprar por $10 USD <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
-              </CardContent>
-            </Card>
-
-            {/* Plan Completo */}
-            <Card className="relative border-primary shadow-lg shadow-primary/10 hover:shadow-xl hover:shadow-primary/15 transition-all">
-              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Star className="h-3 w-3 mr-1" /> Mejor Valor
-              </Badge>
-              <CardHeader>
-                <CardTitle className="text-xl">Licencia Completa</CardTitle>
-                <CardDescription>Ambos modos + todas las herramientas</CardDescription>
-                <div className="text-4xl font-bold mt-4 text-primary">
-                  $12 <span className="text-lg font-normal text-muted-foreground">USD</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">Ahorra $5 vs comprar por separado</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-2">
-                  {["Todo de ambos planes", "Cambio libre entre modos", "Bolsas en Vivo", "Tutor Educativo (IA)", "Chat Financiero (IA)", "Hasta 3 perfiles", "Actualizaciones de por vida"].map((item, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <Button className="w-full" onClick={() => setPurchaseOpen(true)}>
-                  Seleccionar <ArrowRight className="h-4 w-4 ml-1" />
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Comparison Table */}
-          <div className="max-w-4xl mx-auto">
-            <h3 className="text-xl font-semibold text-center mb-6">Comparación Detallada</h3>
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="text-left p-4 font-medium">Función</th>
-                        <th className="text-center p-4 font-medium">
-                          <div>Simples</div>
-                          <div className="text-xs font-normal text-muted-foreground">$7</div>
-                        </th>
-                        <th className="text-center p-4 font-medium">
-                          <div>Tradicional</div>
-                          <div className="text-xs font-normal text-muted-foreground">$10</div>
-                        </th>
-                        <th className="text-center p-4 font-medium">
-                          <div>Completa</div>
-                          <div className="text-xs font-normal text-muted-foreground">$12</div>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {planComparison.map((row, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? "bg-background" : "bg-muted/20"}>
-                          <td className="p-4">{row.feature}</td>
-                          <td className="text-center p-4">
-                            {row.simple ? <Check className="h-4 w-4 text-emerald-500 mx-auto" /> : <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />}
-                          </td>
-                          <td className="text-center p-4">
-                            {row.traditional ? <Check className="h-4 w-4 text-emerald-500 mx-auto" /> : <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />}
-                          </td>
-                          <td className="text-center p-4">
-                            {row.full ? <Check className="h-4 w-4 text-emerald-500 mx-auto" /> : <X className="h-4 w-4 text-muted-foreground/40 mx-auto" />}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
               </CardContent>
             </Card>
           </div>

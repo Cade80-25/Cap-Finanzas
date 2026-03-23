@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, BookOpen, ChevronDown, Lock, Check } from "lucide-react";
+import { Wallet, BookOpen, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ModeSelectorProps {
@@ -18,7 +18,7 @@ interface ModeSelectorProps {
 }
 
 export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorProps) {
-  const { mode, setMode, isModeAvailable, status, trialInfo } = useLicense();
+  const { mode, setMode, status, trialInfo } = useLicense();
 
   const modes = [
     {
@@ -46,10 +46,7 @@ export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorP
         <Button 
           variant="outline" 
           size={compact ? "sm" : "default"}
-          className={cn(
-            "gap-2",
-            compact && "h-8 px-2"
-          )}
+          className={cn("gap-2", compact && "h-8 px-2")}
         >
           <CurrentIcon className={cn("h-4 w-4", compact && "h-3 w-3")} />
           <span className={cn(compact && "hidden sm:inline")}>
@@ -71,25 +68,19 @@ export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorP
         
         {modes.map((modeOption) => {
           const Icon = modeOption.icon;
-          const isAvailable = isModeAvailable(modeOption.id);
           const isActive = mode === modeOption.id;
 
           return (
             <DropdownMenuItem
               key={modeOption.id}
-              onClick={() => isAvailable && setMode(modeOption.id)}
-              className={cn(
-                "flex items-start gap-3 p-3 cursor-pointer",
-                !isAvailable && "opacity-50 cursor-not-allowed"
-              )}
-              disabled={!isAvailable}
+              onClick={() => setMode(modeOption.id)}
+              className="flex items-start gap-3 p-3 cursor-pointer"
             >
               <Icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{modeOption.fullName}</span>
                   {isActive && <Check className="h-4 w-4 text-primary" />}
-                  {!isAvailable && <Lock className="h-3 w-3" />}
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {modeOption.description}
@@ -106,7 +97,7 @@ export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorP
               onClick={onPurchaseClick}
               className="text-primary font-medium"
             >
-              Adquirir licencia
+              Adquirir licencia ($10 USD)
             </DropdownMenuItem>
           </>
         )}

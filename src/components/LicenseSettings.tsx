@@ -8,11 +8,9 @@ import { Separator } from "@/components/ui/separator";
 import { 
   Key, 
   ShoppingCart, 
-  Clock, 
   CheckCircle2, 
   Wallet, 
   BookOpen,
-  ArrowUpRight,
   Sparkles
 } from "lucide-react";
 import { PurchaseDialog } from "./PurchaseDialog";
@@ -24,8 +22,6 @@ export function LicenseSettings() {
     mode, 
     status, 
     trialInfo, 
-    purchasedModes, 
-    canUpgrade, 
     pricing,
     setMode,
     isModeAvailable
@@ -59,7 +55,6 @@ export function LicenseSettings() {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Trial progress */}
           {status === "trial" && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
@@ -70,40 +65,34 @@ export function LicenseSettings() {
               </div>
               <Progress value={trialPercentage} className="h-2" />
               <p className="text-xs text-muted-foreground">
-                Tu prueba gratuita de 30 días te da acceso completo a ambos modos
+                Tu prueba gratuita de 30 días te da acceso completo a todas las funciones
               </p>
             </div>
           )}
 
-          {/* Active license info */}
           {status === "active" && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-success">
+              <div className="flex items-center gap-2 text-emerald-600">
                 <CheckCircle2 className="h-5 w-5" />
-                <span className="font-medium">Licencia verificada y activa</span>
+                <span className="font-medium">Licencia verificada — Acceso completo</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {purchasedModes.includes("simple") && (
-                  <Badge variant="outline" className="gap-1">
-                    <Wallet className="h-3 w-3" />
-                    Finanzas Simples
-                  </Badge>
-                )}
-                {purchasedModes.includes("traditional") && (
-                  <Badge variant="outline" className="gap-1">
-                    <BookOpen className="h-3 w-3" />
-                    Contabilidad Tradicional
-                  </Badge>
-                )}
+                <Badge variant="outline" className="gap-1">
+                  <Wallet className="h-3 w-3" />
+                  Finanzas Simples
+                </Badge>
+                <Badge variant="outline" className="gap-1">
+                  <BookOpen className="h-3 w-3" />
+                  Contabilidad Tradicional
+                </Badge>
               </div>
             </div>
           )}
 
-          {/* Expired notice */}
           {status === "expired" && (
             <div className="bg-destructive/10 text-destructive rounded-lg p-4">
               <p className="font-medium">Tu período de prueba ha terminado</p>
-              <p className="text-sm mt-1">Adquiere una licencia para continuar usando Cap Finanzas</p>
+              <p className="text-sm mt-1">Adquiere tu licencia por solo ${pricing.full} USD para continuar</p>
             </div>
           )}
         </CardContent>
@@ -119,14 +108,12 @@ export function LicenseSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* Simple Mode Card */}
             <div
               className={cn(
                 "relative rounded-lg border-2 p-4 cursor-pointer transition-all",
-                mode === "simple" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
-                !isModeAvailable("simple") && "opacity-50 cursor-not-allowed"
+                mode === "simple" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
               )}
-              onClick={() => isModeAvailable("simple") && setMode("simple")}
+              onClick={() => setMode("simple")}
             >
               {mode === "simple" && (
                 <Badge className="absolute -top-2 -right-2 text-xs">Activo</Badge>
@@ -140,19 +127,16 @@ export function LicenseSettings() {
                   <p className="text-sm text-muted-foreground mt-1">
                     Registro sencillo de ingresos y gastos
                   </p>
-                  <p className="text-sm font-medium text-primary mt-2">${pricing.simple} USD</p>
                 </div>
               </div>
             </div>
 
-            {/* Traditional Mode Card */}
             <div
               className={cn(
                 "relative rounded-lg border-2 p-4 cursor-pointer transition-all",
-                mode === "traditional" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
-                !isModeAvailable("traditional") && "opacity-50 cursor-not-allowed"
+                mode === "traditional" ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
               )}
-              onClick={() => isModeAvailable("traditional") && setMode("traditional")}
+              onClick={() => setMode("traditional")}
             >
               {mode === "traditional" && (
                 <Badge className="absolute -top-2 -right-2 text-xs">Activo</Badge>
@@ -166,85 +150,55 @@ export function LicenseSettings() {
                   <p className="text-sm text-muted-foreground mt-1">
                     Sistema completo de partida doble
                   </p>
-                  <p className="text-sm font-medium text-primary mt-2">${pricing.traditional} USD</p>
                 </div>
               </div>
             </div>
           </div>
-
-          {!isModeAvailable("traditional") && status !== "trial" && (
-            <p className="text-sm text-muted-foreground text-center">
-              El modo Contabilidad Tradicional requiere la licencia correspondiente
-            </p>
-          )}
         </CardContent>
       </Card>
 
-      {/* Purchase/Upgrade Options */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5" />
-            {status === "active" && canUpgrade ? "Upgrade Disponible" : "Opciones de Compra"}
-          </CardTitle>
-          <CardDescription>
-            {status === "active" && canUpgrade 
-              ? "Desbloquea más funciones con el upgrade"
-              : "Adquiere tu licencia de Cap Finanzas"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Upgrade offer for existing simple users */}
-          {canUpgrade && (
-            <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 border border-primary/20">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="font-semibold flex items-center gap-2">
-                    <ArrowUpRight className="h-4 w-4" />
-                    Upgrade a Contabilidad Tradicional
-                  </h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Paga solo la diferencia y obtén acceso completo
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold">${pricing.upgradeSimpleToTraditional}</p>
-                  <p className="text-xs text-muted-foreground">USD</p>
-                </div>
-              </div>
+      {/* Purchase Option - only show if not active */}
+      {status !== "active" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Obtener Acceso Completo
+            </CardTitle>
+            <CardDescription>
+              Un solo pago de ${pricing.full} USD — sin suscripciones
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                className="flex-1" 
+                onClick={() => setPurchaseOpen(true)}
+              >
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Comprar por ${pricing.full} USD
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setActivationOpen(true)}
+              >
+                <Key className="h-4 w-4 mr-2" />
+                Activar Código de Licencia
+              </Button>
             </div>
-          )}
 
-          {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button 
-              className="flex-1" 
-              onClick={() => setPurchaseOpen(true)}
-            >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              {canUpgrade ? "Ver Opciones de Upgrade" : "Ver Planes y Precios"}
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex-1"
-              onClick={() => setActivationOpen(true)}
-            >
-              <Key className="h-4 w-4 mr-2" />
-              Activar Código de Licencia
-            </Button>
-          </div>
+            <Separator />
 
-          <Separator />
+            <div className="text-center text-sm text-muted-foreground space-y-1">
+              <p>💳 Pago único vía PayPal — sin suscripciones</p>
+              <p>📧 Recibes tu código de licencia por correo electrónico</p>
+              <p>🔒 Tus datos siempre permanecen en tu dispositivo</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-          <div className="text-center text-sm text-muted-foreground space-y-1">
-            <p>💳 Pago único vía PayPal - sin suscripciones</p>
-            <p>📧 Recibes tu código de licencia por correo electrónico</p>
-            <p>🔒 Tus datos siempre permanecen en tu dispositivo</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Dialogs */}
       <PurchaseDialog 
         open={purchaseOpen} 
         onOpenChange={setPurchaseOpen}
@@ -252,7 +206,6 @@ export function LicenseSettings() {
           setPurchaseOpen(false);
           setActivationOpen(true);
         }}
-        highlightMode={canUpgrade ? "traditional" : undefined}
       />
       <ActivationDialog 
         open={activationOpen} 
