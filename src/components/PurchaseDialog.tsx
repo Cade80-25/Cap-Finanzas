@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,14 +7,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Check, CreditCard, Mail, ArrowRight, Sparkles, Loader2, Search, Copy, CheckCircle2 } from "lucide-react";
-import { LicenseMode, useLicense } from "@/hooks/useLicense";
-import { cn } from "@/lib/utils";
+import { useLicense } from "@/hooks/useLicense";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -22,14 +21,11 @@ interface PurchaseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onActivate: () => void;
-  highlightMode?: LicenseMode;
+  highlightMode?: string;
 }
 
-export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }: PurchaseDialogProps) {
-  const { pricing, canUpgrade, canUpgradeFromSimple, canUpgradeFromTraditional, purchasedModes } = useLicense();
-  const [selectedPlan, setSelectedPlan] = useState<LicenseMode | "upgrade" | "full" | null>(
-    highlightMode || null
-  );
+export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialogProps) {
+  const { pricing } = useLicense();
   const [checkEmail, setCheckEmail] = useState("");
   const [isChecking, setIsChecking] = useState(false);
   const [checkResult, setCheckResult] = useState<{
@@ -40,101 +36,8 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
   const [showCheck, setShowCheck] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-  const hasSimple = purchasedModes.includes("simple");
-  const hasTraditional = purchasedModes.includes("traditional");
-  const hasBoth = hasSimple && hasTraditional;
-
-  const plans = [
-    {
-      id: "simple" as const,
-      name: "Finanzas Personales Simples",
-      price: pricing.simple,
-      description: "Ideal para controlar gastos e ingresos personales",
-      features: [
-        "Registro de ingresos y gastos",
-        "Categorías personalizables",
-        "Resumen mensual con gráficos",
-        "Presupuestos y metas",
-        "Calendario financiero",
-        "Múltiples monedas",
-      ],
-      disabled: hasSimple || hasBoth,
-      badge: hasSimple ? "Adquirido" : null,
-    },
-    {
-      id: "traditional" as const,
-      name: "Contabilidad Tradicional",
-      price: canUpgradeFromSimple ? pricing.upgradeSimpleToTraditional : pricing.traditional,
-      description: "Sistema completo de contabilidad de doble entrada",
-      features: [
-        "Todo de Finanzas Simples",
-        "Libro Diario con partida doble",
-        "Libro Mayor por cuenta",
-        "Balance General",
-        "Estado de Resultados",
-        "Plan de cuentas profesional",
-        "Enciclopedia contable",
-      ],
-      disabled: hasTraditional || hasBoth,
-      badge: hasTraditional ? "Adquirido" : canUpgradeFromSimple ? `Upgrade $${pricing.upgradeSimpleToTraditional}` : null,
-    },
-    {
-      id: "full" as const,
-      name: "Licencia Completa",
-      price: canUpgradeFromSimple ? pricing.upgradeSimpleToFull : canUpgradeFromTraditional ? pricing.upgradeTraditionalToFull : pricing.full,
-      description: "Ambos modos en una sola licencia — la mejor oferta",
-      features: [
-        "Todo de Finanzas Simples",
-        "Todo de Contabilidad Tradicional",
-        "Cambio libre entre ambos modos",
-        canUpgradeFromSimple ? `Upgrade por solo $${pricing.upgradeSimpleToFull}` : canUpgradeFromTraditional ? `Upgrade por solo $${pricing.upgradeTraditionalToFull}` : "Ahorra $5 vs comprar por separado",
-        "Actualizaciones gratuitas de por vida",
-      ],
-      popular: true,
-      disabled: hasBoth,
-      badge: hasBoth ? "Adquirido" : canUpgradeFromSimple ? `Upgrade $${pricing.upgradeSimpleToFull}` : canUpgradeFromTraditional ? `Upgrade $${pricing.upgradeTraditionalToFull}` : null,
-    },
-  ];
-
-  const paypalButtonIds: Record<string, string> = {
-    simple: "SDZEKEWWMXAVQ",
-    traditional: "XSMYNZAHU2BRA",
-    full: "KZXBA5QRWVQV2",
-    account: "Z9FFB77NMKC94",
-    upgradeSimpleToTraditional: "JHMVWLPAW4MKY",
-    upgradeSimpleToFull: "6PFVBF3SYB2ZA",
-    upgradeTraditionalToFull: "KF8ASLVUQBG6J",
-  };
-
-  const getSelectedPrice = () => {
-    if (!selectedPlan) return 0;
-    if (selectedPlan === "full") {
-      if (canUpgradeFromSimple) return pricing.upgradeSimpleToFull;
-      if (canUpgradeFromTraditional) return pricing.upgradeTraditionalToFull;
-      return pricing.full;
-    }
-    if (selectedPlan === "traditional") return canUpgradeFromSimple ? pricing.upgradeSimpleToTraditional : pricing.traditional;
-    return selectedPlan === "simple" ? pricing.simple : 0;
-  };
-
-  const getPlanLabel = () => {
-    if (!selectedPlan) return "";
-    if (selectedPlan === "full") return "Licencia Completa";
-    if (selectedPlan === "simple") return "Finanzas Simples";
-    return "Contabilidad Tradicional";
-  };
-
-  const getPaypalButtonId = () => {
-    if (!selectedPlan) return paypalButtonIds.simple;
-    if (selectedPlan === "traditional" && canUpgradeFromSimple) return paypalButtonIds.upgradeSimpleToTraditional;
-    if (selectedPlan === "full" && canUpgradeFromSimple) return paypalButtonIds.upgradeSimpleToFull;
-    if (selectedPlan === "full" && canUpgradeFromTraditional) return paypalButtonIds.upgradeTraditionalToFull;
-    return paypalButtonIds[selectedPlan] || paypalButtonIds.simple;
-  };
-
-  const getPaypalFormUrl = () => {
-    return `https://www.paypal.com/ncp/payment/${getPaypalButtonId()}`;
-  };
+  const paypalButtonId = "KZXBA5QRWVQV2";
+  const paypalUrl = `https://www.paypal.com/ncp/payment/${paypalButtonId}`;
 
   const handleCheckLicense = async () => {
     if (!checkEmail.trim()) return;
@@ -166,250 +69,181 @@ export function PurchaseDialog({ open, onOpenChange, onActivate, highlightMode }
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
+  const allFeatures = [
+    "Registro de ingresos y gastos",
+    "Categorías y presupuestos",
+    "Calendario financiero con recordatorios",
+    "Contabilidad de partida doble",
+    "Libro Diario, Mayor, Balance y Estado de Resultados",
+    "Tutor Educativo y Chat Financiero (IA)",
+    "Bolsas en Vivo",
+    "Hasta 5 cuentas y 3 perfiles",
+    "Actualizaciones gratuitas de por vida",
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Adquirir Cap Finanzas</DialogTitle>
-          <DialogDescription>
-            Elige el plan que mejor se adapte a tus necesidades
+          <DialogTitle className="text-2xl text-center">Adquirir Cap Finanzas</DialogTitle>
+          <DialogDescription className="text-center">
+            Un solo pago, acceso completo para siempre
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid md:grid-cols-3 gap-4 mt-4">
-          {plans.map((plan) => (
-            <Card
-              key={plan.id}
-              className={cn(
-                "relative cursor-pointer transition-all",
-                selectedPlan === plan.id && "ring-2 ring-primary",
-                plan.disabled && "opacity-50 cursor-not-allowed",
-                plan.popular && !plan.disabled && "border-primary"
-              )}
-              onClick={() => !plan.disabled && setSelectedPlan(plan.id)}
+        {/* Single Plan Card */}
+        <Card className="border-primary shadow-lg shadow-primary/10 mt-4">
+          <CardContent className="pt-6 space-y-4">
+            <div className="text-center">
+              <Badge className="mb-3">
+                <Sparkles className="h-3 w-3 mr-1" />
+                Acceso Completo
+              </Badge>
+              <div className="text-5xl font-bold text-primary">
+                ${pricing.full}
+                <span className="text-lg font-normal text-muted-foreground"> USD</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">Pago único · Sin suscripciones</p>
+            </div>
+
+            <ul className="space-y-2">
+              {allFeatures.map((feature, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm">
+                  <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* Payment Section */}
+        <Card className="bg-muted/50">
+          <CardContent className="pt-6 space-y-4">
+            <div className="flex items-center gap-2 font-medium">
+              <CreditCard className="h-5 w-5" />
+              Pagar con PayPal
+            </div>
+
+            <div className="bg-background rounded-lg p-4 space-y-3">
+              <ol className="list-decimal list-inside space-y-2 text-sm">
+                <li>Haz clic en <strong>"Pagar con PayPal"</strong> abajo</li>
+                <li>Completa el pago con tu cuenta de PayPal</li>
+                <li>Regresa aquí y haz clic en <strong>"Ya pagué, buscar mi licencia"</strong></li>
+              </ol>
+              <p className="text-xs text-muted-foreground">
+                Tu licencia se generará automáticamente usando el correo de tu cuenta de PayPal.
+              </p>
+            </div>
+
+            <Button
+              className="w-full gap-2"
+              onClick={() => window.open(paypalUrl, "_blank")}
             >
-              {plan.popular && !plan.disabled && (
-                <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  Más completo
-                </Badge>
-              )}
-              {plan.badge && (
-                <Badge 
-                  variant={plan.disabled ? "secondary" : "outline"} 
-                  className="absolute -top-2 right-4"
-                >
-                  {plan.badge}
-                </Badge>
-              )}
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">{plan.name}</CardTitle>
-                <CardDescription>{plan.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold mb-4">
-                  ${plan.price}
-                  <span className="text-sm font-normal text-muted-foreground"> USD</span>
-                  {canUpgradeFromSimple && (plan.id === "traditional" || plan.id === "full") && (
-                    <span className="text-sm font-normal text-muted-foreground block">
-                      (Upgrade desde Finanzas Simples)
-                    </span>
-                  )}
-                  {canUpgradeFromTraditional && plan.id === "full" && (
-                    <span className="text-sm font-normal text-muted-foreground block">
-                      (Upgrade desde Contabilidad Tradicional)
-                    </span>
-                  )}
-                </div>
-                <ul className="space-y-2">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              <ArrowRight className="h-4 w-4" />
+              Pagar con PayPal (${pricing.full} USD)
+            </Button>
 
-        {/* Extra accounts info */}
-        <div className="bg-muted/50 rounded-lg p-3 mt-2 flex items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            💼 <strong>¿Necesitas más cuentas?</strong> Todos los planes incluyen 1 cuenta. 
-            Puedes agregar hasta 4 adicionales por <strong>$2 USD</strong> cada una (máximo 5).
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            className="shrink-0"
-            onClick={() => window.open(`https://www.paypal.com/ncp/payment/${paypalButtonIds.account}`, "_blank")}
-          >
-            Comprar cuenta ($2)
-          </Button>
-        </div>
+            <div className="border-t pt-4 space-y-3">
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => setShowCheck(!showCheck)}
+              >
+                <Search className="h-4 w-4" />
+                Ya pagué, buscar mi licencia
+              </Button>
 
-        {selectedPlan && (
-          <Card className="mt-4 bg-muted/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
-                Pagar con PayPal
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-background rounded-lg p-4 space-y-3">
-                <p className="font-medium">
-                  {getPlanLabel()} — <span className="text-primary">${getSelectedPrice()} USD</span>
-                </p>
-                <ol className="list-decimal list-inside space-y-2 text-sm">
-                  <li>
-                    Haz clic en <strong>"Pagar con PayPal"</strong> abajo
-                  </li>
-                  <li>
-                    Completa el pago con tu cuenta de PayPal
-                  </li>
-                  <li>
-                    Regresa aquí y haz clic en <strong>"Ya pagué, buscar mi licencia"</strong>
-                  </li>
-                </ol>
-                <p className="text-xs text-muted-foreground">
-                  Tu licencia se generará automáticamente usando el correo de tu cuenta de PayPal.
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                <Button 
-                  className="flex-1 gap-2"
-                  onClick={() => window.open(getPaypalFormUrl(), "_blank")}
-                >
-                  <ArrowRight className="h-4 w-4" />
-                  Pagar con PayPal (${getSelectedPrice()})
-                </Button>
-              </div>
-
-              <div className="border-t pt-4 space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full gap-2"
-                  onClick={() => setShowCheck(!showCheck)}
-                >
-                  <Search className="h-4 w-4" />
-                  Ya pagué, buscar mi licencia
-                </Button>
-
-                {showCheck && (
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="check-email">Correo electrónico usado en el pago</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="check-email"
-                          type="email"
-                          placeholder="tu-correo@email.com"
-                          value={checkEmail}
-                          onChange={(e) => {
-                            setCheckEmail(e.target.value);
-                            setCheckResult(null);
-                          }}
-                          onKeyDown={(e) => e.key === "Enter" && handleCheckLicense()}
-                        />
-                        <Button
-                          onClick={handleCheckLicense}
-                          disabled={isChecking || !checkEmail.trim()}
-                        >
-                          {isChecking ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            "Buscar"
-                          )}
-                        </Button>
-                      </div>
+              {showCheck && (
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="check-email">Correo electrónico usado en el pago</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="check-email"
+                        type="email"
+                        placeholder="tu-correo@email.com"
+                        value={checkEmail}
+                        onChange={(e) => {
+                          setCheckEmail(e.target.value);
+                          setCheckResult(null);
+                        }}
+                        onKeyDown={(e) => e.key === "Enter" && handleCheckLicense()}
+                      />
+                      <Button
+                        onClick={handleCheckLicense}
+                        disabled={isChecking || !checkEmail.trim()}
+                      >
+                        {isChecking ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar"}
+                      </Button>
                     </div>
+                  </div>
 
-                    {checkResult && (
-                      <>
-                        {checkResult.found && checkResult.licenses ? (
-                          <div className="space-y-2">
-                            <Alert>
-                              <CheckCircle2 className="h-4 w-4" />
-                              <AlertDescription>
-                                ¡Licencia(s) encontrada(s)! Copia tu código y actívalo.
-                              </AlertDescription>
-                            </Alert>
-                            {checkResult.licenses.map((lic) => (
-                              <div
-                                key={lic.code}
-                                className="flex items-center justify-between bg-background rounded-lg p-3 border"
-                              >
-                                <div>
-                                  <code className="font-mono font-bold text-lg">{lic.code}</code>
-                                  <p className="text-xs text-muted-foreground">
-                                    {lic.type === "simple" ? "Finanzas Simples" : lic.type === "full" ? "Licencia Completa" : lic.type === "account" ? "Cuenta Adicional" : "Contabilidad"}
-                                  </p>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleCopyCode(lic.code)}
-                                  >
-                                    {copiedCode === lic.code ? (
-                                      <Check className="h-4 w-4" />
-                                    ) : (
-                                      <Copy className="h-4 w-4" />
-                                    )}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => {
-                                      onOpenChange(false);
-                                      onActivate();
-                                    }}
-                                  >
-                                    Activar
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <Alert variant="destructive">
+                  {checkResult && (
+                    <>
+                      {checkResult.found && checkResult.licenses ? (
+                        <div className="space-y-2">
+                          <Alert>
+                            <CheckCircle2 className="h-4 w-4" />
                             <AlertDescription>
-                              {checkResult.message || "No se encontraron licencias."}
+                              ¡Licencia encontrada! Copia tu código y actívalo.
                             </AlertDescription>
                           </Alert>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
+                          {checkResult.licenses.map((lic) => (
+                            <div
+                              key={lic.code}
+                              className="flex items-center justify-between bg-background rounded-lg p-3 border"
+                            >
+                              <div>
+                                <code className="font-mono font-bold text-lg">{lic.code}</code>
+                                <p className="text-xs text-muted-foreground">Cap Finanzas — Acceso Completo</p>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline" onClick={() => handleCopyCode(lic.code)}>
+                                  {copiedCode === lic.code ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    onOpenChange(false);
+                                    onActivate();
+                                  }}
+                                >
+                                  Activar
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <Alert variant="destructive">
+                          <AlertDescription>
+                            {checkResult.message || "No se encontraron licencias."}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
 
-              <div className="border-t pt-3 flex items-center gap-2 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4" />
-                <span>¿Ya tienes un código?</span>
-                <Button
-                  variant="link"
-                  className="p-0 h-auto text-sm"
-                  onClick={() => {
-                    onOpenChange(false);
-                    onActivate();
-                  }}
-                >
-                  Activar con código
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {!selectedPlan && (
-          <p className="text-center text-muted-foreground text-sm mt-4">
-            Selecciona un plan para ver las opciones de pago
-          </p>
-        )}
+            <div className="border-t pt-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <Mail className="h-4 w-4" />
+              <span>¿Ya tienes un código?</span>
+              <Button
+                variant="link"
+                className="p-0 h-auto text-sm"
+                onClick={() => {
+                  onOpenChange(false);
+                  onActivate();
+                }}
+              >
+                Activar con código
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </DialogContent>
     </Dialog>
   );

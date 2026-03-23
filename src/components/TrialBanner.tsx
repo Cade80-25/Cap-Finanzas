@@ -13,7 +13,6 @@ export function TrialBanner() {
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const [activationOpen, setActivationOpen] = useState(false);
 
-  // Don't show if not in trial or already dismissed
   if (status !== "trial" || dismissed) {
     return null;
   }
@@ -58,7 +57,7 @@ export function TrialBanner() {
             onClick={() => setPurchaseOpen(true)}
           >
             <ShoppingCart className="h-3 w-3 mr-1" />
-            <span className="hidden sm:inline">Comprar</span>
+            <span className="hidden sm:inline">$10 USD</span>
           </Button>
           <Button
             size="sm"

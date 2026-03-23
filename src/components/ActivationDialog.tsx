@@ -36,7 +36,6 @@ export function ActivationDialog({ open, onOpenChange, onSuccess }: ActivationDi
     setIsLoading(true);
     setResult(null);
 
-    // Simulate network delay for better UX
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const activationResult = activateLicense(code);
@@ -54,7 +53,6 @@ export function ActivationDialog({ open, onOpenChange, onSuccess }: ActivationDi
   };
 
   const handleCodeChange = (value: string) => {
-    // Format code as user types: CF-XXXX-XXXX
     const cleaned = value.toUpperCase().replace(/[^A-Z0-9-]/g, "");
     setCode(cleaned);
     setResult(null);
@@ -80,13 +78,13 @@ export function ActivationDialog({ open, onOpenChange, onSuccess }: ActivationDi
               id="license-code"
               value={code}
               onChange={(e) => handleCodeChange(e.target.value)}
-              placeholder="CF-SIMPLE-XXXX o CF-TRAD-XXXX"
+              placeholder="CF-FULL-XXXX-XXXXX"
               className="font-mono text-center tracking-wider"
               disabled={isLoading}
               autoFocus
             />
             <p className="text-xs text-muted-foreground text-center">
-              Ejemplo: CF-SIMPLE-A1B2 o CF-TRAD-C3D4
+              Ejemplo: CF-FULL-A1B2-C3D4E
             </p>
           </div>
 
@@ -119,7 +117,7 @@ export function ActivationDialog({ open, onOpenChange, onSuccess }: ActivationDi
 
         <div className="mt-4 text-center">
           <p className="text-xs text-muted-foreground">
-            ¿No tienes un código? Adquiere tu licencia y recibirás el código por correo.
+            ¿No tienes un código? Adquiere tu licencia por $10 USD y recibirás el código por correo.
           </p>
         </div>
       </DialogContent>
