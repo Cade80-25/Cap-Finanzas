@@ -166,40 +166,58 @@ export function ReferralSection() {
     }
   };
 
-  // Only show for trial users
+  // For active (paid) users — show sharing with account slot rewards
   if (status === "active") {
     return (
-      <Card>
+      <Card data-tutorial="referral-section">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Gift className="h-5 w-5 text-primary" />
             Programa de Referidos
           </CardTitle>
+          <CardDescription>
+            Comparte y gana cuentas extra para tu aplicación
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            ¡Gracias por tu compra! Comparte tu código con amigos para que disfruten 15 días extra de prueba.
-          </p>
+        <CardContent className="space-y-4">
+          <Alert>
+            <Gift className="h-4 w-4" />
+            <AlertDescription>
+              Por cada persona que use tu código de referido, obtienes <strong>+1 cuenta extra</strong> (máximo 10 cuentas).
+              Tu amigo recibe <strong>15 días extra</strong> de prueba gratis.
+            </AlertDescription>
+          </Alert>
+
           {myCode ? (
-            <div className="mt-3 flex items-center gap-2">
-              <code className="font-mono font-bold text-lg bg-muted px-3 py-1 rounded">{myCode}</code>
-              <Button size="sm" variant="outline" onClick={handleCopy}>
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              </Button>
-              <Button size="sm" variant="outline" onClick={handleShare}>
-                <Share2 className="h-4 w-4" />
-              </Button>
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Tu código de referido</Label>
+              <div className="flex items-center gap-2">
+                <code className="font-mono font-bold text-lg bg-muted px-3 py-2 rounded flex-1 text-center">{myCode}</code>
+                <Button size="sm" variant="outline" onClick={handleCopy}>
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleShare}>
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ) : (
-            <Button className="mt-3" onClick={handleCreateCode}>
+            <Button className="w-full" onClick={handleCreateCode}>
               <Gift className="h-4 w-4 mr-2" />
-              Generar mi código
+              Generar mi código de referido
             </Button>
           )}
+
           {referralCount > 0 && (
-            <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-              <Users className="h-4 w-4" />
-              {referralCount} persona{referralCount > 1 ? "s" : ""} usaron tu código
+            <div className="bg-muted rounded-lg p-3 space-y-1">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Users className="h-4 w-4 text-primary" />
+                {referralCount} persona{referralCount > 1 ? "s" : ""} usaron tu código
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Tienes <strong>{Math.min(5 + referralCount, 10)} cuentas</strong> disponibles
+                {referralCount > 0 && <Badge variant="secondary" className="ml-2">+{Math.min(referralCount, 5)} extra</Badge>}
+              </p>
             </div>
           )}
         </CardContent>

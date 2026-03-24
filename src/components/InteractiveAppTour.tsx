@@ -97,6 +97,16 @@ const TOUR_STEPS: TourStep[] = [
     delay: 400,
   },
   {
+    route: "/configuracion",
+    target: "[data-tutorial='referral-section']",
+    title: "¡Invita amigos y gana!",
+    description: "Con el Programa de Referidos puedes compartir un código con tus amigos. Si están en periodo de prueba, reciben 15 días extra gratis. Y si ya tienes licencia activa, ¡ganas cuentas extra por cada amigo que invite!",
+    action: "Genera tu código de referido y compártelo por WhatsApp, redes sociales o correo.",
+    emoji: "🎁",
+    position: "top",
+    delay: 400,
+  },
+  {
     route: "/",
     title: "¡Listo! Ya sabes lo básico 🚀",
     description: "Ahora registra tu primer movimiento y empieza a tomar el control de tus finanzas. Puedes repetir este tour cuando quieras desde el botón '¿Cómo funciona?'.",
