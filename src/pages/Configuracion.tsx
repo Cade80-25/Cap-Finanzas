@@ -745,6 +745,9 @@ export default function Configuracion() {
       {/* License Settings Section */}
       <LicenseSettings />
 
+      {/* Referral Program */}
+      <ReferralSection />
+
       <div data-tutorial="configuracion-datos" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>

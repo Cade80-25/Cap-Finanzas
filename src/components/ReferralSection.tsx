@@ -280,7 +280,7 @@ export function ReferralSection() {
 
         {hasRedeemed && (
           <div className="border-t pt-3 text-sm text-muted-foreground flex items-center gap-2">
-            <Check className="h-4 w-4 text-green-500" />
+            <Check className="h-4 w-4 text-primary" />
             Ya canjeaste un código de referido (+15 días)
           </div>
         )}

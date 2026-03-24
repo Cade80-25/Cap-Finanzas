@@ -84,21 +84,24 @@ export function useLicense() {
     }
   }, [licenseData.trialStartDate, setLicenseData]);
 
-  // Calculate trial status
+  // Calculate trial status (includes referral bonus days)
   const trialInfo = useMemo(() => {
     if (!licenseData.trialStartDate) {
-      return { daysRemaining: TRIAL_DAYS, isExpired: false };
+      return { daysRemaining: TRIAL_DAYS, isExpired: false, bonusDays: 0 };
     }
 
+    const bonusDays = parseInt(localStorage.getItem("cap-finanzas-referral-bonus") || "0");
+    const totalTrialDays = TRIAL_DAYS + bonusDays;
     const startDate = new Date(licenseData.trialStartDate);
     const now = new Date();
     const diffTime = now.getTime() - startDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const daysRemaining = Math.max(0, TRIAL_DAYS - diffDays);
+    const daysRemaining = Math.max(0, totalTrialDays - diffDays);
     
     return {
       daysRemaining,
       isExpired: daysRemaining <= 0,
+      bonusDays,
     };
   }, [licenseData.trialStartDate]);
 
