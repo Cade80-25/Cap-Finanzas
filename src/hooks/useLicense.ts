@@ -178,8 +178,12 @@ export function useLicense() {
     full: 10,
   };
 
-  // Active license: 5 accounts, 3 profiles. Trial: 3 accounts, 3 profiles
-  const accountSlots = status === "trial" ? 3 : 5;
+  // Active license: 5 base + referral bonus (max 10). Trial: 3 accounts.
+  const referralAccountBonus = useMemo(() => {
+    const count = parseInt(localStorage.getItem("cap-finanzas-referral-count") || "0");
+    return Math.min(count, 5); // Max 5 extra from referrals
+  }, []);
+  const accountSlots = status === "trial" ? 3 : Math.min(5 + referralAccountBonus, 10);
   const maxProfiles = 3;
 
   return {
