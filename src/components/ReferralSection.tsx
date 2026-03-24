@@ -63,7 +63,7 @@ export function ReferralSection() {
     if (!code) return;
 
     try {
-      const { count } = await supabase
+      const { count } = await (supabase as any)
         .from("referrals")
         .select("id", { count: "exact", head: true })
         .eq("referrer_code", code)
