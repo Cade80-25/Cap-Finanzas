@@ -70,6 +70,7 @@ export function ReferralSection() {
         .not("redeemed_at", "is", null);
       
       setReferralCount(count || 0);
+      localStorage.setItem("cap-finanzas-referral-count", (count || 0).toString());
       // Update bonus for referrer: 15 days per redemption
       const totalBonus = (count || 0) * 15;
       const ownRedeemBonus = parseInt(localStorage.getItem("cap-finanzas-referral-own-bonus") || "0");
