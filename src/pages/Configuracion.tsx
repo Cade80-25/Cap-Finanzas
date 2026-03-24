@@ -33,6 +33,7 @@ import { useAdvancedFeatures } from "@/hooks/useAdvancedFeatures";
 import { ChangePinDialog, BackupDialog, TwoFactorDialog } from "@/components/SecurityDialogs";
 import { LogsDialog, SyncDialog, ResetDialog } from "@/components/AdvancedFeaturesDialogs";
 import { LicenseSettings } from "@/components/LicenseSettings";
+import { ReferralSection } from "@/components/ReferralSection";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
 
 const STORAGE_KEY = "cap-finanzas-config";
@@ -743,6 +744,9 @@ export default function Configuracion() {
 
       {/* License Settings Section */}
       <LicenseSettings />
+
+      {/* Referral Program */}
+      <ReferralSection />
 
       <div data-tutorial="configuracion-datos" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
