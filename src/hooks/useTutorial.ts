@@ -350,7 +350,7 @@ export const TUTORIAL_SECTIONS: TutorialSection[] = [
         target: "[data-tutorial='recomendaciones-chat']",
         title: "Tutor Financiero con IA",
         content: "Escribe cualquier pregunta sobre finanzas personales y obtén respuestas educativas. También puedes usar las preguntas sugeridas.",
-        tip: "El tutor educativo está disponible en todos los planes. El chat financiero y bolsas en vivo requieren plan Tradicional o Completa.",
+        tip: "En prueba y con Licencia Única tienes acceso al tutor educativo, chat financiero y bolsas en vivo.",
         placement: "top",
       },
     ],

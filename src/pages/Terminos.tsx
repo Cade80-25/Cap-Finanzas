@@ -35,7 +35,7 @@ export default function Terminos() {
             <ul className="list-disc pl-6 space-y-2 mt-3">
               <li>Cap Finanzas ofrece un <strong>período de prueba gratuito de 30 días</strong> con funcionalidad limitada</li>
               <li>Para acceso completo, se requiere la compra de una licencia mediante <strong>pago único</strong></li>
-              <li>Existen tres tipos de licencia: Finanzas Simples, Contabilidad Tradicional y Licencia Completa</li>
+              <li>Existe una sola licencia de acceso completo por <strong>$10 USD</strong></li>
               <li>Cada licencia es personal e intransferible</li>
               <li>La licencia es perpetua (no requiere pagos recurrentes)</li>
             </ul>
