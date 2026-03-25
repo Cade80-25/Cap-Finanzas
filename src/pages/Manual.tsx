@@ -173,15 +173,15 @@ const secciones = [
     contenido: [
       {
         subtitulo: "Tutor Educativo",
-        texto: "Disponible en todos los planes. Haz preguntas sobre finanzas personales y recibe respuestas educativas generadas por IA. Ideal para aprender conceptos como ahorro, presupuesto e interés compuesto."
+        texto: "Disponible en prueba y en Licencia Única. Haz preguntas sobre finanzas personales y recibe respuestas educativas generadas por IA. Ideal para aprender conceptos como ahorro, presupuesto e interés compuesto."
       },
       {
         subtitulo: "Chat Financiero",
-        texto: "Disponible con Contabilidad Tradicional ($11) o Licencia Completa ($13). Conversa con la IA sobre mercados, inversiones y estrategias financieras avanzadas."
+        texto: "Disponible en prueba y en Licencia Única ($10). Conversa con la IA sobre mercados, inversiones y estrategias financieras avanzadas."
       },
       {
         subtitulo: "Bolsas en Vivo",
-        texto: "Exclusivo de la Licencia Completa ($13). Accede a datos del mercado en tiempo real con widgets de bolsas internacionales como NYSE, NASDAQ, BMV y más."
+        texto: "Disponible en prueba y en Licencia Única ($10). Accede a datos del mercado en tiempo real con widgets de bolsas internacionales como NYSE, NASDAQ, BMV y más."
       }
     ]
   },
