@@ -1,5 +1,6 @@
-import { useEffect, useCallback, useContext } from "react";
+import { useEffect, useCallback } from "react";
 import { useLocalStorage } from "./useLocalStorage";
+import { useWalletContext } from "@/contexts/WalletContext";
 
 export type JournalTransaction = {
   id: number;
@@ -152,36 +153,7 @@ export function useJournalTransactionsForWallet(walletId?: string, profileId?: s
   return { transactions, setTransactions };
 }
 
-// Default export: reads active profile+wallet from localStorage directly
-// (avoids circular dependency with context)
-function getActiveIds(): { profileId: string; walletId: string } {
-  let profileId = "profile-default";
-  let walletId = "wallet-default";
-  
-  try {
-    const profilesRaw = localStorage.getItem("cap-finanzas-profiles");
-    if (profilesRaw) {
-      const profilesData = JSON.parse(profilesRaw);
-      profileId = profilesData.activeProfileId || "profile-default";
-    }
-  } catch {}
-
-  const walletsKey = profileId === "profile-default"
-    ? "cap-finanzas-wallets"
-    : `cap-finanzas-wallets-${profileId}`;
-  
-  try {
-    const walletsRaw = localStorage.getItem(walletsKey);
-    if (walletsRaw) {
-      const walletsData = JSON.parse(walletsRaw);
-      walletId = walletsData.activeWalletId || "wallet-default";
-    }
-  } catch {}
-
-  return { profileId, walletId };
-}
-
 export function useJournalTransactions() {
-  const { profileId, walletId } = getActiveIds();
-  return useJournalTransactionsForWallet(walletId, profileId);
+  const { activeProfileId, activeWalletId } = useWalletContext();
+  return useJournalTransactionsForWallet(activeWalletId, activeProfileId);
 }
