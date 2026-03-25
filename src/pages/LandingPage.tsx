@@ -121,7 +121,7 @@ const faqs = [
   },
   {
     question: "¿Qué incluye la licencia?",
-    answer: "Todo: Finanzas Simples, Contabilidad Tradicional con partida doble, Tutor IA, Chat Financiero, Bolsas en Vivo, hasta 5 cuentas, 3 perfiles y actualizaciones de por vida.",
+    answer: "Todo: Finanzas Simples, Contabilidad Tradicional con partida doble, Tutor IA, Chat Financiero, Bolsas en Vivo, hasta 5 cuentas base (+extras por referidos), hasta 50 perfiles y actualizaciones de por vida.",
   },
 ];
 
@@ -138,7 +138,8 @@ const allFeatures = [
   "Chat Financiero (IA)",
   "Bolsas en Vivo",
   "Cambio libre entre modos",
-  "Hasta 5 cuentas y 3 perfiles",
+  "Hasta 5 cuentas base (+extras por referidos)",
+  "Hasta 50 perfiles por instalación",
   "Actualizaciones gratuitas de por vida",
 ];
 

@@ -18,6 +18,8 @@ interface LicenseData {
 
 const TRIAL_DAYS = 30;
 const LICENSE_KEY = "cap-finanzas-license";
+const TRIAL_MAX_PROFILES = 3;
+const ACTIVE_MAX_PROFILES = 50;
 
 // Validate license codes with checksum verification
 // All codes now use CF-FULL format (single plan)
@@ -90,7 +92,7 @@ export function useLicense() {
       return { daysRemaining: TRIAL_DAYS, isExpired: false, bonusDays: 0 };
     }
 
-    const bonusDays = parseInt(localStorage.getItem("cap-finanzas-referral-bonus") || "0");
+    const bonusDays = parseInt(localStorage.getItem("cap-finanzas-referral-bonus") || "0", 10);
     const totalTrialDays = TRIAL_DAYS + bonusDays;
     const startDate = new Date(licenseData.trialStartDate);
     const now = new Date();
@@ -103,7 +105,7 @@ export function useLicense() {
       isExpired: daysRemaining <= 0,
       bonusDays,
     };
-  }, [licenseData.trialStartDate]);
+  }, [licenseData.trialStartDate, licenseData.activatedAt, licenseData.licenseCode]);
 
   // Determine current license status
   // Support both new isActivated flag and legacy purchasedModes
@@ -179,12 +181,12 @@ export function useLicense() {
   };
 
   // Active license: 5 base + referral bonus (max 10). Trial: 3 accounts.
-  const referralAccountBonus = useMemo(() => {
-    const count = parseInt(localStorage.getItem("cap-finanzas-referral-count") || "0");
-    return Math.min(count, 5); // Max 5 extra from referrals
-  }, []);
+  const referralAccountBonus = Math.min(
+    parseInt(localStorage.getItem("cap-finanzas-referral-count") || "0", 10),
+    5
+  );
   const accountSlots = status === "trial" ? 3 : Math.min(5 + referralAccountBonus, 10);
-  const maxProfiles = 3;
+  const maxProfiles = status === "active" ? ACTIVE_MAX_PROFILES : TRIAL_MAX_PROFILES;
 
   return {
     // Current state

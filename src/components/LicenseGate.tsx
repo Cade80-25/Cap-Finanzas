@@ -51,7 +51,7 @@ export function LicenseGate({ children }: LicenseGateProps) {
             <div className="text-4xl font-bold text-primary">${pricing.full} <span className="text-lg font-normal text-muted-foreground">USD</span></div>
             <p className="text-sm font-medium">Pago único · Acceso completo · Para siempre</p>
             <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-xs mx-auto">
-              {["Ambos modos de operación", "Hasta 5 cuentas y 3 perfiles", "Tutor IA y Chat Financiero", "Actualizaciones de por vida"].map((f, i) => (
+              {["Ambos modos de operación", "Hasta 5 cuentas base (+extras con referidos)", "Hasta 50 perfiles por instalación", "Tutor IA y Chat Financiero", "Actualizaciones de por vida"].map((f, i) => (
                 <li key={i} className="flex items-center gap-2">
                   <Check className="h-3.5 w-3.5 text-primary flex-shrink-0" /> {f}
                 </li>

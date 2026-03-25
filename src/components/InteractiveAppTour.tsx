@@ -100,7 +100,7 @@ const TOUR_STEPS: TourStep[] = [
     route: "/configuracion",
     target: "[data-tutorial='referral-section']",
     title: "¡Invita amigos y gana!",
-    description: "Con el Programa de Referidos puedes compartir un código con tus amigos. Si están en periodo de prueba, reciben 15 días extra gratis. Y si ya tienes licencia activa, ¡ganas cuentas extra por cada amigo que invite!",
+    description: "Con el Programa de Referidos puedes compartir un código con tus amigos. Si están en periodo de prueba, reciben 15 días extra gratis, y tú también acumulas beneficios por cada canje.",
     action: "Genera tu código de referido y compártelo por WhatsApp, redes sociales o correo.",
     emoji: "🎁",
     position: "top",
