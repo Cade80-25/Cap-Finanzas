@@ -77,7 +77,8 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
     "Libro Diario, Mayor, Balance y Estado de Resultados",
     "Tutor Educativo y Chat Financiero (IA)",
     "Bolsas en Vivo",
-    "Hasta 5 cuentas y 3 perfiles",
+    "Hasta 5 cuentas base (+extras con referidos)",
+    "Hasta 50 perfiles por instalación",
     "Actualizaciones gratuitas de por vida",
   ];
 
