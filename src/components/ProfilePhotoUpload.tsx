@@ -22,6 +22,14 @@ export function ProfilePhotoUpload({
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("No se pudo leer la imagen"));
+      reader.readAsDataURL(file);
+    });
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -39,6 +47,16 @@ export function ProfilePhotoUpload({
     setUploading(true);
 
     try {
+      const isDesktopApp =
+        window.location.protocol === "file:" || typeof (window as any).electron !== "undefined";
+
+      if (isDesktopApp) {
+        const localPhoto = await fileToDataUrl(file);
+        onPhotoUploaded(localPhoto);
+        toast.success("Foto de perfil guardada");
+        return;
+      }
+
       const ext = file.name.split(".").pop() || "jpg";
       const fileName = `${profileId}-${Date.now()}.${ext}`;
       const filePath = `profiles/${fileName}`;
@@ -57,7 +75,13 @@ export function ProfilePhotoUpload({
       toast.success("Foto de perfil actualizada");
     } catch (err) {
       console.error("Error uploading photo:", err);
-      toast.error("Error al subir la foto");
+      try {
+        const localPhoto = await fileToDataUrl(file);
+        onPhotoUploaded(localPhoto);
+        toast.success("Foto guardada localmente");
+      } catch {
+        toast.error("Error al subir la foto");
+      }
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -111,7 +135,6 @@ export function ProfilePhotoUpload({
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        capture="user"
         className="hidden"
         onChange={handleFileChange}
       />
