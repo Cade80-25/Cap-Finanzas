@@ -55,9 +55,7 @@ export function useProfiles() {
       if (data.profiles.length >= maxProfiles) {
         return {
           success: false,
-          message: maxProfiles <= 1
-            ? "Tu licencia permite solo 1 perfil. La Licencia Completa ($12) permite hasta 3 perfiles."
-            : `Has alcanzado el límite de ${maxProfiles} perfiles.`,
+          message: `Has alcanzado el límite de ${maxProfiles} perfiles en esta instalación.`,
         };
       }
 
