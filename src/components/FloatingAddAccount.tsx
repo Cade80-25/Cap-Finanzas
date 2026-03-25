@@ -51,7 +51,7 @@ export function FloatingAddAccount() {
       toast.info(
         status === "trial"
           ? `En modo prueba puedes tener hasta ${maxWallets} cuentas.`
-          : "Activa una cuenta adicional ($2 USD) para agregar más.",
+          : `Has alcanzado el límite de ${maxWallets} cuentas.`,
         { duration: 4000 }
       );
     }
