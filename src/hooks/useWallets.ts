@@ -38,7 +38,7 @@ export function useWallets(profileId?: string) {
     : `${WALLETS_BASE_KEY}-${profileId}`;
 
   const [data, setData] = useLocalStorage<WalletsData>(walletsKey, defaultWalletsData);
-  const { accountSlots } = useLicense();
+  const { accountSlots, status } = useLicense();
 
   const maxWallets = accountSlots;
 
@@ -61,7 +61,10 @@ export function useWallets(profileId?: string) {
       if (data.wallets.length >= maxWallets) {
         return {
           success: false,
-          message: `Has alcanzado el límite de ${maxWallets} cuentas. Activa una cuenta adicional ($2) para agregar más.`,
+          message:
+            status === "trial"
+              ? `En período de prueba puedes crear hasta ${maxWallets} cuentas.`
+              : `Has alcanzado el límite de ${maxWallets} cuentas en esta instalación.`,
         };
       }
 
@@ -80,7 +83,7 @@ export function useWallets(profileId?: string) {
 
       return { success: true, message: `Cuenta "${newWallet.name}" creada` };
     },
-    [data.wallets.length, maxWallets, setData]
+    [data.wallets.length, maxWallets, setData, status]
   );
 
   const renameWallet = useCallback(
