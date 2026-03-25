@@ -163,12 +163,12 @@ export function WalletSelector() {
               </DropdownMenuItem>
             </>
           )}
-          {!canAddWallet && wallets.length < 5 && (
+          {!canAddWallet && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem disabled className="text-xs text-muted-foreground">
                 <Wallet className="h-3 w-3 mr-2" />
-                Activa una cuenta extra ($3) para agregar más
+                Alcanzaste el límite de cuentas para esta instalación
               </DropdownMenuItem>
             </>
           )}
