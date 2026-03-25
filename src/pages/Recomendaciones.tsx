@@ -26,13 +26,12 @@ export default function Recomendaciones() {
 
   // Determine access level based on license
   const hasFullLicense = useMemo(() => {
-    return purchasedModes.includes("simple") && purchasedModes.includes("traditional");
-  }, [purchasedModes]);
+    return status === "active" || (purchasedModes.includes("simple") && purchasedModes.includes("traditional"));
+  }, [status, purchasedModes]);
 
   const hasChatAccess = useMemo(() => {
-    // Trial, traditional, or full license
-    return status === "trial" || purchasedModes.includes("traditional");
-  }, [status, purchasedModes]);
+    return status === "trial" || hasFullLicense;
+  }, [status, hasFullLicense]);
 
   const hasMarketAccess = useMemo(() => {
     // Trial or full license only
@@ -190,19 +189,14 @@ export default function Recomendaciones() {
           </CardDescription>
           {/* Access level indicator */}
           <div className="mt-3 p-3 rounded-lg bg-muted/50 border">
-            <p className="text-xs font-medium text-muted-foreground mb-2">Acceso según tu plan:</p>
-            <div className="grid grid-cols-3 gap-2 text-center text-xs">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Acceso actual:</p>
+            <div className="grid grid-cols-2 gap-2 text-center text-xs">
               <div className="space-y-1">
-                <p className="font-semibold">Simples <span className="text-muted-foreground">($7)</span></p>
-                <Badge variant="default" className="text-[10px]">Tutor Educativo</Badge>
+                <p className="font-semibold">Prueba (30 días)</p>
+                <Badge variant="default" className="text-[10px]">Todas las funciones</Badge>
               </div>
               <div className="space-y-1">
-                <p className="font-semibold">Tradicional <span className="text-muted-foreground">($10)</span></p>
-                <Badge variant="default" className="text-[10px]">Tutor Educativo</Badge>
-                <Badge variant="default" className="text-[10px]">Chat Financiero</Badge>
-              </div>
-              <div className="space-y-1">
-                <p className="font-semibold">Completa <span className="text-muted-foreground">($13)</span></p>
+                <p className="font-semibold">Licencia Única <span className="text-muted-foreground">($10)</span></p>
                 <Badge variant="default" className="text-[10px]">Tutor Educativo</Badge>
                 <Badge variant="default" className="text-[10px]">Chat Financiero</Badge>
                 <Badge variant="default" className="text-[10px]">Bolsas en Vivo</Badge>
@@ -305,7 +299,7 @@ export default function Recomendaciones() {
                     </p>
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-xs font-medium">
                       <TrendingUp className="h-3.5 w-3.5" />
-                      Requiere: Contabilidad Tradicional ($11) o Licencia Completa ($13)
+                      Disponible con prueba activa o Licencia Única ($10)
                     </div>
                   </CardContent>
                 </Card>
@@ -403,7 +397,7 @@ export default function Recomendaciones() {
                     </p>
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-xs font-medium">
                       <BarChart3 className="h-3.5 w-3.5" />
-                      Requiere: Licencia Completa ($13)
+                      Disponible con prueba activa o Licencia Única ($10)
                     </div>
                   </CardContent>
                 </Card>
