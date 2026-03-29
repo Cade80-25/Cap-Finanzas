@@ -32,8 +32,23 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Validate tag matches package version
+        shell: bash
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          echo "Tag: ${TAG_VERSION} | package.json: ${PKG_VERSION}"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "❌ El tag (v${TAG_VERSION}) no coincide con package.json (${PKG_VERSION})."
+            exit 1
+          fi
+
       - name: Build Vite app
         run: npm run build
+        env:
+          VITE_SUPABASE_PROJECT_ID: pcxvnqsoafagnthazoir
+          VITE_SUPABASE_URL: https://pcxvnqsoafagnthazoir.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY != '' && vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjeHZucXNvYWZhZ250aGF6b2lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDkxMTUsImV4cCI6MjA4NTI4NTExNX0.KHQfeM-Jfv1hp8mKZSKXM9gFbCC9AlrgGx68Ee7JJzo' }}
 
       - name: Build Electron (Windows)
         if: matrix.platform == 'win'
