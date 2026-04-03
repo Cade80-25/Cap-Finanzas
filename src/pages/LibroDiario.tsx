@@ -163,6 +163,11 @@ export default function LibroDiario() {
     setDescription(transaction.description);
     setDebit(transaction.debit);
     setCredit(transaction.credit);
+    setPrice(transaction.price ? String(transaction.price) : "");
+    setQuantity(transaction.quantity ? String(transaction.quantity) : "1");
+    setCreditor(transaction.creditor || "");
+    setTxNotes(transaction.notes || "");
+    setShowExtraFields(!!(transaction.creditor || transaction.notes));
     setOpen(true);
   };
 
