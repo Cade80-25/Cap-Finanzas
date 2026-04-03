@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Plus, AlertCircle, Pencil, Trash2 } from "lucide-react";
+import { Plus, AlertCircle, Pencil, Trash2, Calculator, ChevronDown, ChevronUp, StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { useJournalTransactions, type JournalTransaction } from "@/hooks/useJournalTransactions";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
