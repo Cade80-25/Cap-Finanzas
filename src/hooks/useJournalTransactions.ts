@@ -9,6 +9,12 @@ export type JournalTransaction = {
   description: string;
   debit: number;
   credit: number;
+  // New fields
+  price?: number;
+  quantity?: number;
+  creditor?: string;
+  notes?: string;
+  subcategory?: string;
 };
 
 // KEY ÚNICA Y DEFINITIVA para todas las transacciones
