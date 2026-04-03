@@ -326,38 +326,93 @@ export default function LibroDiario() {
                   }}
                 />
               </div>
+              {/* Price × Quantity Calculator */}
+              <div className="space-y-2 border rounded-md p-3 bg-muted/30">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Calculator className="h-4 w-4 text-muted-foreground" />
+                  Calculadora de Importe (opcional)
+                </div>
+                <div className="grid grid-cols-[1fr,auto,60px,auto,1fr] items-end gap-2">
+                  <div>
+                    <Label className="text-xs">Precio</Label>
+                    <Input type="number" step="0.01" min="0" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" />
+                  </div>
+                  <span className="text-muted-foreground font-bold pb-2">×</span>
+                  <div>
+                    <Label className="text-xs">Cant.</Label>
+                    <Input type="number" step="0.5" min="0.01" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="1" />
+                  </div>
+                  <span className="text-muted-foreground font-bold pb-2">=</span>
+                  <div>
+                    <Label className="text-xs">Suma</Label>
+                    <div className="h-10 flex items-center px-3 rounded-md border bg-background font-bold">
+                      ${((parseFloat(price) || 0) * (parseFloat(quantity) || 1)).toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+                {parseFloat(price) > 0 && (
+                  <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => {
+                    const sum = (parseFloat(price) || 0) * (parseFloat(quantity) || 1);
+                    if (debit === 0 && credit === 0) {
+                      setDebit(sum);
+                    } else if (debit > 0) {
+                      setDebit(sum);
+                    } else {
+                      setCredit(sum);
+                    }
+                    toast.success("Importe aplicado");
+                  }}>
+                    Aplicar al {debit > 0 || (debit === 0 && credit === 0) ? "Debe" : "Haber"}
+                  </Button>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="debit">Debe ($)</Label>
                   <Input 
-                    id="debit" 
-                    type="number" 
-                    placeholder="0.00"
+                    id="debit" type="number" placeholder="0.00"
                     value={debit || ""}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value) || 0;
                       setDebit(value);
-                      const suggestions = validateTransaction(selectedAccount, description, value, credit);
-                      setValidationSuggestions(suggestions);
+                      setValidationSuggestions(validateTransaction(selectedAccount, description, value, credit));
                     }}
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="credit">Haber ($)</Label>
                   <Input 
-                    id="credit" 
-                    type="number" 
-                    placeholder="0.00"
+                    id="credit" type="number" placeholder="0.00"
                     value={credit || ""}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value) || 0;
                       setCredit(value);
-                      const suggestions = validateTransaction(selectedAccount, description, debit, value);
-                      setValidationSuggestions(suggestions);
+                      setValidationSuggestions(validateTransaction(selectedAccount, description, debit, value));
                     }}
                   />
                 </div>
               </div>
+
+              {/* Extra fields toggle */}
+              <Button type="button" variant="ghost" size="sm" className="text-muted-foreground w-full justify-center gap-1"
+                onClick={() => setShowExtraFields(!showExtraFields)}>
+                {showExtraFields ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                {showExtraFields ? "Ocultar campos" : "Más campos (acreedor, notas)"}
+              </Button>
+
+              {showExtraFields && (
+                <div className="space-y-3 border-t pt-3">
+                  <div className="grid gap-2">
+                    <Label htmlFor="creditor">Acreedor / Pagador</Label>
+                    <Input id="creditor" value={creditor} onChange={e => setCreditor(e.target.value)} placeholder="Ej: Proveedor X" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="txNotes"><StickyNote className="h-3.5 w-3.5 inline mr-1" />Anotaciones</Label>
+                    <Textarea id="txNotes" value={txNotes} onChange={e => setTxNotes(e.target.value)} placeholder="Notas adicionales..." rows={2} />
+                  </div>
+                </div>
+              )}
               
               {validationSuggestions.length > 0 && (
                 <Alert className="border-warning bg-warning/10">
@@ -368,18 +423,14 @@ export default function LibroDiario() {
                         <div key={index}>
                           <p className="font-medium text-warning">{suggestion.message}</p>
                           {suggestion.suggestedAccount && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="mt-2"
+                            <Button variant="outline" size="sm" className="mt-2"
                               onClick={() => {
                                 setSelectedAccount(suggestion.suggestedAccount);
                                 setDebit(suggestion.suggestedDebit);
                                 setCredit(suggestion.suggestedCredit);
                                 toast.success("Corrección aplicada automáticamente");
                                 setValidationSuggestions([]);
-                              }}
-                            >
+                              }}>
                               Aplicar Corrección
                             </Button>
                           )}
