@@ -208,34 +208,27 @@ export default function LibroDiario() {
       return;
     }
 
+    const extraFields = {
+      price: parseFloat(price) || undefined,
+      quantity: parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
+      creditor: creditor || undefined,
+      notes: txNotes || undefined,
+    };
+
     if (editingTransaction) {
-      // Update existing transaction
       setTransactions((prev) =>
         prev.map((t) =>
           t.id === editingTransaction.id
-            ? {
-                ...t,
-                date,
-                account: selectedAccount,
-                description: description.trim(),
-                debit,
-                credit,
-              }
+            ? { ...t, date, account: selectedAccount, description: description.trim(), debit, credit, ...extraFields }
             : t
         ).sort((a, b) => a.date.localeCompare(b.date))
       );
       toast.success("Transacción actualizada");
     } else {
-      // Create new transaction
       const newTx: Transaction = {
-        id: Date.now(),
-        date,
-        account: selectedAccount,
-        description: description.trim(),
-        debit,
-        credit,
+        id: Date.now(), date, account: selectedAccount,
+        description: description.trim(), debit, credit, ...extraFields,
       };
-
       setTransactions((prev) =>
         [...prev, newTx].sort((a, b) => a.date.localeCompare(b.date))
       );
