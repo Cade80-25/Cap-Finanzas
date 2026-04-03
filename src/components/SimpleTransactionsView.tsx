@@ -1,74 +1,31 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText, ChevronDown, ChevronUp, Calculator, StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
+import { useCategories } from "@/hooks/useCategories";
+import { CategorySelector } from "@/components/CategorySelector";
 import { suggestCategory } from "@/hooks/useAutoCategory";
 import { toast } from "sonner";
 import QRReceiptScanner from "@/components/QRReceiptScanner";
 import { exportToCSV, exportToExcel, exportToPDF, type ExportTransaction } from "@/lib/export-transactions";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-// Categorías predefinidas para modo simple
-const SIMPLE_CATEGORIES = {
-  income: [
-    { id: "salario", label: "Salario", icon: "💰" },
-    { id: "freelance", label: "Trabajo Freelance", icon: "💻" },
-    { id: "ventas", label: "Ventas", icon: "🛒" },
-    { id: "inversiones", label: "Inversiones", icon: "📈" },
-    { id: "regalo", label: "Regalo", icon: "🎁" },
-    { id: "otros-ingresos", label: "Otros Ingresos", icon: "💵" },
-  ],
-  expense: [
-    { id: "alimentacion", label: "Alimentación", icon: "🍔" },
-    { id: "transporte", label: "Transporte", icon: "🚗" },
-    { id: "vivienda", label: "Vivienda", icon: "🏠" },
-    { id: "servicios", label: "Servicios", icon: "💡" },
-    { id: "salud", label: "Salud", icon: "🏥" },
-    { id: "entretenimiento", label: "Entretenimiento", icon: "🎬" },
-    { id: "educacion", label: "Educación", icon: "📚" },
-    { id: "ropa", label: "Ropa", icon: "👕" },
-    { id: "tecnologia", label: "Tecnología", icon: "📱" },
-    { id: "otros-gastos", label: "Otros Gastos", icon: "📦" },
-  ],
-};
 
 interface EditingTransaction {
   id: number;
@@ -76,7 +33,12 @@ interface EditingTransaction {
   amount: number;
   description: string;
   category: string;
+  subcategory?: string;
   date: string;
+  price?: number;
+  quantity?: number;
+  creditor?: string;
+  notes?: string;
 }
 
 interface QRPrefillData {
@@ -95,16 +57,27 @@ interface SimpleTransactionFormProps {
 
 function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPrefill }: SimpleTransactionFormProps) {
   const { transactions, setTransactions } = useJournalTransactions();
+  const { getCategoryById } = useCategories();
   const [type, setType] = useState<"income" | "expense">(editing?.type ?? qrPrefill?.type ?? defaultType);
-  const [amount, setAmount] = useState(editing ? String(editing.amount) : qrPrefill?.amount ? String(qrPrefill.amount) : "");
+  const [price, setPrice] = useState(editing?.price ? String(editing.price) : editing ? String(editing.amount) : qrPrefill?.amount ? String(qrPrefill.amount) : "");
+  const [quantity, setQuantity] = useState(editing?.quantity ? String(editing.quantity) : "1");
   const [description, setDescription] = useState(editing?.description ?? qrPrefill?.description ?? "");
   const [category, setCategory] = useState(editing?.category ?? "");
+  const [subcategory, setSubcategory] = useState(editing?.subcategory ?? "");
   const [date, setDate] = useState(editing?.date ?? qrPrefill?.date ?? new Date().toISOString().split("T")[0]);
+  const [creditor, setCreditor] = useState(editing?.creditor ?? "");
+  const [notes, setNotes] = useState(editing?.notes ?? "");
+  const [showExtraFields, setShowExtraFields] = useState(!!(editing?.creditor || editing?.notes));
+
+  const sum = useMemo(() => {
+    const p = parseFloat(price) || 0;
+    const q = parseFloat(quantity) || 1;
+    return p * q;
+  }, [price, quantity]);
 
   const handleQRScanned = useCallback((data: { amount?: number; date?: string; description?: string; type?: "income" | "expense" }) => {
-    if (data.amount) setAmount(String(data.amount));
+    if (data.amount) setPrice(String(data.amount));
     if (data.date) {
-      // Try to normalize date format to YYYY-MM-DD
       const parts = data.date.split(/[-/]/);
       if (parts.length === 3) {
         const [d, m, y] = parts;
@@ -116,45 +89,46 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
     if (data.type) setType(data.type);
   }, []);
 
-  const categories = type === "income" ? SIMPLE_CATEGORIES.income : SIMPLE_CATEGORIES.expense;
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount <= 0) {
-      toast.error("Ingresa un monto válido");
+    if (sum <= 0) {
+      toast.error("Ingresa un precio válido");
       return;
     }
-
     if (!category) {
       toast.error("Selecciona una categoría");
       return;
     }
 
+    const cat = getCategoryById(category);
+    const label = cat?.label || category;
+
     if (editing) {
-      // Update existing transaction
-      setTransactions(transactions.map(tx => 
+      setTransactions(transactions.map(tx =>
         tx.id === editing.id
           ? {
-              ...tx,
-              date,
-              account: category,
-              description: description || categories.find(c => c.id === category)?.label || "Sin descripción",
-              debit: type === "expense" ? numAmount : 0,
-              credit: type === "income" ? numAmount : 0,
+              ...tx, date, account: category, subcategory: subcategory || undefined,
+              description: description || label,
+              debit: type === "expense" ? sum : 0,
+              credit: type === "income" ? sum : 0,
+              price: parseFloat(price) || undefined,
+              quantity: parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
+              creditor: creditor || undefined,
+              notes: notes || undefined,
             }
           : tx
       ));
       toast.success("Movimiento actualizado");
     } else {
       const newTransaction = {
-        id: Date.now(),
-        date,
-        account: category,
-        description: description || categories.find(c => c.id === category)?.label || "Sin descripción",
-        debit: type === "expense" ? numAmount : 0,
-        credit: type === "income" ? numAmount : 0,
+        id: Date.now(), date, account: category, subcategory: subcategory || undefined,
+        description: description || label,
+        debit: type === "expense" ? sum : 0,
+        credit: type === "income" ? sum : 0,
+        price: parseFloat(price) || undefined,
+        quantity: parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
+        creditor: creditor || undefined,
+        notes: notes || undefined,
       };
       setTransactions([...transactions, newTransaction]);
       toast.success(type === "income" ? "Ingreso registrado" : "Gasto registrado");
@@ -168,109 +142,120 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
       <Tabs value={type} onValueChange={(v) => setType(v as "income" | "expense")}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="income" className="gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Ingreso
+            <TrendingUp className="h-4 w-4" /> Ingreso
           </TabsTrigger>
           <TabsTrigger value="expense" className="gap-2">
-            <TrendingDown className="h-4 w-4" />
-            Gasto
+            <TrendingDown className="h-4 w-4" /> Gasto
           </TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {/* Amount + QR Scanner */}
+      {/* Price × Quantity Calculator */}
       <div className="space-y-2">
-        <Label htmlFor="amount">Monto</Label>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+        <div className="flex items-center gap-2">
+          <Calculator className="h-4 w-4 text-muted-foreground" />
+          <Label>Calculadora de Importe</Label>
+        </div>
+        <div className="grid grid-cols-[1fr,auto,60px,auto,1fr] items-center gap-2">
+          <div>
+            <Label className="text-xs text-muted-foreground">Precio</Label>
+            <div className="relative">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+              <Input
+                type="number" step="0.01" min="0"
+                value={price} onChange={e => setPrice(e.target.value)}
+                placeholder="0.00" className="pl-6" autoFocus
+              />
+            </div>
+          </div>
+          <span className="text-muted-foreground font-bold mt-5">×</span>
+          <div>
+            <Label className="text-xs text-muted-foreground">Cant.</Label>
             <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              min="0"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              className="pl-7 text-lg"
-              autoFocus
+              type="number" step="0.5" min="0.01"
+              value={quantity} onChange={e => setQuantity(e.target.value)}
+              placeholder="1"
             />
           </div>
-          <QRReceiptScanner
-            onDataScanned={handleQRScanned}
-            triggerVariant="outline"
-            triggerSize="icon"
-          />
+          <span className="text-muted-foreground font-bold mt-5">=</span>
+          <div>
+            <Label className="text-xs text-muted-foreground">Suma</Label>
+            <div className="h-10 flex items-center px-3 rounded-md border bg-muted/50 font-bold text-lg">
+              ${sum.toFixed(2)}
+            </div>
+          </div>
         </div>
+        {parseFloat(quantity) !== 1 && parseFloat(quantity) > 0 && (
+          <p className="text-xs text-muted-foreground">
+            💡 {quantity} unid. × ${parseFloat(price || "0").toFixed(2)} = ${sum.toFixed(2)}
+          </p>
+        )}
       </div>
 
-      {/* Category */}
-      <div className="space-y-2">
-        <Label>Categoría</Label>
-        {/* Category chips */}
-        <div className="flex flex-wrap gap-2">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setCategory(cat.id)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium border transition-all",
-                category === cat.id
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm scale-105"
-                  : "bg-muted/50 text-foreground border-border hover:bg-muted hover:border-muted-foreground/30"
-              )}
-            >
-              <span className="text-base">{cat.icon}</span>
-              <span>{cat.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Category with subcategory support */}
+      <CategorySelector
+        type={type}
+        value={category}
+        subcategoryValue={subcategory}
+        onSelect={(catId, subId) => { setCategory(catId); setSubcategory(subId || ""); }}
+      />
 
-      {/* Description with auto-categorization */}
+      {/* Description */}
       <div className="space-y-2">
         <Label htmlFor="description">Descripción (opcional)</Label>
         <Input
-          id="description"
-          value={description}
-          onChange={(e) => {
+          id="description" value={description}
+          onChange={e => {
             setDescription(e.target.value);
-            // Auto-suggest category based on description
             if (!category || !editing) {
               const suggested = suggestCategory(e.target.value);
-              if (suggested) {
-                const isValidForType = type === "income"
-                  ? SIMPLE_CATEGORIES.income.some(c => c.id === suggested)
-                  : SIMPLE_CATEGORIES.expense.some(c => c.id === suggested);
-                if (isValidForType) setCategory(suggested);
-              }
+              if (suggested) setCategory(suggested);
             }
           }}
           placeholder="Ej: Almuerzo con cliente"
         />
-        {!category && description.length > 2 && suggestCategory(description) && (
-          <p className="text-xs text-muted-foreground">
-            💡 Categoría sugerida automáticamente
-          </p>
-        )}
       </div>
 
       {/* Date */}
       <div className="space-y-2">
         <Label htmlFor="date">Fecha</Label>
-        <Input
-          id="date"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+        <Input id="date" type="date" value={date} onChange={e => setDate(e.target.value)} />
       </div>
 
+      {/* QR Scanner */}
+      <div className="flex items-center gap-2">
+        <QRReceiptScanner onDataScanned={handleQRScanned} triggerVariant="outline" triggerSize="sm" />
+        <span className="text-xs text-muted-foreground">Escanear recibo QR</span>
+      </div>
+
+      {/* Toggle extra fields */}
+      <Button
+        type="button" variant="ghost" size="sm"
+        className="text-muted-foreground w-full justify-center gap-1"
+        onClick={() => setShowExtraFields(!showExtraFields)}
+      >
+        {showExtraFields ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        {showExtraFields ? "Ocultar campos" : "Más campos (acreedor, notas)"}
+      </Button>
+
+      {showExtraFields && (
+        <div className="space-y-3 border-t pt-3">
+          <div className="space-y-2">
+            <Label htmlFor="creditor">Acreedor / Pagador</Label>
+            <Input id="creditor" value={creditor} onChange={e => setCreditor(e.target.value)} placeholder="Ej: Juan Pérez, Empresa X" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="notes">
+              <StickyNote className="h-3.5 w-3.5 inline mr-1" />
+              Anotaciones
+            </Label>
+            <Textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas adicionales..." rows={2} />
+          </div>
+        </div>
+      )}
+
       <DialogFooter>
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancelar
-        </Button>
+        <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
         <Button type="submit" className={type === "income" ? "bg-success hover:bg-success/90" : ""}>
           {editing ? "Guardar Cambios" : type === "income" ? "Agregar Ingreso" : "Agregar Gasto"}
         </Button>
@@ -281,15 +266,17 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
 
 export function SimpleTransactionsView() {
   const { transactions, setTransactions } = useJournalTransactions();
-  const { totals, recentTransactions } = useSimpleAccountingData();
+  const { totals } = useSimpleAccountingData();
+  const { getCategoryById } = useCategories();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [defaultType, setDefaultType] = useState<"income" | "expense">("expense");
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
   const [editingTx, setEditingTx] = useState<EditingTransaction | null>(null);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+  const [qrPrefill, setQrPrefill] = useState<QRPrefillData | null>(null);
 
   const handleDelete = (id: number) => {
-    setTransactions(prev => prev.filter((t) => t.id !== id));
+    setTransactions(prev => prev.filter(t => t.id !== id));
     toast.success("Movimiento eliminado");
   };
 
@@ -299,8 +286,6 @@ export function SimpleTransactionsView() {
     toast.success("Todos los movimientos han sido eliminados");
   };
 
-  const [qrPrefill, setQrPrefill] = useState<QRPrefillData | null>(null);
-
   const openDialog = (type: "income" | "expense") => {
     setEditingTx(null);
     setQrPrefill(null);
@@ -308,42 +293,55 @@ export function SimpleTransactionsView() {
     setDialogOpen(true);
   };
 
-  const openEditDialog = (tx: { id: number; date: string; description: string; category: string; type: "income" | "expense"; amount: number }) => {
-    setEditingTx({
-      id: tx.id,
-      type: tx.type,
-      amount: tx.amount,
-      description: tx.description,
-      category: tx.category,
-      date: tx.date,
-    });
+  const openEditDialog = (tx: EditingTransaction) => {
+    setEditingTx(tx);
     setDefaultType(tx.type);
     setDialogOpen(true);
   };
 
-  // Get all transactions formatted for simple view
-  const allTransactions = transactions
-    .map((tx) => ({
-      id: tx.id,
-      date: tx.date,
-      description: tx.description,
-      category: tx.account,
-      type: tx.credit > 0 ? "income" as const : "expense" as const,
-      amount: tx.credit > 0 ? tx.credit : tx.debit,
-    }))
-    .sort((a, b) => b.date.localeCompare(a.date));
+  const allTransactions = useMemo(() =>
+    transactions
+      .map(tx => ({
+        id: tx.id, date: tx.date, description: tx.description,
+        category: tx.account, subcategory: tx.subcategory,
+        type: tx.credit > 0 ? "income" as const : "expense" as const,
+        amount: tx.credit > 0 ? tx.credit : tx.debit,
+        price: tx.price, quantity: tx.quantity,
+        creditor: tx.creditor, notes: tx.notes,
+      }))
+      .sort((a, b) => b.date.localeCompare(a.date)),
+    [transactions]
+  );
 
-  const filteredTransactions = filter === "all" 
-    ? allTransactions 
+  const filteredTransactions = filter === "all"
+    ? allTransactions
     : allTransactions.filter(t => t.type === filter);
 
-  const getCategoryLabel = (categoryId: string) => {
-    const incomeMatch = SIMPLE_CATEGORIES.income.find(c => c.id === categoryId);
-    if (incomeMatch) return incomeMatch;
-    const expenseMatch = SIMPLE_CATEGORIES.expense.find(c => c.id === categoryId);
-    if (expenseMatch) return expenseMatch;
+  // Group by type for improved view
+  const incomeTransactions = filteredTransactions.filter(t => t.type === "income");
+  const expenseTransactions = filteredTransactions.filter(t => t.type === "expense");
+  const totalFilteredIncome = incomeTransactions.reduce((s, t) => s + t.amount, 0);
+  const totalFilteredExpense = expenseTransactions.reduce((s, t) => s + t.amount, 0);
+
+  const getCategoryLabel = (categoryId: string, subcategoryId?: string) => {
+    const cat = getCategoryById(categoryId);
+    if (cat) {
+      const sub = subcategoryId ? cat.subcategories.find(s => s.id === subcategoryId) : null;
+      return {
+        label: sub ? `${cat.label} > ${sub.label}` : cat.label,
+        icon: cat.icon,
+      };
+    }
     return { label: categoryId, icon: "📁" };
   };
+
+  const exportData = (): ExportTransaction[] => allTransactions.map(t => ({
+    fecha: t.date,
+    descripcion: t.description,
+    categoria: getCategoryLabel(t.category, t.subcategory).label,
+    tipo: t.type === "income" ? "Ingreso" : "Gasto",
+    monto: t.type === "income" ? t.amount : -t.amount,
+  }));
 
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-fade-in">
@@ -352,7 +350,7 @@ export function SimpleTransactionsView() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Mis Movimientos</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Registra tus ingresos y gastos de forma sencilla
+            Registra tus ingresos y gastos de forma detallada
           </p>
         </div>
         {transactions.length > 0 && (
@@ -360,63 +358,23 @@ export function SimpleTransactionsView() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar
+                  <Download className="h-4 w-4 mr-2" /> Exportar
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => {
-                  const data: ExportTransaction[] = allTransactions.map(t => ({
-                    fecha: t.date,
-                    descripcion: t.description,
-                    categoria: getCategoryLabel(t.category).label,
-                    tipo: t.type === "income" ? "Ingreso" : "Gasto",
-                    monto: t.type === "income" ? t.amount : -t.amount,
-                  }));
-                  exportToCSV(data, `movimientos_${new Date().toISOString().split("T")[0]}.csv`);
-                  toast.success("Exportando CSV...");
-                }}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Exportar CSV
+                <DropdownMenuItem onClick={() => { exportToCSV(exportData()); toast.success("Exportando CSV..."); }}>
+                  <FileText className="h-4 w-4 mr-2" /> CSV
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={async () => {
-                  const data: ExportTransaction[] = allTransactions.map(t => ({
-                    fecha: t.date,
-                    descripcion: t.description,
-                    categoria: getCategoryLabel(t.category).label,
-                    tipo: t.type === "income" ? "Ingreso" : "Gasto",
-                    monto: t.type === "income" ? t.amount : -t.amount,
-                  }));
-                  await exportToExcel(data, `movimientos_${new Date().toISOString().split("T")[0]}.xlsx`);
-                  toast.success("Exportando Excel...");
-                }}>
-                  <FileSpreadsheet className="h-4 w-4 mr-2" />
-                  Exportar Excel
+                <DropdownMenuItem onClick={async () => { await exportToExcel(exportData()); toast.success("Exportando Excel..."); }}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {
-                  const data: ExportTransaction[] = allTransactions.map(t => ({
-                    fecha: t.date,
-                    descripcion: t.description,
-                    categoria: getCategoryLabel(t.category).label,
-                    tipo: t.type === "income" ? "Ingreso" : "Gasto",
-                    monto: t.type === "income" ? t.amount : -t.amount,
-                  }));
-                  exportToPDF(data, `movimientos_${new Date().toISOString().split("T")[0]}.pdf`);
-                  toast.success("Generando PDF...");
-                }}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Exportar PDF
+                <DropdownMenuItem onClick={() => { exportToPDF(exportData()); toast.success("Generando PDF..."); }}>
+                  <FileText className="h-4 w-4 mr-2" /> PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={() => setConfirmClearOpen(true)}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Borrar Todo
+            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setConfirmClearOpen(true)}>
+              <Trash2 className="h-4 w-4 mr-2" /> Borrar Todo
             </Button>
           </div>
         )}
@@ -424,10 +382,7 @@ export function SimpleTransactionsView() {
 
       {/* Quick action cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card 
-          className="cursor-pointer hover:border-success/50 transition-colors group"
-          onClick={() => openDialog("income")}
-        >
+        <Card className="cursor-pointer hover:border-success/50 transition-colors group" onClick={() => openDialog("income")}>
           <CardContent className="flex items-center gap-4 p-6">
             <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">
               <TrendingUp className="h-6 w-6 text-success" />
@@ -439,11 +394,7 @@ export function SimpleTransactionsView() {
             <Plus className="h-5 w-5 text-muted-foreground group-hover:text-success transition-colors" />
           </CardContent>
         </Card>
-
-        <Card 
-          className="cursor-pointer hover:border-destructive/50 transition-colors group"
-          onClick={() => openDialog("expense")}
-        >
+        <Card className="cursor-pointer hover:border-destructive/50 transition-colors group" onClick={() => openDialog("expense")}>
           <CardContent className="flex items-center gap-4 p-6">
             <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center group-hover:bg-destructive/20 transition-colors">
               <TrendingDown className="h-6 w-6 text-destructive" />
@@ -465,29 +416,24 @@ export function SimpleTransactionsView() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm">Escanear Recibo con QR</p>
-            <p className="text-xs text-muted-foreground">
-              Apunta la cámara al código QR de tu factura y se registra automáticamente
-            </p>
+            <p className="text-xs text-muted-foreground">Apunta la cámara al código QR de tu factura</p>
           </div>
           <QRReceiptScanner
             onDataScanned={(data) => {
-              // Open dialog pre-filled with QR data
               setEditingTx(null);
               setDefaultType(data.type || "expense");
               setDialogOpen(true);
               setQrPrefill(data);
             }}
-            triggerVariant="default"
-            triggerSize="sm"
+            triggerVariant="default" triggerSize="sm"
           />
         </CardContent>
       </Card>
 
+      {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Balance</CardTitle>
-          </CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Balance</CardTitle></CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${totals.balance >= 0 ? "text-success" : "text-destructive"}`}>
               ${totals.balance.toFixed(2)}
@@ -495,28 +441,16 @@ export function SimpleTransactionsView() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Ingresos del Mes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-success">
-              +${totals.ingresosDelMes.toFixed(2)}
-            </div>
-          </CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Ingresos del Mes</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold text-success">+${totals.ingresosDelMes.toFixed(2)}</div></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Gastos del Mes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">
-              -${totals.gastosDelMes.toFixed(2)}
-            </div>
-          </CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Gastos del Mes</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold text-destructive">-${totals.gastosDelMes.toFixed(2)}</div></CardContent>
         </Card>
       </div>
 
-      {/* Transactions list */}
+      {/* Transactions list with grouping */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -524,7 +458,7 @@ export function SimpleTransactionsView() {
               <CardTitle>Historial</CardTitle>
               <CardDescription>Todos tus movimientos</CardDescription>
             </div>
-            <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
+            <Tabs value={filter} onValueChange={v => setFilter(v as any)}>
               <TabsList>
                 <TabsTrigger value="all">Todos</TabsTrigger>
                 <TabsTrigger value="income">Ingresos</TabsTrigger>
@@ -535,49 +469,56 @@ export function SimpleTransactionsView() {
         </CardHeader>
         <CardContent>
           {filteredTransactions.length > 0 ? (
-            <div className="space-y-3">
-              {filteredTransactions.map((tx) => {
-                const cat = getCategoryLabel(tx.category);
+            <div className="space-y-2">
+              {/* Subtotals bar */}
+              {filter === "all" && (
+                <div className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50 mb-3">
+                  <span className="text-success font-medium">Ingresos: ${totalFilteredIncome.toFixed(2)}</span>
+                  <span className="text-destructive font-medium">Gastos: ${totalFilteredExpense.toFixed(2)}</span>
+                  <span className={cn("font-bold", totalFilteredIncome - totalFilteredExpense >= 0 ? "text-success" : "text-destructive")}>
+                    Neto: ${(totalFilteredIncome - totalFilteredExpense).toFixed(2)}
+                  </span>
+                </div>
+              )}
+
+              {filteredTransactions.map(tx => {
+                const cat = getCategoryLabel(tx.category, tx.subcategory);
                 return (
-                  <div
-                    key={tx.id}
-                    className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors group"
-                  >
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg">
+                  <div key={tx.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg shrink-0">
                       {cat.icon}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{tx.description}</p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        <span>{tx.date}</span>
-                        <Tag className="h-3 w-3 ml-2" />
-                        <span>{cat.label}</span>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                        <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{tx.date}</span>
+                        <span className="inline-flex items-center gap-1"><Tag className="h-3 w-3" />{cat.label}</span>
+                        {tx.quantity && tx.quantity !== 1 && (
+                          <span className="text-primary">×{tx.quantity}</span>
+                        )}
+                        {tx.creditor && (
+                          <span className="text-muted-foreground">• {tx.creditor}</span>
+                        )}
                       </div>
+                      {tx.notes && (
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate italic">📝 {tx.notes}</p>
+                      )}
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0">
                       <p className={`font-bold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
                         {tx.type === "income" ? "+" : "-"}${tx.amount.toFixed(2)}
                       </p>
-                      <Badge variant={tx.type === "income" ? "default" : "secondary"} className="text-xs">
-                        {tx.type === "income" ? "Ingreso" : "Gasto"}
-                      </Badge>
+                      {tx.price && tx.quantity && tx.quantity !== 1 && (
+                        <p className="text-[10px] text-muted-foreground">${tx.price.toFixed(2)} × {tx.quantity}</p>
+                      )}
                     </div>
                     <div className="flex gap-1 shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-primary"
-                        onClick={(e) => { e.stopPropagation(); openEditDialog(tx); }}
-                      >
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={e => { e.stopPropagation(); openEditDialog(tx); }}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={(e) => { e.stopPropagation(); handleDelete(tx.id); }}
-                      >
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={e => { e.stopPropagation(); handleDelete(tx.id); }}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -594,19 +535,19 @@ export function SimpleTransactionsView() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit transaction dialog */}
-      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingTx(null); }}>
-        <DialogContent>
+      {/* Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={open => { setDialogOpen(open); if (!open) { setEditingTx(null); setQrPrefill(null); } }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingTx ? "Editar Movimiento" : defaultType === "income" ? "Nuevo Ingreso" : "Nuevo Gasto"}
             </DialogTitle>
             <DialogDescription>
-              {editingTx ? "Modifica los datos del movimiento" : `Registra un ${defaultType === "income" ? "ingreso" : "gasto"} de forma rápida`}
+              {editingTx ? "Modifica los datos del movimiento" : `Registra un ${defaultType === "income" ? "ingreso" : "gasto"} con detalle`}
             </DialogDescription>
           </DialogHeader>
-          <SimpleTransactionForm 
-            onClose={() => { setDialogOpen(false); setEditingTx(null); setQrPrefill(null); }} 
+          <SimpleTransactionForm
+            onClose={() => { setDialogOpen(false); setEditingTx(null); setQrPrefill(null); }}
             defaultType={defaultType}
             editing={editingTx}
             qrPrefill={qrPrefill}
@@ -614,7 +555,7 @@ export function SimpleTransactionsView() {
         </DialogContent>
       </Dialog>
 
-      {/* Confirm clear all dialog */}
+      {/* Confirm clear all */}
       <AlertDialog open={confirmClearOpen} onOpenChange={setConfirmClearOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -623,8 +564,7 @@ export function SimpleTransactionsView() {
               ¿Borrar todos los movimientos?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción eliminará permanentemente todos los movimientos registrados ({transactions.length} en total). 
-              No se puede deshacer.
+              Esta acción eliminará permanentemente todos los movimientos ({transactions.length} en total). No se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
