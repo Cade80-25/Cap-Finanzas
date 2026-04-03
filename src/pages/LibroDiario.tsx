@@ -135,6 +135,11 @@ export default function LibroDiario() {
     setDescription("");
     setDebit(0);
     setCredit(0);
+    setPrice("");
+    setQuantity("1");
+    setCreditor("");
+    setTxNotes("");
+    setShowExtraFields(false);
     setDate("");
     setEditingTransaction(null);
   };
