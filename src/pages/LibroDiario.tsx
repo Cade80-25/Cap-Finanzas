@@ -113,6 +113,11 @@ export default function LibroDiario() {
   const [description, setDescription] = useState("");
   const [debit, setDebit] = useState<number>(0);
   const [credit, setCredit] = useState<number>(0);
+  const [price, setPrice] = useState<string>("");
+  const [quantity, setQuantity] = useState<string>("1");
+  const [creditor, setCreditor] = useState("");
+  const [txNotes, setTxNotes] = useState("");
+  const [showExtraFields, setShowExtraFields] = useState(false);
   const [validationSuggestions, setValidationSuggestions] = useState<
     Array<{
       message: string;
