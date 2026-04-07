@@ -59,7 +59,9 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   const { transactions, setTransactions } = useJournalTransactions();
   const { getCategoryById } = useCategories();
   const [type, setType] = useState<"income" | "expense">(editing?.type ?? qrPrefill?.type ?? defaultType);
-  const [price, setPrice] = useState(editing?.price ? String(editing.price) : editing ? String(editing.amount) : qrPrefill?.amount ? String(qrPrefill.amount) : "");
+  const [amount, setAmount] = useState(editing ? String(editing.amount) : qrPrefill?.amount ? String(qrPrefill.amount) : "");
+  const [useCalculator, setUseCalculator] = useState(!!(editing?.quantity && editing.quantity > 1));
+  const [price, setPrice] = useState(editing?.price ? String(editing.price) : "");
   const [quantity, setQuantity] = useState(editing?.quantity ? String(editing.quantity) : "1");
   const [description, setDescription] = useState(editing?.description ?? qrPrefill?.description ?? "");
   const [category, setCategory] = useState(editing?.category ?? "");
@@ -70,13 +72,16 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   const [showExtraFields, setShowExtraFields] = useState(!!(editing?.creditor || editing?.notes));
 
   const sum = useMemo(() => {
-    const p = parseFloat(price) || 0;
-    const q = parseFloat(quantity) || 1;
-    return p * q;
-  }, [price, quantity]);
+    if (useCalculator) {
+      const p = parseFloat(price) || 0;
+      const q = parseFloat(quantity) || 1;
+      return p * q;
+    }
+    return parseFloat(amount) || 0;
+  }, [useCalculator, price, quantity, amount]);
 
   const handleQRScanned = useCallback((data: { amount?: number; date?: string; description?: string; type?: "income" | "expense" }) => {
-    if (data.amount) setPrice(String(data.amount));
+    if (data.amount) setAmount(String(data.amount));
     if (data.date) {
       const parts = data.date.split(/[-/]/);
       if (parts.length === 3) {
@@ -111,8 +116,8 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
               description: description || label,
               debit: type === "expense" ? sum : 0,
               credit: type === "income" ? sum : 0,
-              price: parseFloat(price) || undefined,
-              quantity: parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
+              price: useCalculator ? (parseFloat(price) || undefined) : undefined,
+              quantity: useCalculator && parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
               creditor: creditor || undefined,
               notes: notes || undefined,
             }
@@ -125,8 +130,8 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         description: description || label,
         debit: type === "expense" ? sum : 0,
         credit: type === "income" ? sum : 0,
-        price: parseFloat(price) || undefined,
-        quantity: parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
+        price: useCalculator ? (parseFloat(price) || undefined) : undefined,
+        quantity: useCalculator && parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
         creditor: creditor || undefined,
         notes: notes || undefined,
       };
@@ -150,45 +155,72 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         </TabsList>
       </Tabs>
 
-      {/* Price × Quantity Calculator */}
+      {/* Amount input */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Calculator className="h-4 w-4 text-muted-foreground" />
-          <Label>Calculadora de Importe</Label>
+        <div className="flex items-center justify-between">
+          <Label>Importe</Label>
+          <Button type="button" variant="ghost" size="sm" className="text-xs gap-1 h-6"
+            onClick={() => {
+              if (!useCalculator && sum > 0) {
+                setPrice(String(sum));
+                setQuantity("1");
+              }
+              if (useCalculator) {
+                setAmount(String(sum));
+              }
+              setUseCalculator(!useCalculator);
+            }}>
+            <Calculator className="h-3 w-3" />
+            {useCalculator ? "Ingreso directo" : "Usar calculadora"}
+          </Button>
         </div>
-        <div className="grid grid-cols-[1fr,auto,60px,auto,1fr] items-center gap-2">
-          <div>
-            <Label className="text-xs text-muted-foreground">Precio</Label>
-            <div className="relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
-              <Input
-                type="number" step="0.01" min="0"
-                value={price} onChange={e => setPrice(e.target.value)}
-                placeholder="0.00" className="pl-6" autoFocus
-              />
+
+        {useCalculator ? (
+          <div className="space-y-2 border rounded-md p-3 bg-muted/30">
+            <div className="grid grid-cols-[1fr,auto,60px,auto,1fr] items-center gap-2">
+              <div>
+                <Label className="text-xs text-muted-foreground">Precio</Label>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                  <Input
+                    type="number" step="0.01" min="0"
+                    value={price} onChange={e => setPrice(e.target.value)}
+                    placeholder="0.00" className="pl-6" autoFocus
+                  />
+                </div>
+              </div>
+              <span className="text-muted-foreground font-bold mt-5">×</span>
+              <div>
+                <Label className="text-xs text-muted-foreground">Cant.</Label>
+                <Input
+                  type="number" step="0.5" min="0.01"
+                  value={quantity} onChange={e => setQuantity(e.target.value)}
+                  placeholder="1"
+                />
+              </div>
+              <span className="text-muted-foreground font-bold mt-5">=</span>
+              <div>
+                <Label className="text-xs text-muted-foreground">Total</Label>
+                <div className="h-10 flex items-center px-3 rounded-md border bg-muted/50 font-bold text-lg">
+                  ${sum.toFixed(2)}
+                </div>
+              </div>
             </div>
+            {parseFloat(quantity) !== 1 && parseFloat(quantity) > 0 && (
+              <p className="text-xs text-muted-foreground">
+                💡 {quantity} unid. × ${parseFloat(price || "0").toFixed(2)} = ${sum.toFixed(2)}
+              </p>
+            )}
           </div>
-          <span className="text-muted-foreground font-bold mt-5">×</span>
-          <div>
-            <Label className="text-xs text-muted-foreground">Cant.</Label>
+        ) : (
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
             <Input
-              type="number" step="0.5" min="0.01"
-              value={quantity} onChange={e => setQuantity(e.target.value)}
-              placeholder="1"
+              type="number" step="0.01" min="0"
+              value={amount} onChange={e => setAmount(e.target.value)}
+              placeholder="0.00" className="pl-7 text-lg font-semibold h-12" autoFocus
             />
           </div>
-          <span className="text-muted-foreground font-bold mt-5">=</span>
-          <div>
-            <Label className="text-xs text-muted-foreground">Suma</Label>
-            <div className="h-10 flex items-center px-3 rounded-md border bg-muted/50 font-bold text-lg">
-              ${sum.toFixed(2)}
-            </div>
-          </div>
-        </div>
-        {parseFloat(quantity) !== 1 && parseFloat(quantity) > 0 && (
-          <p className="text-xs text-muted-foreground">
-            💡 {quantity} unid. × ${parseFloat(price || "0").toFixed(2)} = ${sum.toFixed(2)}
-          </p>
         )}
       </div>
 
