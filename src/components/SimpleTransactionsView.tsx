@@ -81,7 +81,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   }, [useCalculator, price, quantity, amount]);
 
   const handleQRScanned = useCallback((data: { amount?: number; date?: string; description?: string; type?: "income" | "expense" }) => {
-    if (data.amount) setPrice(String(data.amount));
+    if (data.amount) setAmount(String(data.amount));
     if (data.date) {
       const parts = data.date.split(/[-/]/);
       if (parts.length === 3) {
