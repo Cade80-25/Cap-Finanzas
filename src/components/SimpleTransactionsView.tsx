@@ -59,7 +59,9 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   const { transactions, setTransactions } = useJournalTransactions();
   const { getCategoryById } = useCategories();
   const [type, setType] = useState<"income" | "expense">(editing?.type ?? qrPrefill?.type ?? defaultType);
-  const [price, setPrice] = useState(editing?.price ? String(editing.price) : editing ? String(editing.amount) : qrPrefill?.amount ? String(qrPrefill.amount) : "");
+  const [amount, setAmount] = useState(editing ? String(editing.amount) : qrPrefill?.amount ? String(qrPrefill.amount) : "");
+  const [useCalculator, setUseCalculator] = useState(!!(editing?.quantity && editing.quantity > 1));
+  const [price, setPrice] = useState(editing?.price ? String(editing.price) : "");
   const [quantity, setQuantity] = useState(editing?.quantity ? String(editing.quantity) : "1");
   const [description, setDescription] = useState(editing?.description ?? qrPrefill?.description ?? "");
   const [category, setCategory] = useState(editing?.category ?? "");
@@ -70,10 +72,13 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   const [showExtraFields, setShowExtraFields] = useState(!!(editing?.creditor || editing?.notes));
 
   const sum = useMemo(() => {
-    const p = parseFloat(price) || 0;
-    const q = parseFloat(quantity) || 1;
-    return p * q;
-  }, [price, quantity]);
+    if (useCalculator) {
+      const p = parseFloat(price) || 0;
+      const q = parseFloat(quantity) || 1;
+      return p * q;
+    }
+    return parseFloat(amount) || 0;
+  }, [useCalculator, price, quantity, amount]);
 
   const handleQRScanned = useCallback((data: { amount?: number; date?: string; description?: string; type?: "income" | "expense" }) => {
     if (data.amount) setPrice(String(data.amount));
