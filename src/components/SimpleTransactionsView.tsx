@@ -130,8 +130,8 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         description: description || label,
         debit: type === "expense" ? sum : 0,
         credit: type === "income" ? sum : 0,
-        price: parseFloat(price) || undefined,
-        quantity: parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
+        price: useCalculator ? (parseFloat(price) || undefined) : undefined,
+        quantity: useCalculator && parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
         creditor: creditor || undefined,
         notes: notes || undefined,
       };
