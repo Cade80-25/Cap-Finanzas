@@ -23,6 +23,7 @@ import { suggestCategory } from "@/hooks/useAutoCategory";
 import { toast } from "sonner";
 import QRReceiptScanner from "@/components/QRReceiptScanner";
 import { exportToCSV, exportToExcel, exportToPDF, type ExportTransaction } from "@/lib/export-transactions";
+import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -73,11 +74,11 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
 
   const sum = useMemo(() => {
     if (useCalculator) {
-      const p = parseFloat(price) || 0;
-      const q = parseFloat(quantity) || 1;
+      const p = parseFlexibleNumber(price);
+      const q = parseFlexibleNumber(quantity, 1);
       return p * q;
     }
-    return parseFloat(amount) || 0;
+    return parseFlexibleNumber(amount);
   }, [useCalculator, price, quantity, amount]);
 
   const handleQRScanned = useCallback((data: { amount?: number; date?: string; description?: string; type?: "income" | "expense" }) => {
@@ -183,7 +184,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
                 <div className="relative">
                   <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
                   <Input
-                    type="number" step="0.01" min="0"
+                    type="text" inputMode="decimal" autoComplete="off"
                     value={price} onChange={e => setPrice(e.target.value)}
                     placeholder="0.00" className="pl-6" autoFocus
                   />
@@ -193,7 +194,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
               <div>
                 <Label className="text-xs text-muted-foreground">Cant.</Label>
                 <Input
-                  type="number" step="0.5" min="0.01"
+                  type="text" inputMode="decimal" autoComplete="off"
                   value={quantity} onChange={e => setQuantity(e.target.value)}
                   placeholder="1"
                 />
@@ -216,7 +217,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
             <Input
-              type="number" step="0.01" min="0"
+              type="text" inputMode="decimal" autoComplete="off"
               value={amount} onChange={e => setAmount(e.target.value)}
               placeholder="0.00" className="pl-7 text-lg font-semibold h-12" autoFocus
             />
