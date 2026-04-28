@@ -108,6 +108,8 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
 
     const cat = getCategoryById(category);
     const label = cat?.label || category;
+    const parsedPrice = useCalculator ? parseFlexibleNumber(price) : undefined;
+    const parsedQuantity = useCalculator ? parseFlexibleNumber(quantity, 1) : undefined;
 
     if (editing) {
       setTransactions(transactions.map(tx =>
@@ -117,8 +119,8 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
               description: description || label,
               debit: type === "expense" ? sum : 0,
               credit: type === "income" ? sum : 0,
-              price: useCalculator ? (parseFloat(price) || undefined) : undefined,
-              quantity: useCalculator && parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
+              price: useCalculator && parsedPrice ? parsedPrice : undefined,
+              quantity: useCalculator && parsedQuantity !== 1 ? parsedQuantity : undefined,
               creditor: creditor || undefined,
               notes: notes || undefined,
             }
@@ -131,8 +133,8 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         description: description || label,
         debit: type === "expense" ? sum : 0,
         credit: type === "income" ? sum : 0,
-        price: useCalculator ? (parseFloat(price) || undefined) : undefined,
-        quantity: useCalculator && parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
+        price: useCalculator && parsedPrice ? parsedPrice : undefined,
+        quantity: useCalculator && parsedQuantity !== 1 ? parsedQuantity : undefined,
         creditor: creditor || undefined,
         notes: notes || undefined,
       };
@@ -207,9 +209,9 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
                 </div>
               </div>
             </div>
-            {parseFloat(quantity) !== 1 && parseFloat(quantity) > 0 && (
+            {parseFlexibleNumber(quantity, 1) !== 1 && parseFlexibleNumber(quantity, 1) > 0 && (
               <p className="text-xs text-muted-foreground">
-                💡 {quantity} unid. × ${parseFloat(price || "0").toFixed(2)} = ${sum.toFixed(2)}
+                💡 {quantity} unid. × ${parseFlexibleNumber(price).toFixed(2)} = ${sum.toFixed(2)}
               </p>
             )}
           </div>
