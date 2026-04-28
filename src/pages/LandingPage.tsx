@@ -209,7 +209,7 @@ export default function LandingPage() {
           <div className="text-center max-w-4xl mx-auto">
             <Badge variant="secondary" className="mb-6 px-4 py-1.5 text-sm animate-fade-in">
               <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-              30 días de prueba gratis — Acceso completo
+              30 días de prueba gratis — Sin tarjeta de crédito
             </Badge>
 
             <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight">
