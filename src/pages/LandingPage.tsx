@@ -209,7 +209,7 @@ export default function LandingPage() {
           <div className="text-center max-w-4xl mx-auto">
             <Badge variant="secondary" className="mb-6 px-4 py-1.5 text-sm animate-fade-in">
               <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-              30 días de prueba gratis — Sin tarjeta de crédito
+              30 días de prueba gratis — Acceso completo
             </Badge>
 
             <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight">
@@ -356,17 +356,10 @@ export default function LandingPage() {
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Cap Finanzas</CardTitle>
                 <CardDescription>Finanzas personales + Contabilidad profesional</CardDescription>
-                <div className="mt-4 flex items-baseline justify-center gap-2">
-                  <span className="text-lg text-muted-foreground line-through">$120/año</span>
-                  <Badge variant="secondary" className="text-[10px]">otras apps</Badge>
-                </div>
-                <div className="text-5xl font-bold mt-2 text-primary">
+                <div className="text-5xl font-bold mt-4 text-primary">
                   $10 <span className="text-lg font-normal text-muted-foreground">USD</span>
                 </div>
-                <p className="text-sm font-medium text-foreground mt-1">Una sola vez · Para siempre</p>
-                <p className="text-xs text-emerald-600 dark:text-emerald-500 font-medium mt-2 flex items-center justify-center gap-1">
-                  <Check className="h-3.5 w-3.5" /> Ahorrás más de $110 cada año
-                </p>
+                <p className="text-sm text-muted-foreground mt-1">Pago único · Para siempre</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-2">
@@ -377,15 +370,9 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <div className="space-y-2">
-                  <Button className="w-full" size="lg" onClick={() => setPurchaseOpen(true)}>
-                    Comprar por $10 USD <ArrowRight className="h-4 w-4 ml-1" />
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1.5">
-                    <Shield className="h-3.5 w-3.5 text-primary" />
-                    30 días de prueba gratis · Sin tarjeta · Sin compromiso
-                  </p>
-                </div>
+                <Button className="w-full" size="lg" onClick={() => setPurchaseOpen(true)}>
+                  Comprar por $10 USD <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
               </CardContent>
             </Card>
           </div>
