@@ -3,9 +3,8 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { WalletSelector } from "@/components/WalletSelector";
 import { ProfileSelector } from "@/components/ProfileSelector";
 import {
-  Home, Receipt, Calendar, Target, User, Tag, PieChart, Settings,
-  BookOpen, FileText, BarChart3, TrendingUp, HelpCircle, X, Sparkles,
-  Globe, Bell, Book, Layers, LucideIcon,
+  Home, Receipt, Calendar, Target, Tag, PieChart, Cog,
+  X, Globe, GraduationCap, Calculator, LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,10 +29,20 @@ type NavItem = {
   href: string;
   icon: LucideIcon;
   featureKey: FeatureKey;
-  traditionalOnly?: boolean;
 };
 
 const allNavigation: NavItem[] = [
+  { name: "Panel Principal", href: "/", icon: Home, featureKey: "dashboard" },
+  { name: "Transacciones", href: "/transacciones", icon: Receipt, featureKey: "transactions" },
+  { name: "Calendario", href: "/calendario", icon: Calendar, featureKey: "calendar" },
+  { name: "Presupuesto", href: "/presupuesto", icon: Target, featureKey: "budget" },
+  { name: "Monedas", href: "/monedas", icon: Globe, featureKey: "currencies" },
+  { name: "Categorías", href: "/categorias", icon: Tag, featureKey: "categories" },
+  { name: "Resumen", href: "/resumen", icon: PieChart, featureKey: "summary" },
+  { name: "Contabilidad", href: "/contabilidad", icon: Calculator, featureKey: "accounting" },
+  { name: "Aprender", href: "/aprender", icon: GraduationCap, featureKey: "learn" },
+  { name: "Ajustes", href: "/ajustes", icon: Cog, featureKey: "settings" },
+];
   { name: "Panel Principal", href: "/", icon: Home, featureKey: "dashboard" },
   { name: "Transacciones", href: "/transacciones", icon: Receipt, featureKey: "transactions" },
   { name: "Calendario", href: "/calendario", icon: Calendar, featureKey: "calendar" },
