@@ -119,12 +119,12 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
 
   const handleExport = () => {
     toast.success("Exportar datos", { description: "Se abrirá el diálogo de exportación..." });
-    navigate("/configuracion");
+    navigate("/ajustes?tab=configuracion");
   };
 
   const handleImport = () => {
     toast.success("Importar datos", { description: "Selecciona el archivo a importar..." });
-    navigate("/configuracion");
+    navigate("/ajustes?tab=configuracion");
   };
 
   const handleNativeMenuToggle = (visible: boolean) => {
@@ -148,16 +148,10 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
     { name: "Monedas", href: "/monedas", icon: Globe, show: isFeatureAvailable("currencies") },
     { name: "Categorías", href: "/categorias", icon: Tag, show: isFeatureAvailable("categories") },
     { name: "Resumen", href: "/resumen", icon: PieChart, show: isFeatureAvailable("summary") },
-    { name: "Consolidado", href: "/consolidado", icon: Layers, show: isFeatureAvailable("consolidated") },
-    { name: "Libro Diario", href: "/libro-diario", icon: BookOpen, show: isFeatureAvailable("journal") },
-    { name: "Libro Mayor", href: "/libro-mayor", icon: FileText, show: isFeatureAvailable("ledger") },
-    { name: "Balance General", href: "/balance", icon: BarChart3, show: isFeatureAvailable("balance") },
-    { name: "Estado de Resultados", href: "/resultados", icon: TrendingUp, show: isFeatureAvailable("incomeStatement") },
-    { name: "Recomendaciones", href: "/recomendaciones", icon: Sparkles, show: isFeatureAvailable("recommendations") },
-    { name: "Manual", href: "/manual", icon: Book, show: true },
+    { name: "Contabilidad", href: "/contabilidad", icon: BarChart3, show: isFeatureAvailable("accounting") },
+    { name: "Aprender", href: "/aprender", icon: BookOpen, show: isFeatureAvailable("learn") },
     { name: "Notificaciones", href: "/notificaciones", icon: Bell, show: true },
-    { name: "Cuenta", href: "/cuenta", icon: User, show: true },
-    { name: "Configuración", href: "/configuracion", icon: Settings, show: true },
+    { name: "Ajustes", href: "/ajustes", icon: Settings, show: true },
   ].filter(item => item.show);
 
   // ===== MOBILE LAYOUT =====
