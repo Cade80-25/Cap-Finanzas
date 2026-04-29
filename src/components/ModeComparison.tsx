@@ -6,6 +6,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { InteractiveModeExample } from "./InteractiveModeExample";
 
 type Row = {
   feature: string;
@@ -91,54 +92,8 @@ interface ModeComparisonProps {
 export function ModeComparison({ highlightMode, compact = false }: ModeComparisonProps) {
   return (
     <div className="space-y-4">
-      {/* Ejemplo concreto */}
-      <Card className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-        <div className="flex items-start gap-2 mb-3">
-          <Lightbulb className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold">Ejemplo: pagar $50 de luz</p>
-            <p className="text-xs text-muted-foreground">Mismo evento, dos formas de registrarlo</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className={cn(
-            "rounded-lg p-3 border-2 bg-background",
-            highlightMode === "simple" ? "border-primary" : "border-border"
-          )}>
-            <div className="flex items-center gap-2 mb-2">
-              <Wallet className="h-4 w-4 text-primary" />
-              <span className="text-xs font-semibold">Simple</span>
-            </div>
-            <div className="text-xs space-y-1">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Servicios 💡</span>
-                <span className="font-mono text-destructive">-$50,00</span>
-              </div>
-              <p className="text-[10px] text-muted-foreground italic mt-2">1 línea, listo.</p>
-            </div>
-          </div>
-          <div className={cn(
-            "rounded-lg p-3 border-2 bg-background",
-            highlightMode === "traditional" ? "border-primary" : "border-border"
-          )}>
-            <div className="flex items-center gap-2 mb-2">
-              <Calculator className="h-4 w-4 text-primary" />
-              <span className="text-xs font-semibold">Completo</span>
-            </div>
-            <div className="text-xs space-y-1 font-mono">
-              <div className="flex justify-between">
-                <span>Gastos Servicios</span>
-                <span className="text-success">$50,00</span>
-              </div>
-              <div className="flex justify-between pl-3">
-                <span className="text-muted-foreground">Caja</span>
-                <span className="text-destructive">$50,00</span>
-              </div>
-              <p className="text-[10px] text-muted-foreground italic mt-2 font-sans">Asiento Debe / Haber.</p>
-            </div>
-          </div>
-        </div>
-      </Card>
+      {/* Ejemplo interactivo en vivo */}
+      <InteractiveModeExample />
 
       {/* Tabla comparativa */}
       <Card className="overflow-hidden">
