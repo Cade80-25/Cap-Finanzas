@@ -141,9 +141,15 @@ export function InteractiveModeExample() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Simple */}
         <div className="rounded-lg p-3 border-2 border-border bg-background">
-          <div className="flex items-center gap-2 mb-2">
-            <Wallet className="h-4 w-4 text-primary" />
-            <span className="text-xs font-semibold">Modo Simple</span>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <Wallet className="h-4 w-4 text-primary" />
+              <span className="text-xs font-semibold">Modo Simple</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 font-mono">1 línea</Badge>
+              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4">Gasto</Badge>
+            </div>
           </div>
           <div className="text-xs space-y-1.5">
             <div className="flex items-center justify-between p-2 rounded bg-destructive/5 border border-destructive/20">
@@ -156,16 +162,22 @@ export function InteractiveModeExample() {
               </span>
             </div>
             <p className="text-[10px] text-muted-foreground italic">
-              1 línea: gasto de {cat.label.toLowerCase()} pagado con {src.label.toLowerCase()}.
+              Registro directo: gasto de {cat.label.toLowerCase()} pagado con {src.label.toLowerCase()}.
             </p>
           </div>
         </div>
 
         {/* Completo */}
         <div className="rounded-lg p-3 border-2 border-border bg-background">
-          <div className="flex items-center gap-2 mb-2">
-            <Calculator className="h-4 w-4 text-primary" />
-            <span className="text-xs font-semibold">Modo Completo</span>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <Calculator className="h-4 w-4 text-primary" />
+              <span className="text-xs font-semibold">Modo Completo</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 font-mono">2 líneas</Badge>
+              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4">Partida doble</Badge>
+            </div>
           </div>
           <div className="text-xs">
             <div className="grid grid-cols-[1fr_auto_auto] gap-x-2 gap-y-1 font-mono">
