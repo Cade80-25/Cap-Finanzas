@@ -9,8 +9,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, BookOpen, ChevronDown, Check } from "lucide-react";
+import { Wallet, BookOpen, ChevronDown, Check, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { ModeComparisonDialog } from "./ModeComparisonDialog";
 
 interface ModeSelectorProps {
   onPurchaseClick?: () => void;
@@ -19,6 +21,7 @@ interface ModeSelectorProps {
 
 export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorProps) {
   const { mode, setMode, status, trialInfo } = useLicense();
+  const [comparisonOpen, setComparisonOpen] = useState(false);
 
   const modes = [
     {
