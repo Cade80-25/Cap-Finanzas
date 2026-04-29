@@ -51,6 +51,7 @@ export function WelcomeDialog() {
   };
 
   return (
+    <>
     <Dialog open={!hasSeenWelcome} onOpenChange={(open) => !open && handleSkip()}>
       <DialogContent className="sm:max-w-lg overflow-hidden">
         {step === 0 ? (
@@ -283,5 +284,11 @@ export function WelcomeDialog() {
         )}
       </DialogContent>
     </Dialog>
+    <ModeComparisonDialog
+      open={comparisonOpen}
+      onOpenChange={setComparisonOpen}
+      highlightMode={selectedMode}
+    />
+    </>
   );
 }
