@@ -1,4 +1,4 @@
-import { BookOpen, Lightbulb, Play, Globe, DollarSign, BarChart3, Shield, Sparkles } from "lucide-react";
+import { BookOpen, Lightbulb, Play, Globe, DollarSign, BarChart3, Shield, Sparkles, Wallet, Calculator, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,30 +12,40 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useTutorial } from "@/hooks/useTutorial";
 import { useNumberFormat, NumberFormatType } from "@/hooks/useNumberFormat";
+import { useLicense, LicenseMode } from "@/hooks/useLicense";
 import { useState } from "react";
 
 export function WelcomeDialog() {
   const { hasSeenWelcome, markWelcomeSeen, startTutorial } = useTutorial();
   const { format, setFormat } = useNumberFormat();
+  const { mode, setMode } = useLicense();
   const [step, setStep] = useState(0);
   const [selectedFormat, setSelectedFormat] = useState<NumberFormatType>(format);
+  const [selectedMode, setSelectedMode] = useState<LicenseMode>(mode);
 
-  const handleStartTutorial = () => {
+  const applyChoices = () => {
+    setMode(selectedMode);
     setFormat(selectedFormat);
     markWelcomeSeen();
-    // Start the interactive app tour instead of the old tutorial
+  };
+
+  const handleStartTutorial = () => {
+    applyChoices();
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent("start-app-tour"));
     }, 500);
   };
 
   const handleSkip = () => {
-    setFormat(selectedFormat);
-    markWelcomeSeen();
+    applyChoices();
   };
 
   const handleNext = () => {
-    setStep(1);
+    setStep((s) => Math.min(s + 1, 2));
+  };
+
+  const handleBack = () => {
+    setStep((s) => Math.max(s - 1, 0));
   };
 
   return (
@@ -98,6 +108,90 @@ export function WelcomeDialog() {
                 onClick={handleNext}
                 className="w-full sm:w-auto bg-gradient-primary"
               >
+                Continuar
+                <Sparkles className="h-4 w-4 ml-2" />
+              </Button>
+            </DialogFooter>
+          </>
+        ) : step === 1 ? (
+          <>
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-3 rounded-2xl bg-primary/10">
+                  <Wallet className="h-8 w-8 text-primary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl">
+                    Elige tu modo de uso
+                  </DialogTitle>
+                  <DialogDescription>
+                    Puedes cambiarlo cuando quieras desde la barra superior
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <div className="py-4 space-y-3">
+              <RadioGroup
+                value={selectedMode}
+                onValueChange={(val) => setSelectedMode(val as LicenseMode)}
+                className="space-y-3"
+              >
+                <label
+                  htmlFor="mode-simple"
+                  className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                    selectedMode === "simple"
+                      ? "border-primary bg-primary/5 shadow-soft"
+                      : "border-border hover:border-primary/30"
+                  }`}
+                >
+                  <RadioGroupItem value="simple" id="mode-simple" className="mt-1" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="h-5 w-5 text-primary" />
+                      <p className="font-semibold">Simple</p>
+                      {selectedMode === "simple" && <Check className="h-4 w-4 text-primary ml-auto" />}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Para uso personal: ingresos, gastos, presupuestos y resumen visual.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      <strong>Ideal si:</strong> querés llevar tus finanzas sin complicaciones.
+                    </p>
+                  </div>
+                </label>
+
+                <label
+                  htmlFor="mode-traditional"
+                  className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                    selectedMode === "traditional"
+                      ? "border-primary bg-primary/5 shadow-soft"
+                      : "border-border hover:border-primary/30"
+                  }`}
+                >
+                  <RadioGroupItem value="traditional" id="mode-traditional" className="mt-1" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Calculator className="h-5 w-5 text-primary" />
+                      <p className="font-semibold">Completo</p>
+                      {selectedMode === "traditional" && <Check className="h-4 w-4 text-primary ml-auto" />}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Contabilidad por partida doble: Libro Diario, Mayor, Balance y Estado de Resultados.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      <strong>Ideal si:</strong> sabés contabilidad o gestionás un negocio.
+                    </p>
+                  </div>
+                </label>
+              </RadioGroup>
+            </div>
+
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button variant="outline" onClick={handleBack} className="w-full sm:w-auto">
+                Atrás
+              </Button>
+              <Button onClick={handleNext} className="w-full sm:w-auto bg-gradient-primary">
                 Continuar
                 <Sparkles className="h-4 w-4 ml-2" />
               </Button>
@@ -166,17 +260,10 @@ export function WelcomeDialog() {
             </div>
 
             <DialogFooter className="flex-col sm:flex-row gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setStep(0)}
-                className="w-full sm:w-auto"
-              >
+              <Button variant="outline" onClick={handleBack} className="w-full sm:w-auto">
                 Atrás
               </Button>
-              <Button
-                onClick={handleStartTutorial}
-                className="w-full sm:w-auto bg-gradient-primary"
-              >
+              <Button onClick={handleStartTutorial} className="w-full sm:w-auto bg-gradient-primary">
                 <Play className="h-4 w-4 mr-2" />
                 Iniciar Tutorial
               </Button>
