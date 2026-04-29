@@ -1,4 +1,4 @@
-import { Home, Receipt, Target, PieChart, User } from "lucide-react";
+import { Home, Receipt, Target, PieChart, Cog } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -9,7 +9,7 @@ const navItems = [
   { name: "Movimientos", href: "/transacciones", icon: Receipt },
   { name: "Presupuesto", href: "/presupuesto", icon: Target },
   { name: "Resumen", href: "/resumen", icon: PieChart },
-  { name: "Cuenta", href: "/cuenta", icon: User },
+  { name: "Ajustes", href: "/ajustes", icon: Cog },
 ];
 
 export function MobileBottomNav() {

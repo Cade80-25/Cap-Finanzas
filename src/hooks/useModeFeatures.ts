@@ -13,16 +13,18 @@ export type FeatureKey =
   | "categories"
   | "summary"
   | "consolidated"
-  | "journal"        // Libro Diario (full double-entry)
-  | "ledger"         // Libro Mayor
-  | "balance"        // Balance General
-  | "incomeStatement" // Estado de Resultados
+  | "accounting"
+  | "journal"
+  | "ledger"
+  | "balance"
+  | "incomeStatement"
+  | "learn"
   | "encyclopedia"
   | "recommendations"
   | "manual"
   | "notifications"
-  | "account"
-  | "settings";
+  | "settings"
+  | "account";
 
 interface FeatureConfig {
   key: FeatureKey;
@@ -41,17 +43,19 @@ const FEATURE_CONFIG: FeatureConfig[] = [
   { key: "currencies", route: "/monedas", label: "Monedas", simpleMode: true, traditionalMode: true },
   { key: "categories", route: "/categorias", label: "Categorías", simpleMode: false, traditionalMode: true },
   { key: "summary", route: "/resumen", label: "Resumen", simpleMode: true, traditionalMode: true, simplifiedInSimple: true },
-  { key: "consolidated", route: "/consolidado", label: "Consolidado", simpleMode: false, traditionalMode: true },
-  { key: "journal", route: "/libro-diario", label: "Libro Diario", simpleMode: false, traditionalMode: true },
-  { key: "ledger", route: "/libro-mayor", label: "Libro Mayor", simpleMode: false, traditionalMode: true },
-  { key: "balance", route: "/balance", label: "Balance General", simpleMode: false, traditionalMode: true },
-  { key: "incomeStatement", route: "/resultados", label: "Estado de Resultados", simpleMode: false, traditionalMode: true },
-  { key: "encyclopedia", route: "/enciclopedia", label: "Enciclopedia", simpleMode: false, traditionalMode: true },
-  { key: "recommendations", route: "/recomendaciones", label: "Recomendaciones", simpleMode: true, traditionalMode: true },
-  { key: "manual", route: "/manual", label: "Manual de Usuario", simpleMode: true, traditionalMode: true },
+  { key: "consolidated", route: "/resumen?tab=consolidado", label: "Consolidado", simpleMode: false, traditionalMode: true },
+  { key: "accounting", route: "/contabilidad", label: "Contabilidad", simpleMode: false, traditionalMode: true },
+  { key: "journal", route: "/contabilidad?tab=diario", label: "Libro Diario", simpleMode: false, traditionalMode: true },
+  { key: "ledger", route: "/contabilidad?tab=mayor", label: "Libro Mayor", simpleMode: false, traditionalMode: true },
+  { key: "balance", route: "/contabilidad?tab=balance", label: "Balance General", simpleMode: false, traditionalMode: true },
+  { key: "incomeStatement", route: "/contabilidad?tab=resultados", label: "Estado de Resultados", simpleMode: false, traditionalMode: true },
+  { key: "learn", route: "/aprender", label: "Aprender", simpleMode: true, traditionalMode: true },
+  { key: "encyclopedia", route: "/aprender?tab=enciclopedia", label: "Enciclopedia", simpleMode: false, traditionalMode: true },
+  { key: "recommendations", route: "/aprender?tab=recomendaciones", label: "Recomendaciones", simpleMode: true, traditionalMode: true },
+  { key: "manual", route: "/aprender?tab=manual", label: "Manual de Usuario", simpleMode: true, traditionalMode: true },
   { key: "notifications", route: "/notificaciones", label: "Notificaciones", simpleMode: true, traditionalMode: true },
-  { key: "account", route: "/cuenta", label: "Cuenta", simpleMode: true, traditionalMode: true },
-  { key: "settings", route: "/configuracion", label: "Configuración", simpleMode: true, traditionalMode: true },
+  { key: "settings", route: "/ajustes", label: "Ajustes", simpleMode: true, traditionalMode: true },
+  { key: "account", route: "/ajustes?tab=cuenta", label: "Cuenta", simpleMode: true, traditionalMode: true },
 ];
 
 export function useModeFeatures() {

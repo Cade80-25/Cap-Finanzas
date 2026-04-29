@@ -11,22 +11,15 @@ import Presupuesto from "./pages/Presupuesto";
 import Monedas from "./pages/Monedas";
 import Categorias from "./pages/Categorias";
 import Resumen from "./pages/Resumen";
-import LibroDiario from "./pages/LibroDiario";
-import LibroMayor from "./pages/LibroMayor";
-import Balance from "./pages/Balance";
-import EstadoResultados from "./pages/EstadoResultados";
-import Enciclopedia from "./pages/Enciclopedia";
-import Cuenta from "./pages/Cuenta";
-import Configuracion from "./pages/Configuracion";
-import Recomendaciones from "./pages/Recomendaciones";
+import Contabilidad from "./pages/Contabilidad";
+import Aprender from "./pages/Aprender";
+import Ajustes from "./pages/Ajustes";
 import Notificaciones from "./pages/Notificaciones";
-import Manual from "./pages/Manual";
 import NotFound from "./pages/NotFound";
 import Instalar from "./pages/Instalar";
 import LandingPage from "./pages/LandingPage";
 import LicenseGenerator from "./pages/LicenseGenerator";
 import Admin from "./pages/Admin";
-import Consolidado from "./pages/Consolidado";
 import Privacidad from "./pages/Privacidad";
 import Terminos from "./pages/Terminos";
 import { ThemeProvider } from "next-themes";
@@ -76,18 +69,22 @@ const App = () => (
                 <Route path="monedas" element={<Monedas />} />
                 <Route path="categorias" element={<Categorias />} />
                 <Route path="resumen" element={<Resumen />} />
-                <Route path="consolidado" element={<Consolidado />} />
-                <Route path="libro-diario" element={<LibroDiario />} />
-                <Route path="libro-mayor" element={<LibroMayor />} />
-                <Route path="balance" element={<Balance />} />
-                <Route path="resultados" element={<EstadoResultados />} />
-                <Route path="enciclopedia" element={<Enciclopedia />} />
-                <Route path="recomendaciones" element={<Recomendaciones />} />
+                <Route path="contabilidad" element={<Contabilidad />} />
+                <Route path="aprender" element={<Aprender />} />
                 <Route path="notificaciones" element={<Notificaciones />} />
-                <Route path="manual" element={<Manual />} />
-                <Route path="cuenta" element={<Cuenta />} />
-                <Route path="configuracion" element={<Configuracion />} />
+                <Route path="ajustes" element={<Ajustes />} />
                 <Route path="instalar" element={<Instalar />} />
+                {/* Redirecciones legacy: rutas antiguas → nuevas agrupadas */}
+                <Route path="consolidado" element={<Resumen />} />
+                <Route path="libro-diario" element={<Contabilidad />} />
+                <Route path="libro-mayor" element={<Contabilidad />} />
+                <Route path="balance" element={<Contabilidad />} />
+                <Route path="resultados" element={<Contabilidad />} />
+                <Route path="enciclopedia" element={<Aprender />} />
+                <Route path="recomendaciones" element={<Aprender />} />
+                <Route path="manual" element={<Aprender />} />
+                <Route path="cuenta" element={<Ajustes />} />
+                <Route path="configuracion" element={<Ajustes />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

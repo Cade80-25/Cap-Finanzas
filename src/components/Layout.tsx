@@ -3,9 +3,8 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { WalletSelector } from "@/components/WalletSelector";
 import { ProfileSelector } from "@/components/ProfileSelector";
 import {
-  Home, Receipt, Calendar, Target, User, Tag, PieChart, Settings,
-  BookOpen, FileText, BarChart3, TrendingUp, HelpCircle, X, Sparkles,
-  Globe, Bell, Book, Layers, LucideIcon,
+  Home, Receipt, Calendar, Target, Tag, PieChart, Cog,
+  X, Globe, GraduationCap, Calculator, LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,6 @@ type NavItem = {
   href: string;
   icon: LucideIcon;
   featureKey: FeatureKey;
-  traditionalOnly?: boolean;
 };
 
 const allNavigation: NavItem[] = [
@@ -41,17 +39,9 @@ const allNavigation: NavItem[] = [
   { name: "Monedas", href: "/monedas", icon: Globe, featureKey: "currencies" },
   { name: "Categorías", href: "/categorias", icon: Tag, featureKey: "categories" },
   { name: "Resumen", href: "/resumen", icon: PieChart, featureKey: "summary" },
-  { name: "Consolidado", href: "/consolidado", icon: Layers, featureKey: "consolidated" },
-  { name: "Libro Diario", href: "/libro-diario", icon: BookOpen, featureKey: "journal", traditionalOnly: true },
-  { name: "Libro Mayor", href: "/libro-mayor", icon: FileText, featureKey: "ledger", traditionalOnly: true },
-  { name: "Balance General", href: "/balance", icon: BarChart3, featureKey: "balance", traditionalOnly: true },
-  { name: "Estado de Resultados", href: "/resultados", icon: TrendingUp, featureKey: "incomeStatement", traditionalOnly: true },
-  { name: "Enciclopedia", href: "/enciclopedia", icon: HelpCircle, featureKey: "encyclopedia", traditionalOnly: true },
-  { name: "Recomendaciones", href: "/recomendaciones", icon: Sparkles, featureKey: "recommendations" },
-  { name: "Manual de Usuario", href: "/manual", icon: Book, featureKey: "manual" },
-  { name: "Notificaciones", href: "/notificaciones", icon: Bell, featureKey: "notifications" },
-  { name: "Cuenta", href: "/cuenta", icon: User, featureKey: "account" },
-  { name: "Configuración", href: "/configuracion", icon: Settings, featureKey: "settings" },
+  { name: "Contabilidad", href: "/contabilidad", icon: Calculator, featureKey: "accounting" },
+  { name: "Aprender", href: "/aprender", icon: GraduationCap, featureKey: "learn" },
+  { name: "Ajustes", href: "/ajustes", icon: Cog, featureKey: "settings" },
 ];
 
 export default function Layout() {
