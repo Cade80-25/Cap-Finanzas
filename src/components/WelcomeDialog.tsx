@@ -1,4 +1,4 @@
-import { BookOpen, Lightbulb, Play, Globe, DollarSign, BarChart3, Shield, Sparkles } from "lucide-react";
+import { BookOpen, Lightbulb, Play, Globe, DollarSign, BarChart3, Shield, Sparkles, Wallet, Calculator, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,30 +12,40 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useTutorial } from "@/hooks/useTutorial";
 import { useNumberFormat, NumberFormatType } from "@/hooks/useNumberFormat";
+import { useLicense, LicenseMode } from "@/hooks/useLicense";
 import { useState } from "react";
 
 export function WelcomeDialog() {
   const { hasSeenWelcome, markWelcomeSeen, startTutorial } = useTutorial();
   const { format, setFormat } = useNumberFormat();
+  const { mode, setMode } = useLicense();
   const [step, setStep] = useState(0);
   const [selectedFormat, setSelectedFormat] = useState<NumberFormatType>(format);
+  const [selectedMode, setSelectedMode] = useState<LicenseMode>(mode);
 
-  const handleStartTutorial = () => {
+  const applyChoices = () => {
+    setMode(selectedMode);
     setFormat(selectedFormat);
     markWelcomeSeen();
-    // Start the interactive app tour instead of the old tutorial
+  };
+
+  const handleStartTutorial = () => {
+    applyChoices();
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent("start-app-tour"));
     }, 500);
   };
 
   const handleSkip = () => {
-    setFormat(selectedFormat);
-    markWelcomeSeen();
+    applyChoices();
   };
 
   const handleNext = () => {
-    setStep(1);
+    setStep((s) => Math.min(s + 1, 2));
+  };
+
+  const handleBack = () => {
+    setStep((s) => Math.max(s - 1, 0));
   };
 
   return (
