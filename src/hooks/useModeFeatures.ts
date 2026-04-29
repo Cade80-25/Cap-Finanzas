@@ -13,16 +13,18 @@ export type FeatureKey =
   | "categories"
   | "summary"
   | "consolidated"
-  | "journal"        // Libro Diario (full double-entry)
-  | "ledger"         // Libro Mayor
-  | "balance"        // Balance General
-  | "incomeStatement" // Estado de Resultados
+  | "accounting"
+  | "journal"
+  | "ledger"
+  | "balance"
+  | "incomeStatement"
+  | "learn"
   | "encyclopedia"
   | "recommendations"
   | "manual"
   | "notifications"
-  | "account"
-  | "settings";
+  | "settings"
+  | "account";
 
 interface FeatureConfig {
   key: FeatureKey;
