@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useTutorial } from "@/hooks/useTutorial";
 import { useNumberFormat, NumberFormatType } from "@/hooks/useNumberFormat";
 import { useLicense, LicenseMode } from "@/hooks/useLicense";
+import { ModeComparisonDialog } from "./ModeComparisonDialog";
 import { useState } from "react";
 
 export function WelcomeDialog() {
@@ -22,6 +23,7 @@ export function WelcomeDialog() {
   const [step, setStep] = useState(0);
   const [selectedFormat, setSelectedFormat] = useState<NumberFormatType>(format);
   const [selectedMode, setSelectedMode] = useState<LicenseMode>(mode);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
 
   const applyChoices = () => {
     setMode(selectedMode);
@@ -185,6 +187,15 @@ export function WelcomeDialog() {
                   </div>
                 </label>
               </RadioGroup>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setComparisonOpen(true)}
+                className="w-full text-primary hover:text-primary"
+              >
+                Ver comparación detallada
+              </Button>
             </div>
 
             <DialogFooter className="flex-col sm:flex-row gap-2">
