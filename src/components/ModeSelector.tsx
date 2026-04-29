@@ -9,8 +9,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, BookOpen, ChevronDown, Check } from "lucide-react";
+import { Wallet, BookOpen, ChevronDown, Check, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { ModeComparisonDialog } from "./ModeComparisonDialog";
 
 interface ModeSelectorProps {
   onPurchaseClick?: () => void;
@@ -19,6 +21,7 @@ interface ModeSelectorProps {
 
 export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorProps) {
   const { mode, setMode, status, trialInfo } = useLicense();
+  const [comparisonOpen, setComparisonOpen] = useState(false);
 
   const modes = [
     {
@@ -41,6 +44,7 @@ export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorP
   const CurrentIcon = currentMode.icon;
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button 
@@ -90,6 +94,15 @@ export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorP
           );
         })}
 
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => setComparisonOpen(true)}
+          className="cursor-pointer text-primary font-medium gap-2"
+        >
+          <Scale className="h-4 w-4" />
+          Comparar Simple vs Completo
+        </DropdownMenuItem>
+
         {status === "expired" && onPurchaseClick && (
           <>
             <DropdownMenuSeparator />
@@ -103,5 +116,11 @@ export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorP
         )}
       </DropdownMenuContent>
     </DropdownMenu>
+    <ModeComparisonDialog
+      open={comparisonOpen}
+      onOpenChange={setComparisonOpen}
+      highlightMode={mode}
+    />
+    </>
   );
 }
