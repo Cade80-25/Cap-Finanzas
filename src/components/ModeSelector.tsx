@@ -44,6 +44,7 @@ export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorP
   const CurrentIcon = currentMode.icon;
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button 
@@ -93,6 +94,15 @@ export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorP
           );
         })}
 
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => setComparisonOpen(true)}
+          className="cursor-pointer text-primary font-medium gap-2"
+        >
+          <Scale className="h-4 w-4" />
+          Comparar Simple vs Completo
+        </DropdownMenuItem>
+
         {status === "expired" && onPurchaseClick && (
           <>
             <DropdownMenuSeparator />
@@ -106,5 +116,11 @@ export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorP
         )}
       </DropdownMenuContent>
     </DropdownMenu>
+    <ModeComparisonDialog
+      open={comparisonOpen}
+      onOpenChange={setComparisonOpen}
+      highlightMode={mode}
+    />
+    </>
   );
 }
