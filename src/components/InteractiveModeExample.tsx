@@ -205,6 +205,52 @@ export function InteractiveModeExample() {
           </div>
         </div>
       </div>
+
+      {/* Mini-explicación: ¿por qué 1 línea vs 2 líneas? */}
+      <div className="mt-3 rounded-lg border border-border bg-background/60 p-3">
+        <p className="text-xs font-semibold mb-2 flex items-center gap-1.5">
+          <Lightbulb className="h-3.5 w-3.5 text-primary" />
+          ¿Por qué Simple tiene 1 línea y Completo tiene 2?
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+          {/* Simple */}
+          <div className="rounded-md p-2.5 bg-muted/40">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <Wallet className="h-3.5 w-3.5 text-primary" />
+              <span className="font-semibold">Simple → 1 línea</span>
+            </div>
+            <p className="text-muted-foreground leading-relaxed">
+              Anotás el hecho como en una libreta: <span className="font-medium text-foreground">"Gasté ${isValid ? formatNumber(parsedAmount) : "—"} en {cat.label.toLowerCase()}"</span>. Una sola anotación, sin pensar de dónde sale la plata.
+            </p>
+          </div>
+
+          {/* Completo */}
+          <div className="rounded-md p-2.5 bg-muted/40">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <Calculator className="h-3.5 w-3.5 text-primary" />
+              <span className="font-semibold">Completo → 2 líneas</span>
+            </div>
+            <p className="text-muted-foreground leading-relaxed mb-1.5">
+              Cada movimiento tiene <span className="font-medium text-foreground">dos caras</span>: algo aumenta y algo disminuye. Por eso se llama <em>partida doble</em>.
+            </p>
+            <ul className="space-y-1 ml-1">
+              <li className="flex gap-1.5">
+                <span className="text-success font-semibold flex-shrink-0">Línea 1 (Debe):</span>
+                <span className="text-muted-foreground">"{acc.label}" sube ${isValid ? formatNumber(parsedAmount) : "—"}.</span>
+              </li>
+              <li className="flex gap-1.5">
+                <span className="text-destructive font-semibold flex-shrink-0">Línea 2 (Haber):</span>
+                <span className="text-muted-foreground">"{sourceAccountLabel}" baja ${isValid ? formatNumber(parsedAmount) : "—"}.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <p className="text-[10px] text-muted-foreground italic mt-2 text-center">
+          💡 Las dos líneas siempre suman lo mismo en Debe y Haber: así el balance nunca se desarma.
+        </p>
+      </div>
     </Card>
   );
 }
