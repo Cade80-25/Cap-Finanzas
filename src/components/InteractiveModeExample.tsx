@@ -251,6 +251,47 @@ export function InteractiveModeExample() {
           💡 Las dos líneas siempre suman lo mismo en Debe y Haber: así el balance nunca se desarma.
         </p>
       </div>
+
+      {/* Mini-glosario: Debe y Haber */}
+      <div className="mt-3 rounded-lg border border-primary/20 bg-gradient-to-br from-background to-primary/5 p-3">
+        <p className="text-xs font-semibold mb-2 flex items-center gap-1.5">
+          📖 Glosario rápido: ¿qué es <span className="text-success">Debe</span> y <span className="text-destructive">Haber</span>?
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+          {/* Debe */}
+          <div className="rounded-md p-2.5 bg-success/5 border border-success/20">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Badge className="bg-success/20 text-success hover:bg-success/20 border-0 text-[10px] h-4 px-1.5">Debe</Badge>
+              <span className="text-[10px] text-muted-foreground">(izquierda del asiento)</span>
+            </div>
+            <p className="text-muted-foreground leading-relaxed mb-1.5">
+              Es donde anotás <span className="font-medium text-foreground">lo que entra o aumenta</span>: un gasto que ocurrió, un bien que recibiste, o dinero que llegó a tu cuenta.
+            </p>
+            <p className="text-[10px] bg-background/60 rounded p-1.5 border border-border">
+              <span className="font-semibold">Mini-ejemplo:</span> Pagás la luz → el gasto "Servicios" <span className="text-success font-semibold">sube</span> en el Debe.
+            </p>
+          </div>
+
+          {/* Haber */}
+          <div className="rounded-md p-2.5 bg-destructive/5 border border-destructive/20">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Badge className="bg-destructive/20 text-destructive hover:bg-destructive/20 border-0 text-[10px] h-4 px-1.5">Haber</Badge>
+              <span className="text-[10px] text-muted-foreground">(derecha del asiento)</span>
+            </div>
+            <p className="text-muted-foreground leading-relaxed mb-1.5">
+              Es donde anotás <span className="font-medium text-foreground">de dónde sale o qué disminuye</span>: la cuenta que pagó, el dinero que se fue, o una deuda que asumiste.
+            </p>
+            <p className="text-[10px] bg-background/60 rounded p-1.5 border border-border">
+              <span className="font-semibold">Mini-ejemplo:</span> Pagaste con efectivo → "Caja" <span className="text-destructive font-semibold">baja</span> en el Haber.
+            </p>
+          </div>
+        </div>
+
+        <p className="text-[10px] text-muted-foreground mt-2 text-center">
+          🧠 Truco para recordarlo: <span className="font-medium text-foreground">Debe = "lo que pasa"</span> · <span className="font-medium text-foreground">Haber = "con qué se paga"</span>.
+        </p>
+      </div>
     </Card>
   );
 }
