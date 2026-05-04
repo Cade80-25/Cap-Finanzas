@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Wallet, Calculator, Lightbulb, ArrowRight, ChevronDown } from "lucide-react";
+import { Wallet, Calculator, Lightbulb, ArrowRight, ChevronDown, FileText } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
