@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Wallet, Calculator, Lightbulb, ArrowRight, ChevronDown } from "lucide-react";
+import { Wallet, Calculator, Lightbulb, ArrowRight, ChevronDown, FileText } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -252,6 +253,82 @@ export function InteractiveModeExample() {
           💡 Las dos líneas siempre suman lo mismo en Debe y Haber: así el balance nunca se desarma.
         </p>
       </div>
+
+      {/* Botón: Ver asiento completo con cuentas exactas y totales */}
+      <Collapsible className="mt-3">
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-between group border-primary/30 hover:bg-primary/5"
+          >
+            <span className="flex items-center gap-2 text-xs">
+              <FileText className="h-3.5 w-3.5 text-primary" />
+              Ver asiento completo (con cuentas y totales)
+            </span>
+            <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+          <div className="mt-2 rounded-lg border-2 border-primary/20 bg-background p-3">
+            <div className="flex items-center justify-between mb-2 pb-2 border-b border-border">
+              <div>
+                <p className="text-xs font-semibold">Asiento de Diario</p>
+                <p className="text-[10px] text-muted-foreground">
+                  Fecha: {new Date().toLocaleDateString()} · Concepto: pago de {cat.label.toLowerCase()}
+                </p>
+              </div>
+              <Badge variant="outline" className="text-[10px]">Partida doble</Badge>
+            </div>
+
+            <div className="grid grid-cols-[24px_1fr_auto_auto] gap-x-2 gap-y-1 text-xs font-mono">
+              <div className="text-[10px] text-muted-foreground font-sans">#</div>
+              <div className="text-[10px] text-muted-foreground font-sans">Cuenta</div>
+              <div className="text-[10px] text-muted-foreground font-sans text-right">Debe</div>
+              <div className="text-[10px] text-muted-foreground font-sans text-right">Haber</div>
+
+              {/* Línea 1 - Debe */}
+              <span className="text-muted-foreground">1</span>
+              <span className="truncate">{acc.label}</span>
+              <span className="text-success font-semibold text-right whitespace-nowrap">
+                ${isValid ? formatNumber(parsedAmount) : "—"}
+              </span>
+              <span className="text-muted-foreground text-right">—</span>
+
+              {/* Línea 2 - Haber */}
+              <span className="text-muted-foreground">2</span>
+              <span className="truncate pl-3">a {sourceAccountLabel}</span>
+              <span className="text-muted-foreground text-right">—</span>
+              <span className="text-destructive font-semibold text-right whitespace-nowrap">
+                ${isValid ? formatNumber(parsedAmount) : "—"}
+              </span>
+
+              {/* Totales */}
+              <div className="col-span-4 border-t border-border mt-1 pt-1 grid grid-cols-[24px_1fr_auto_auto] gap-x-2">
+                <span></span>
+                <span className="text-[10px] text-muted-foreground font-sans font-semibold">Totales</span>
+                <span className="text-success font-bold text-right whitespace-nowrap">
+                  ${isValid ? formatNumber(parsedAmount) : "—"}
+                </span>
+                <span className="text-destructive font-bold text-right whitespace-nowrap">
+                  ${isValid ? formatNumber(parsedAmount) : "—"}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-2 p-2 rounded bg-success/5 border border-success/20 text-[10px] flex items-start gap-1.5">
+              <span className="text-success font-semibold">✓ Asiento balanceado:</span>
+              <span className="text-muted-foreground">
+                Debe (${isValid ? formatNumber(parsedAmount) : "—"}) = Haber (${isValid ? formatNumber(parsedAmount) : "—"}). El sistema no permite guardar asientos descuadrados.
+              </span>
+            </div>
+
+            <p className="text-[10px] text-muted-foreground italic mt-2">
+              📘 Glosa: "Por pago de {cat.label.toLowerCase()} con {src.label.toLowerCase()} por ${isValid ? formatNumber(parsedAmount) : "—"}".
+            </p>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Mini-glosario desplegable: Debe y Haber personalizado */}
       <Collapsible className="mt-3">
