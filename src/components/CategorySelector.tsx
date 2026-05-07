@@ -45,6 +45,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
   const [newSubIcon, setNewSubIcon] = useState("📌");
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
   const [editing, setEditing] = useState<EditState | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ categoryId: string; sub: SubCategory } | null>(null);
 
   const categories = type === "income" ? incomeCategories : expenseCategories;
   const filtered = search
