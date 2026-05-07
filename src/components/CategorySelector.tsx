@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Trash2, ChevronRight, Search, Pencil } from "lucide-react";
+import { Plus, Trash2, ChevronRight, Search, Pencil, FolderPlus } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,10 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCategories, type Category, type SubCategory } from "@/hooks/useCategories";
 
