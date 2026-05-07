@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Trash2, ChevronRight, Search, Pencil } from "lucide-react";
+import { Plus, Trash2, ChevronRight, Search, Pencil, FolderPlus } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,10 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCategories, type Category, type SubCategory } from "@/hooks/useCategories";
 
@@ -40,6 +45,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
   const [newSubIcon, setNewSubIcon] = useState("📌");
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
   const [editing, setEditing] = useState<EditState | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ categoryId: string; sub: SubCategory } | null>(null);
 
   const categories = type === "income" ? incomeCategories : expenseCategories;
   const filtered = search
@@ -57,10 +63,21 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
   };
 
   const handleAddSubcategory = (catId: string) => {
-    if (!newSubLabel.trim()) return;
+    if (!newSubLabel.trim()) {
+      toast.error("Ingresa un nombre para la subcategoría");
+      return;
+    }
     const subId = `${newSubLabel.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}-${Date.now().toString(36)}`;
     addSubcategory(catId, { id: subId, label: newSubLabel.trim(), icon: newSubIcon });
+    toast.success(`Subcategoría "${newSubLabel.trim()}" agregada`);
     setNewSubLabel(""); setNewSubIcon("📌"); setAddSubOpen(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!confirmDelete) return;
+    removeSubcategory(confirmDelete.categoryId, confirmDelete.sub.id);
+    toast.success(`Subcategoría "${confirmDelete.sub.label}" eliminada`);
+    setConfirmDelete(null);
   };
 
   const handleSaveEdit = () => {
@@ -110,17 +127,23 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                     : "hover:bg-muted"
                 )}
                 onClick={() => {
-                  if (cat.subcategories.length > 0) {
-                    setExpandedCat(expandedCat === cat.id ? null : cat.id);
-                  }
+                  setExpandedCat(expandedCat === cat.id ? null : cat.id);
                   onSelect(cat.id, undefined);
                 }}
               >
                 <span className="text-base">{cat.icon}</span>
                 <span className="flex-1 truncate">{cat.label}</span>
-                {cat.subcategories.length > 0 && (
-                  <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", expandedCat === cat.id && "rotate-90")} />
-                )}
+                <ChevronRight className={cn("h-3.5 w-3.5 transition-transform opacity-60", expandedCat === cat.id && "rotate-90")} />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 opacity-0 group-hover/cat:opacity-100"
+                  onClick={e => { e.stopPropagation(); setExpandedCat(cat.id); setAddSubOpen(cat.id); setNewSubLabel(""); setNewSubIcon("📌"); }}
+                  title="Agregar subcategoría"
+                >
+                  <FolderPlus className="h-3 w-3" />
+                </Button>
                 <Button
                   type="button"
                   variant="ghost"
@@ -137,7 +160,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                     variant="ghost"
                     size="icon"
                     className="h-5 w-5 opacity-0 group-hover/cat:opacity-100"
-                    onClick={e => { e.stopPropagation(); deleteCategory(cat.id); }}
+                    onClick={e => { e.stopPropagation(); deleteCategory(cat.id); toast.success(`Categoría "${cat.label}" eliminada`); }}
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -145,6 +168,11 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
               </div>
               {expandedCat === cat.id && (
                 <div className="ml-6 border-l pl-2 my-1 space-y-0.5">
+                  {cat.subcategories.length === 0 && (
+                    <p className="text-xs text-muted-foreground px-2 py-1 italic">
+                      Sin subcategorías
+                    </p>
+                  )}
                   {cat.subcategories.map(sub => (
                     <div
                       key={sub.id}
@@ -173,7 +201,8 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                         variant="ghost"
                         size="icon"
                         className="h-4 w-4 opacity-0 group-hover/sub:opacity-100"
-                        onClick={e => { e.stopPropagation(); removeSubcategory(cat.id, sub.id); }}
+                        onClick={e => { e.stopPropagation(); setConfirmDelete({ categoryId: cat.id, sub }); }}
+                        title="Eliminar subcategoría"
                       >
                         <Trash2 className="h-2.5 w-2.5" />
                       </Button>
@@ -184,7 +213,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                     className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
                     onClick={() => { setAddSubOpen(cat.id); setNewSubLabel(""); setNewSubIcon("📌"); }}
                   >
-                    <Plus className="h-3 w-3" /> Agregar sub
+                    <Plus className="h-3 w-3" /> Agregar subcategoría
                   </button>
                 </div>
               )}
@@ -284,6 +313,24 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirm delete subcategory */}
+      <AlertDialog open={!!confirmDelete} onOpenChange={open => { if (!open) setConfirmDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar subcategoría?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Estás por eliminar <strong>{confirmDelete?.sub.label}</strong>. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
