@@ -63,10 +63,21 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
   };
 
   const handleAddSubcategory = (catId: string) => {
-    if (!newSubLabel.trim()) return;
+    if (!newSubLabel.trim()) {
+      toast.error("Ingresa un nombre para la subcategoría");
+      return;
+    }
     const subId = `${newSubLabel.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}-${Date.now().toString(36)}`;
     addSubcategory(catId, { id: subId, label: newSubLabel.trim(), icon: newSubIcon });
+    toast.success(`Subcategoría "${newSubLabel.trim()}" agregada`);
     setNewSubLabel(""); setNewSubIcon("📌"); setAddSubOpen(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!confirmDelete) return;
+    removeSubcategory(confirmDelete.categoryId, confirmDelete.sub.id);
+    toast.success(`Subcategoría "${confirmDelete.sub.label}" eliminada`);
+    setConfirmDelete(null);
   };
 
   const handleSaveEdit = () => {
