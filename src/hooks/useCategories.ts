@@ -140,6 +140,14 @@ export function useCategories() {
     ));
   }, [setCategories]);
 
+  const updateSubcategory = useCallback((categoryId: string, subId: string, updates: Partial<SubCategory>) => {
+    setCategories(prev => prev.map(c =>
+      c.id === categoryId
+        ? { ...c, subcategories: c.subcategories.map(s => s.id === subId ? { ...s, ...updates } : s) }
+        : c
+    ));
+  }, [setCategories]);
+
   const getCategoryById = useCallback((id: string) => {
     return categories.find(c => c.id === id);
   }, [categories]);
