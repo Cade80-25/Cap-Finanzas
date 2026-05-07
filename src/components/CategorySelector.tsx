@@ -313,6 +313,24 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirm delete subcategory */}
+      <AlertDialog open={!!confirmDelete} onOpenChange={open => { if (!open) setConfirmDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar subcategoría?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Estás por eliminar <strong>{confirmDelete?.sub.label}</strong>. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
