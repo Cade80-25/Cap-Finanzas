@@ -164,6 +164,7 @@ export function useCategories() {
     deleteCategory,
     addSubcategory,
     removeSubcategory,
+    updateSubcategory,
     getCategoryById,
     setCategories,
   };
