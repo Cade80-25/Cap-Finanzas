@@ -127,17 +127,23 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                     : "hover:bg-muted"
                 )}
                 onClick={() => {
-                  if (cat.subcategories.length > 0) {
-                    setExpandedCat(expandedCat === cat.id ? null : cat.id);
-                  }
+                  setExpandedCat(expandedCat === cat.id ? null : cat.id);
                   onSelect(cat.id, undefined);
                 }}
               >
                 <span className="text-base">{cat.icon}</span>
                 <span className="flex-1 truncate">{cat.label}</span>
-                {cat.subcategories.length > 0 && (
-                  <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", expandedCat === cat.id && "rotate-90")} />
-                )}
+                <ChevronRight className={cn("h-3.5 w-3.5 transition-transform opacity-60", expandedCat === cat.id && "rotate-90")} />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 opacity-0 group-hover/cat:opacity-100"
+                  onClick={e => { e.stopPropagation(); setExpandedCat(cat.id); setAddSubOpen(cat.id); setNewSubLabel(""); setNewSubIcon("📌"); }}
+                  title="Agregar subcategoría"
+                >
+                  <FolderPlus className="h-3 w-3" />
+                </Button>
                 <Button
                   type="button"
                   variant="ghost"
@@ -154,7 +160,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                     variant="ghost"
                     size="icon"
                     className="h-5 w-5 opacity-0 group-hover/cat:opacity-100"
-                    onClick={e => { e.stopPropagation(); deleteCategory(cat.id); }}
+                    onClick={e => { e.stopPropagation(); deleteCategory(cat.id); toast.success(`Categoría "${cat.label}" eliminada`); }}
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -162,6 +168,11 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
               </div>
               {expandedCat === cat.id && (
                 <div className="ml-6 border-l pl-2 my-1 space-y-0.5">
+                  {cat.subcategories.length === 0 && (
+                    <p className="text-xs text-muted-foreground px-2 py-1 italic">
+                      Sin subcategorías
+                    </p>
+                  )}
                   {cat.subcategories.map(sub => (
                     <div
                       key={sub.id}
@@ -190,7 +201,8 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                         variant="ghost"
                         size="icon"
                         className="h-4 w-4 opacity-0 group-hover/sub:opacity-100"
-                        onClick={e => { e.stopPropagation(); removeSubcategory(cat.id, sub.id); }}
+                        onClick={e => { e.stopPropagation(); setConfirmDelete({ categoryId: cat.id, sub }); }}
+                        title="Eliminar subcategoría"
                       >
                         <Trash2 className="h-2.5 w-2.5" />
                       </Button>
@@ -201,7 +213,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                     className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
                     onClick={() => { setAddSubOpen(cat.id); setNewSubLabel(""); setNewSubIcon("📌"); }}
                   >
-                    <Plus className="h-3 w-3" /> Agregar sub
+                    <Plus className="h-3 w-3" /> Agregar subcategoría
                   </button>
                 </div>
               )}
