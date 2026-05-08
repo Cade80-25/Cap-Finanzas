@@ -683,14 +683,14 @@ export function SimpleTransactionsView() {
                     <div key={tx.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
                       <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg shrink-0">{cat.icon}</div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{tx.description}</p>
+                        <p className="font-medium truncate">{renderHighlighted(tx.description)}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                          <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{tx.date}</span>
-                          <span className="inline-flex items-center gap-1"><Tag className="h-3 w-3" />{cat.label}</span>
+                          <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{renderHighlighted(tx.date)}</span>
+                          <span className="inline-flex items-center gap-1"><Tag className="h-3 w-3" />{renderHighlighted(cat.label)}</span>
                           {tx.quantity && tx.quantity !== 1 && (<span className="text-primary">×{tx.quantity}</span>)}
-                          {tx.creditor && (<span className="text-muted-foreground">• {tx.creditor}</span>)}
+                          {tx.creditor && (<span className="text-muted-foreground">• {renderHighlighted(tx.creditor)}</span>)}
                         </div>
-                        {tx.notes && (<p className="text-xs text-muted-foreground mt-0.5 truncate italic">📝 {tx.notes}</p>)}
+                        {tx.notes && (<p className="text-xs text-muted-foreground mt-0.5 truncate italic">📝 {renderHighlighted(tx.notes)}</p>)}
                       </div>
                       <div className="text-right shrink-0">
                         <p className={`font-bold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
