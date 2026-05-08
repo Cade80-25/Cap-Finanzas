@@ -68,9 +68,8 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   const [category, setCategory] = useState(editing?.category ?? "");
   const [subcategory, setSubcategory] = useState(editing?.subcategory ?? "");
   const [date, setDate] = useState(editing?.date ?? qrPrefill?.date ?? new Date().toISOString().split("T")[0]);
-  const [creditor, setCreditor] = useState(editing?.creditor ?? "");
+  const [creditor, setCreditor] = useState(editing?.creditor ?? qrPrefill?.description ?? "");
   const [notes, setNotes] = useState(editing?.notes ?? "");
-  const [showExtraFields, setShowExtraFields] = useState(!!(editing?.creditor || editing?.notes));
 
   const sum = useMemo(() => {
     if (useCalculator) {
