@@ -335,17 +335,7 @@ export function SimpleTransactionsView() {
     [transactions]
   );
 
-  const filteredTransactions = filter === "all"
-    ? allTransactions
-    : allTransactions.filter(t => t.type === filter);
-
-  // Group by type for improved view
-  const incomeTransactions = filteredTransactions.filter(t => t.type === "income");
-  const expenseTransactions = filteredTransactions.filter(t => t.type === "expense");
-  const totalFilteredIncome = incomeTransactions.reduce((s, t) => s + t.amount, 0);
-  const totalFilteredExpense = expenseTransactions.reduce((s, t) => s + t.amount, 0);
-
-  const getCategoryLabel = (categoryId: string, subcategoryId?: string) => {
+  const getCategoryLabel = useCallback((categoryId: string, subcategoryId?: string) => {
     const cat = getCategoryById(categoryId);
     if (cat) {
       const sub = subcategoryId ? cat.subcategories.find(s => s.id === subcategoryId) : null;
@@ -355,7 +345,61 @@ export function SimpleTransactionsView() {
       };
     }
     return { label: categoryId, icon: "📁" };
-  };
+  }, [getCategoryById]);
+
+  const filteredTransactions = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return allTransactions.filter(t => {
+      if (filter !== "all" && t.type !== filter) return false;
+      if (!q) return true;
+      const cat = getCategoryLabel(t.category, t.subcategory);
+      const haystack = [
+        t.description, t.creditor, t.notes, t.date,
+        cat.label, String(t.amount), String(t.price ?? ""), String(t.quantity ?? ""),
+      ].filter(Boolean).join(" ").toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [allTransactions, filter, search, getCategoryLabel]);
+
+  const incomeTransactions = filteredTransactions.filter(t => t.type === "income");
+  const expenseTransactions = filteredTransactions.filter(t => t.type === "expense");
+  const totalFilteredIncome = incomeTransactions.reduce((s, t) => s + t.amount, 0);
+  const totalFilteredExpense = expenseTransactions.reduce((s, t) => s + t.amount, 0);
+
+  const groupedTransactions = useMemo(() => {
+    if (groupBy === "none") return null;
+    const groups = new Map<string, typeof filteredTransactions>();
+    const fmt = (d: string) => {
+      const [y, m, day] = d.split("-");
+      if (groupBy === "year") return y;
+      if (groupBy === "month") return `${y}-${m}`;
+      return `${y}-${m}-${day}`;
+    };
+    const labelFmt = (key: string) => {
+      if (groupBy === "year") return key;
+      if (groupBy === "month") {
+        const [y, m] = key.split("-");
+        const date = new Date(Number(y), Number(m) - 1, 1);
+        return date.toLocaleDateString("es", { month: "long", year: "numeric" });
+      }
+      const [y, m, d] = key.split("-");
+      return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    };
+    for (const t of filteredTransactions) {
+      const k = fmt(t.date);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k)!.push(t);
+    }
+    return Array.from(groups.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([key, items]) => ({
+        key,
+        label: labelFmt(key),
+        items,
+        income: items.filter(i => i.type === "income").reduce((s, i) => s + i.amount, 0),
+        expense: items.filter(i => i.type === "expense").reduce((s, i) => s + i.amount, 0),
+      }));
+  }, [filteredTransactions, groupBy]);
 
   const exportData = (): ExportTransaction[] => allTransactions.map(t => ({
     fecha: t.date,
