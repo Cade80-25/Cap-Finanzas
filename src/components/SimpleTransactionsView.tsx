@@ -293,6 +293,8 @@ export function SimpleTransactionsView() {
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
   const [search, setSearch] = useState("");
   const [groupBy, setGroupBy] = useState<"none" | "day" | "month" | "year">("none");
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [subcategoryFilter, setSubcategoryFilter] = useState<string | null>(null);
   const [editingTx, setEditingTx] = useState<EditingTransaction | null>(null);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [qrPrefill, setQrPrefill] = useState<QRPrefillData | null>(null);
@@ -351,6 +353,8 @@ export function SimpleTransactionsView() {
     const q = search.trim().toLowerCase();
     return allTransactions.filter(t => {
       if (filter !== "all" && t.type !== filter) return false;
+      if (categoryFilter && t.category !== categoryFilter) return false;
+      if (subcategoryFilter && t.subcategory !== subcategoryFilter) return false;
       if (!q) return true;
       const cat = getCategoryLabel(t.category, t.subcategory);
       const haystack = [
@@ -359,7 +363,55 @@ export function SimpleTransactionsView() {
       ].filter(Boolean).join(" ").toLowerCase();
       return haystack.includes(q);
     });
-  }, [allTransactions, filter, search, getCategoryLabel]);
+  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter]);
+
+  // Quick-filter suggestions: top categories/subcategories + recent keywords
+  const quickFilters = useMemo(() => {
+    const catCount = new Map<string, number>();
+    const subCount = new Map<string, { catId: string; subId: string; count: number }>();
+    const wordCount = new Map<string, number>();
+    for (const t of allTransactions) {
+      catCount.set(t.category, (catCount.get(t.category) ?? 0) + 1);
+      if (t.subcategory) {
+        const key = `${t.category}::${t.subcategory}`;
+        const prev = subCount.get(key);
+        subCount.set(key, { catId: t.category, subId: t.subcategory, count: (prev?.count ?? 0) + 1 });
+      }
+      const text = `${t.creditor ?? ""} ${t.description ?? ""}`.toLowerCase();
+      for (const w of text.split(/\s+/)) {
+        const word = w.replace(/[^\p{L}\p{N}]/gu, "");
+        if (word.length >= 4) wordCount.set(word, (wordCount.get(word) ?? 0) + 1);
+      }
+    }
+    const topCats = Array.from(catCount.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id);
+    const topSubs = Array.from(subCount.values()).sort((a, b) => b.count - a.count).slice(0, 5);
+    const topWords = Array.from(wordCount.entries()).filter(([, c]) => c >= 2).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([w]) => w);
+    return { topCats, topSubs, topWords };
+  }, [allTransactions]);
+
+  // Build regex for highlighting search matches
+  const highlightRegex = useMemo(() => {
+    const q = search.trim();
+    if (!q) return null;
+    try {
+      return new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    } catch {
+      return null;
+    }
+  }, [search]);
+
+  const renderHighlighted = useCallback((text: string | undefined | null) => {
+    if (!text) return text ?? "";
+    if (!highlightRegex) return text;
+    const parts = text.split(highlightRegex);
+    return parts.map((p, i) =>
+      i % 2 === 1 ? (
+        <mark key={i} className="bg-primary/30 text-foreground rounded px-0.5">{p}</mark>
+      ) : (
+        <span key={i}>{p}</span>
+      )
+    );
+  }, [highlightRegex]);
 
   const incomeTransactions = filteredTransactions.filter(t => t.type === "income");
   const expenseTransactions = filteredTransactions.filter(t => t.type === "expense");
@@ -555,6 +607,60 @@ export function SimpleTransactionsView() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Quick filters */}
+            {(quickFilters.topCats.length > 0 || quickFilters.topWords.length > 0 || categoryFilter || subcategoryFilter) && (
+              <div className="flex flex-wrap gap-1.5 items-center">
+                <span className="text-xs text-muted-foreground mr-1">Filtros rápidos:</span>
+                {(categoryFilter || subcategoryFilter || search) && (
+                  <Badge
+                    variant="outline"
+                    className="cursor-pointer hover:bg-destructive/10 border-destructive/40 text-destructive text-xs"
+                    onClick={() => { setCategoryFilter(null); setSubcategoryFilter(null); setSearch(""); }}
+                  >
+                    ✕ Limpiar
+                  </Badge>
+                )}
+                {quickFilters.topCats.map(catId => {
+                  const c = getCategoryLabel(catId);
+                  const active = categoryFilter === catId && !subcategoryFilter;
+                  return (
+                    <Badge
+                      key={`cat-${catId}`}
+                      variant={active ? "default" : "secondary"}
+                      className="cursor-pointer text-xs"
+                      onClick={() => { setSubcategoryFilter(null); setCategoryFilter(active ? null : catId); }}
+                    >
+                      {c.icon} {c.label}
+                    </Badge>
+                  );
+                })}
+                {quickFilters.topSubs.map(({ catId, subId }) => {
+                  const c = getCategoryLabel(catId, subId);
+                  const active = subcategoryFilter === subId;
+                  return (
+                    <Badge
+                      key={`sub-${catId}-${subId}`}
+                      variant={active ? "default" : "outline"}
+                      className="cursor-pointer text-xs"
+                      onClick={() => { setCategoryFilter(active ? null : catId); setSubcategoryFilter(active ? null : subId); }}
+                    >
+                      {c.icon} {c.label}
+                    </Badge>
+                  );
+                })}
+                {quickFilters.topWords.map(w => (
+                  <Badge
+                    key={`w-${w}`}
+                    variant={search.toLowerCase() === w ? "default" : "outline"}
+                    className="cursor-pointer text-xs"
+                    onClick={() => setSearch(search.toLowerCase() === w ? "" : w)}
+                  >
+                    #{w}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -577,14 +683,14 @@ export function SimpleTransactionsView() {
                     <div key={tx.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
                       <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg shrink-0">{cat.icon}</div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{tx.description}</p>
+                        <p className="font-medium truncate">{renderHighlighted(tx.description)}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                          <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{tx.date}</span>
-                          <span className="inline-flex items-center gap-1"><Tag className="h-3 w-3" />{cat.label}</span>
+                          <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{renderHighlighted(tx.date)}</span>
+                          <span className="inline-flex items-center gap-1"><Tag className="h-3 w-3" />{renderHighlighted(cat.label)}</span>
                           {tx.quantity && tx.quantity !== 1 && (<span className="text-primary">×{tx.quantity}</span>)}
-                          {tx.creditor && (<span className="text-muted-foreground">• {tx.creditor}</span>)}
+                          {tx.creditor && (<span className="text-muted-foreground">• {renderHighlighted(tx.creditor)}</span>)}
                         </div>
-                        {tx.notes && (<p className="text-xs text-muted-foreground mt-0.5 truncate italic">📝 {tx.notes}</p>)}
+                        {tx.notes && (<p className="text-xs text-muted-foreground mt-0.5 truncate italic">📝 {renderHighlighted(tx.notes)}</p>)}
                       </div>
                       <div className="text-right shrink-0">
                         <p className={`font-bold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
