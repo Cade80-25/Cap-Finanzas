@@ -519,26 +519,49 @@ export function SimpleTransactionsView() {
       {/* Transactions list with grouping */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Historial</CardTitle>
-              <CardDescription>Todos tus movimientos</CardDescription>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <CardTitle>Historial</CardTitle>
+                <CardDescription>Todos tus movimientos</CardDescription>
+              </div>
+              <Tabs value={filter} onValueChange={v => setFilter(v as any)}>
+                <TabsList>
+                  <TabsTrigger value="all">Todos</TabsTrigger>
+                  <TabsTrigger value="income">Ingresos</TabsTrigger>
+                  <TabsTrigger value="expense">Gastos</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
-            <Tabs value={filter} onValueChange={v => setFilter(v as any)}>
-              <TabsList>
-                <TabsTrigger value="all">Todos</TabsTrigger>
-                <TabsTrigger value="income">Ingresos</TabsTrigger>
-                <TabsTrigger value="expense">Gastos</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por palabra, categoría, fecha, monto..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={groupBy} onValueChange={v => setGroupBy(v as any)}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Agrupar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin agrupar</SelectItem>
+                  <SelectItem value="day">Por día</SelectItem>
+                  <SelectItem value="month">Por mes</SelectItem>
+                  <SelectItem value="year">Por año</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           {filteredTransactions.length > 0 ? (
             <div className="space-y-2">
-              {/* Subtotals bar */}
               {filter === "all" && (
-                <div className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50 mb-3">
+                <div className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50 mb-3 flex-wrap gap-2">
                   <span className="text-success font-medium">Ingresos: ${totalFilteredIncome.toFixed(2)}</span>
                   <span className="text-destructive font-medium">Gastos: ${totalFilteredExpense.toFixed(2)}</span>
                   <span className={cn("font-bold", totalFilteredIncome - totalFilteredExpense >= 0 ? "text-success" : "text-destructive")}>
@@ -547,55 +570,65 @@ export function SimpleTransactionsView() {
                 </div>
               )}
 
-              {filteredTransactions.map(tx => {
-                const cat = getCategoryLabel(tx.category, tx.subcategory);
-                return (
-                  <div key={tx.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg shrink-0">
-                      {cat.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{tx.description}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                        <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{tx.date}</span>
-                        <span className="inline-flex items-center gap-1"><Tag className="h-3 w-3" />{cat.label}</span>
-                        {tx.quantity && tx.quantity !== 1 && (
-                          <span className="text-primary">×{tx.quantity}</span>
-                        )}
-                        {tx.creditor && (
-                          <span className="text-muted-foreground">• {tx.creditor}</span>
+              {(() => {
+                const renderRow = (tx: typeof filteredTransactions[number]) => {
+                  const cat = getCategoryLabel(tx.category, tx.subcategory);
+                  return (
+                    <div key={tx.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg shrink-0">{cat.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{tx.description}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                          <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{tx.date}</span>
+                          <span className="inline-flex items-center gap-1"><Tag className="h-3 w-3" />{cat.label}</span>
+                          {tx.quantity && tx.quantity !== 1 && (<span className="text-primary">×{tx.quantity}</span>)}
+                          {tx.creditor && (<span className="text-muted-foreground">• {tx.creditor}</span>)}
+                        </div>
+                        {tx.notes && (<p className="text-xs text-muted-foreground mt-0.5 truncate italic">📝 {tx.notes}</p>)}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className={`font-bold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                          {tx.type === "income" ? "+" : "-"}${tx.amount.toFixed(2)}
+                        </p>
+                        {tx.price && tx.quantity && tx.quantity !== 1 && (
+                          <p className="text-[10px] text-muted-foreground">${tx.price.toFixed(2)} × {tx.quantity}</p>
                         )}
                       </div>
-                      {tx.notes && (
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate italic">📝 {tx.notes}</p>
-                      )}
+                      <div className="flex gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={e => { e.stopPropagation(); openEditDialog(tx); }}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={e => { e.stopPropagation(); handleDelete(tx.id); }}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className={`font-bold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
-                        {tx.type === "income" ? "+" : "-"}${tx.amount.toFixed(2)}
-                      </p>
-                      {tx.price && tx.quantity && tx.quantity !== 1 && (
-                        <p className="text-[10px] text-muted-foreground">${tx.price.toFixed(2)} × {tx.quantity}</p>
-                      )}
+                  );
+                };
+
+                if (groupedTransactions) {
+                  return groupedTransactions.map(group => (
+                    <div key={group.key} className="space-y-2">
+                      <div className="flex items-center justify-between sticky top-0 bg-background/95 backdrop-blur py-1.5 px-2 rounded border-l-4 border-primary mt-3">
+                        <h3 className="font-semibold capitalize text-sm">{group.label}</h3>
+                        <div className="flex gap-3 text-xs">
+                          {group.income > 0 && <span className="text-success">+${group.income.toFixed(2)}</span>}
+                          {group.expense > 0 && <span className="text-destructive">-${group.expense.toFixed(2)}</span>}
+                        </div>
+                      </div>
+                      {group.items.map(renderRow)}
                     </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary"
-                        onClick={e => { e.stopPropagation(); openEditDialog(tx); }}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={e => { e.stopPropagation(); handleDelete(tx.id); }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
+                  ));
+                }
+                return filteredTransactions.map(renderRow);
+              })()}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <p className="mb-2">No hay movimientos registrados</p>
-              <p className="text-sm">Usa los botones de arriba para agregar tu primer ingreso o gasto</p>
+              <p className="mb-2">{search ? "No se encontraron resultados" : "No hay movimientos registrados"}</p>
+              <p className="text-sm">{search ? "Prueba con otros términos de búsqueda" : "Usa los botones de arriba para agregar tu primer ingreso o gasto"}</p>
             </div>
           )}
         </CardContent>
