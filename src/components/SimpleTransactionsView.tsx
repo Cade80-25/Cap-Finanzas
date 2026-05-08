@@ -405,8 +405,8 @@ export function SimpleTransactionsView() {
     if (!highlightRegex) return text;
     const parts = text.split(highlightRegex);
     return parts.map((p, i) =>
-      highlightRegex.test(p) ? (
-        <mark key={i} className="bg-primary/20 text-foreground rounded px-0.5">{p}</mark>
+      i % 2 === 1 ? (
+        <mark key={i} className="bg-primary/30 text-foreground rounded px-0.5">{p}</mark>
       ) : (
         <span key={i}>{p}</span>
       )
