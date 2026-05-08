@@ -234,20 +234,31 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         onSelect={(catId, subId) => { setCategory(catId); setSubcategory(subId || ""); }}
       />
 
-      {/* Description */}
+      {/* Acreedor / Pagador (reemplaza descripción) */}
       <div className="space-y-2">
-        <Label htmlFor="description">Descripción (opcional)</Label>
+        <Label htmlFor="creditor">Acreedor / Pagador</Label>
         <Input
-          id="description" value={description}
+          id="creditor"
+          value={creditor}
           onChange={e => {
+            setCreditor(e.target.value);
             setDescription(e.target.value);
             if (!category || !editing) {
               const suggested = suggestCategory(e.target.value);
               if (suggested) setCategory(suggested);
             }
           }}
-          placeholder="Ej: Almuerzo con cliente"
+          placeholder="Ej: Juan Pérez, Empresa X, Almuerzo con cliente"
         />
+      </div>
+
+      {/* Anotaciones */}
+      <div className="space-y-2">
+        <Label htmlFor="notes">
+          <StickyNote className="h-3.5 w-3.5 inline mr-1" />
+          Anotaciones
+        </Label>
+        <Textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas adicionales..." rows={2} />
       </div>
 
       {/* Date */}
@@ -261,32 +272,6 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         <QRReceiptScanner onDataScanned={handleQRScanned} triggerVariant="outline" triggerSize="sm" />
         <span className="text-xs text-muted-foreground">Escanear recibo QR</span>
       </div>
-
-      {/* Toggle extra fields */}
-      <Button
-        type="button" variant="ghost" size="sm"
-        className="text-muted-foreground w-full justify-center gap-1"
-        onClick={() => setShowExtraFields(!showExtraFields)}
-      >
-        {showExtraFields ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-        {showExtraFields ? "Ocultar campos" : "Más campos (acreedor, notas)"}
-      </Button>
-
-      {showExtraFields && (
-        <div className="space-y-3 border-t pt-3">
-          <div className="space-y-2">
-            <Label htmlFor="creditor">Acreedor / Pagador</Label>
-            <Input id="creditor" value={creditor} onChange={e => setCreditor(e.target.value)} placeholder="Ej: Juan Pérez, Empresa X" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">
-              <StickyNote className="h-3.5 w-3.5 inline mr-1" />
-              Anotaciones
-            </Label>
-            <Textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas adicionales..." rows={2} />
-          </div>
-        </div>
-      )}
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
