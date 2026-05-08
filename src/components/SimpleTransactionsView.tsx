@@ -291,6 +291,8 @@ export function SimpleTransactionsView() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [defaultType, setDefaultType] = useState<"income" | "expense">("expense");
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
+  const [search, setSearch] = useState("");
+  const [groupBy, setGroupBy] = useState<"none" | "day" | "month" | "year">("none");
   const [editingTx, setEditingTx] = useState<EditingTransaction | null>(null);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [qrPrefill, setQrPrefill] = useState<QRPrefillData | null>(null);
