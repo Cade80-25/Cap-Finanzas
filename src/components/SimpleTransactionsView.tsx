@@ -607,6 +607,60 @@ export function SimpleTransactionsView() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Quick filters */}
+            {(quickFilters.topCats.length > 0 || quickFilters.topWords.length > 0 || categoryFilter || subcategoryFilter) && (
+              <div className="flex flex-wrap gap-1.5 items-center">
+                <span className="text-xs text-muted-foreground mr-1">Filtros rápidos:</span>
+                {(categoryFilter || subcategoryFilter || search) && (
+                  <Badge
+                    variant="outline"
+                    className="cursor-pointer hover:bg-destructive/10 border-destructive/40 text-destructive text-xs"
+                    onClick={() => { setCategoryFilter(null); setSubcategoryFilter(null); setSearch(""); }}
+                  >
+                    ✕ Limpiar
+                  </Badge>
+                )}
+                {quickFilters.topCats.map(catId => {
+                  const c = getCategoryLabel(catId);
+                  const active = categoryFilter === catId && !subcategoryFilter;
+                  return (
+                    <Badge
+                      key={`cat-${catId}`}
+                      variant={active ? "default" : "secondary"}
+                      className="cursor-pointer text-xs"
+                      onClick={() => { setSubcategoryFilter(null); setCategoryFilter(active ? null : catId); }}
+                    >
+                      {c.icon} {c.label}
+                    </Badge>
+                  );
+                })}
+                {quickFilters.topSubs.map(({ catId, subId }) => {
+                  const c = getCategoryLabel(catId, subId);
+                  const active = subcategoryFilter === subId;
+                  return (
+                    <Badge
+                      key={`sub-${catId}-${subId}`}
+                      variant={active ? "default" : "outline"}
+                      className="cursor-pointer text-xs"
+                      onClick={() => { setCategoryFilter(active ? null : catId); setSubcategoryFilter(active ? null : subId); }}
+                    >
+                      {c.icon} {c.label}
+                    </Badge>
+                  );
+                })}
+                {quickFilters.topWords.map(w => (
+                  <Badge
+                    key={`w-${w}`}
+                    variant={search.toLowerCase() === w ? "default" : "outline"}
+                    className="cursor-pointer text-xs"
+                    onClick={() => setSearch(search.toLowerCase() === w ? "" : w)}
+                  >
+                    #{w}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
