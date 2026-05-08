@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText, ChevronDown, ChevronUp, Calculator, StickyNote } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText, Calculator, StickyNote, Search } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,9 +69,8 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   const [category, setCategory] = useState(editing?.category ?? "");
   const [subcategory, setSubcategory] = useState(editing?.subcategory ?? "");
   const [date, setDate] = useState(editing?.date ?? qrPrefill?.date ?? new Date().toISOString().split("T")[0]);
-  const [creditor, setCreditor] = useState(editing?.creditor ?? "");
+  const [creditor, setCreditor] = useState(editing?.creditor ?? qrPrefill?.description ?? "");
   const [notes, setNotes] = useState(editing?.notes ?? "");
-  const [showExtraFields, setShowExtraFields] = useState(!!(editing?.creditor || editing?.notes));
 
   const sum = useMemo(() => {
     if (useCalculator) {
@@ -235,20 +235,31 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         onSelect={(catId, subId) => { setCategory(catId); setSubcategory(subId || ""); }}
       />
 
-      {/* Description */}
+      {/* Acreedor / Pagador (reemplaza descripción) */}
       <div className="space-y-2">
-        <Label htmlFor="description">Descripción (opcional)</Label>
+        <Label htmlFor="creditor">Acreedor / Pagador</Label>
         <Input
-          id="description" value={description}
+          id="creditor"
+          value={creditor}
           onChange={e => {
+            setCreditor(e.target.value);
             setDescription(e.target.value);
             if (!category || !editing) {
               const suggested = suggestCategory(e.target.value);
               if (suggested) setCategory(suggested);
             }
           }}
-          placeholder="Ej: Almuerzo con cliente"
+          placeholder="Ej: Juan Pérez, Empresa X, Almuerzo con cliente"
         />
+      </div>
+
+      {/* Anotaciones */}
+      <div className="space-y-2">
+        <Label htmlFor="notes">
+          <StickyNote className="h-3.5 w-3.5 inline mr-1" />
+          Anotaciones
+        </Label>
+        <Textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas adicionales..." rows={2} />
       </div>
 
       {/* Date */}
@@ -262,32 +273,6 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         <QRReceiptScanner onDataScanned={handleQRScanned} triggerVariant="outline" triggerSize="sm" />
         <span className="text-xs text-muted-foreground">Escanear recibo QR</span>
       </div>
-
-      {/* Toggle extra fields */}
-      <Button
-        type="button" variant="ghost" size="sm"
-        className="text-muted-foreground w-full justify-center gap-1"
-        onClick={() => setShowExtraFields(!showExtraFields)}
-      >
-        {showExtraFields ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-        {showExtraFields ? "Ocultar campos" : "Más campos (acreedor, notas)"}
-      </Button>
-
-      {showExtraFields && (
-        <div className="space-y-3 border-t pt-3">
-          <div className="space-y-2">
-            <Label htmlFor="creditor">Acreedor / Pagador</Label>
-            <Input id="creditor" value={creditor} onChange={e => setCreditor(e.target.value)} placeholder="Ej: Juan Pérez, Empresa X" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="notes">
-              <StickyNote className="h-3.5 w-3.5 inline mr-1" />
-              Anotaciones
-            </Label>
-            <Textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas adicionales..." rows={2} />
-          </div>
-        </div>
-      )}
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
@@ -306,6 +291,8 @@ export function SimpleTransactionsView() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [defaultType, setDefaultType] = useState<"income" | "expense">("expense");
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
+  const [search, setSearch] = useState("");
+  const [groupBy, setGroupBy] = useState<"none" | "day" | "month" | "year">("none");
   const [editingTx, setEditingTx] = useState<EditingTransaction | null>(null);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [qrPrefill, setQrPrefill] = useState<QRPrefillData | null>(null);
@@ -348,17 +335,7 @@ export function SimpleTransactionsView() {
     [transactions]
   );
 
-  const filteredTransactions = filter === "all"
-    ? allTransactions
-    : allTransactions.filter(t => t.type === filter);
-
-  // Group by type for improved view
-  const incomeTransactions = filteredTransactions.filter(t => t.type === "income");
-  const expenseTransactions = filteredTransactions.filter(t => t.type === "expense");
-  const totalFilteredIncome = incomeTransactions.reduce((s, t) => s + t.amount, 0);
-  const totalFilteredExpense = expenseTransactions.reduce((s, t) => s + t.amount, 0);
-
-  const getCategoryLabel = (categoryId: string, subcategoryId?: string) => {
+  const getCategoryLabel = useCallback((categoryId: string, subcategoryId?: string) => {
     const cat = getCategoryById(categoryId);
     if (cat) {
       const sub = subcategoryId ? cat.subcategories.find(s => s.id === subcategoryId) : null;
@@ -368,7 +345,61 @@ export function SimpleTransactionsView() {
       };
     }
     return { label: categoryId, icon: "📁" };
-  };
+  }, [getCategoryById]);
+
+  const filteredTransactions = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return allTransactions.filter(t => {
+      if (filter !== "all" && t.type !== filter) return false;
+      if (!q) return true;
+      const cat = getCategoryLabel(t.category, t.subcategory);
+      const haystack = [
+        t.description, t.creditor, t.notes, t.date,
+        cat.label, String(t.amount), String(t.price ?? ""), String(t.quantity ?? ""),
+      ].filter(Boolean).join(" ").toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [allTransactions, filter, search, getCategoryLabel]);
+
+  const incomeTransactions = filteredTransactions.filter(t => t.type === "income");
+  const expenseTransactions = filteredTransactions.filter(t => t.type === "expense");
+  const totalFilteredIncome = incomeTransactions.reduce((s, t) => s + t.amount, 0);
+  const totalFilteredExpense = expenseTransactions.reduce((s, t) => s + t.amount, 0);
+
+  const groupedTransactions = useMemo(() => {
+    if (groupBy === "none") return null;
+    const groups = new Map<string, typeof filteredTransactions>();
+    const fmt = (d: string) => {
+      const [y, m, day] = d.split("-");
+      if (groupBy === "year") return y;
+      if (groupBy === "month") return `${y}-${m}`;
+      return `${y}-${m}-${day}`;
+    };
+    const labelFmt = (key: string) => {
+      if (groupBy === "year") return key;
+      if (groupBy === "month") {
+        const [y, m] = key.split("-");
+        const date = new Date(Number(y), Number(m) - 1, 1);
+        return date.toLocaleDateString("es", { month: "long", year: "numeric" });
+      }
+      const [y, m, d] = key.split("-");
+      return new Date(Number(y), Number(m) - 1, Number(d)).toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    };
+    for (const t of filteredTransactions) {
+      const k = fmt(t.date);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k)!.push(t);
+    }
+    return Array.from(groups.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([key, items]) => ({
+        key,
+        label: labelFmt(key),
+        items,
+        income: items.filter(i => i.type === "income").reduce((s, i) => s + i.amount, 0),
+        expense: items.filter(i => i.type === "expense").reduce((s, i) => s + i.amount, 0),
+      }));
+  }, [filteredTransactions, groupBy]);
 
   const exportData = (): ExportTransaction[] => allTransactions.map(t => ({
     fecha: t.date,
@@ -488,26 +519,49 @@ export function SimpleTransactionsView() {
       {/* Transactions list with grouping */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Historial</CardTitle>
-              <CardDescription>Todos tus movimientos</CardDescription>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <CardTitle>Historial</CardTitle>
+                <CardDescription>Todos tus movimientos</CardDescription>
+              </div>
+              <Tabs value={filter} onValueChange={v => setFilter(v as any)}>
+                <TabsList>
+                  <TabsTrigger value="all">Todos</TabsTrigger>
+                  <TabsTrigger value="income">Ingresos</TabsTrigger>
+                  <TabsTrigger value="expense">Gastos</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
-            <Tabs value={filter} onValueChange={v => setFilter(v as any)}>
-              <TabsList>
-                <TabsTrigger value="all">Todos</TabsTrigger>
-                <TabsTrigger value="income">Ingresos</TabsTrigger>
-                <TabsTrigger value="expense">Gastos</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por palabra, categoría, fecha, monto..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={groupBy} onValueChange={v => setGroupBy(v as any)}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Agrupar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sin agrupar</SelectItem>
+                  <SelectItem value="day">Por día</SelectItem>
+                  <SelectItem value="month">Por mes</SelectItem>
+                  <SelectItem value="year">Por año</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           {filteredTransactions.length > 0 ? (
             <div className="space-y-2">
-              {/* Subtotals bar */}
               {filter === "all" && (
-                <div className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50 mb-3">
+                <div className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50 mb-3 flex-wrap gap-2">
                   <span className="text-success font-medium">Ingresos: ${totalFilteredIncome.toFixed(2)}</span>
                   <span className="text-destructive font-medium">Gastos: ${totalFilteredExpense.toFixed(2)}</span>
                   <span className={cn("font-bold", totalFilteredIncome - totalFilteredExpense >= 0 ? "text-success" : "text-destructive")}>
@@ -516,55 +570,65 @@ export function SimpleTransactionsView() {
                 </div>
               )}
 
-              {filteredTransactions.map(tx => {
-                const cat = getCategoryLabel(tx.category, tx.subcategory);
-                return (
-                  <div key={tx.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg shrink-0">
-                      {cat.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{tx.description}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                        <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{tx.date}</span>
-                        <span className="inline-flex items-center gap-1"><Tag className="h-3 w-3" />{cat.label}</span>
-                        {tx.quantity && tx.quantity !== 1 && (
-                          <span className="text-primary">×{tx.quantity}</span>
-                        )}
-                        {tx.creditor && (
-                          <span className="text-muted-foreground">• {tx.creditor}</span>
+              {(() => {
+                const renderRow = (tx: typeof filteredTransactions[number]) => {
+                  const cat = getCategoryLabel(tx.category, tx.subcategory);
+                  return (
+                    <div key={tx.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg shrink-0">{cat.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{tx.description}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                          <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{tx.date}</span>
+                          <span className="inline-flex items-center gap-1"><Tag className="h-3 w-3" />{cat.label}</span>
+                          {tx.quantity && tx.quantity !== 1 && (<span className="text-primary">×{tx.quantity}</span>)}
+                          {tx.creditor && (<span className="text-muted-foreground">• {tx.creditor}</span>)}
+                        </div>
+                        {tx.notes && (<p className="text-xs text-muted-foreground mt-0.5 truncate italic">📝 {tx.notes}</p>)}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className={`font-bold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
+                          {tx.type === "income" ? "+" : "-"}${tx.amount.toFixed(2)}
+                        </p>
+                        {tx.price && tx.quantity && tx.quantity !== 1 && (
+                          <p className="text-[10px] text-muted-foreground">${tx.price.toFixed(2)} × {tx.quantity}</p>
                         )}
                       </div>
-                      {tx.notes && (
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate italic">📝 {tx.notes}</p>
-                      )}
+                      <div className="flex gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={e => { e.stopPropagation(); openEditDialog(tx); }}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={e => { e.stopPropagation(); handleDelete(tx.id); }}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className={`font-bold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
-                        {tx.type === "income" ? "+" : "-"}${tx.amount.toFixed(2)}
-                      </p>
-                      {tx.price && tx.quantity && tx.quantity !== 1 && (
-                        <p className="text-[10px] text-muted-foreground">${tx.price.toFixed(2)} × {tx.quantity}</p>
-                      )}
+                  );
+                };
+
+                if (groupedTransactions) {
+                  return groupedTransactions.map(group => (
+                    <div key={group.key} className="space-y-2">
+                      <div className="flex items-center justify-between sticky top-0 bg-background/95 backdrop-blur py-1.5 px-2 rounded border-l-4 border-primary mt-3">
+                        <h3 className="font-semibold capitalize text-sm">{group.label}</h3>
+                        <div className="flex gap-3 text-xs">
+                          {group.income > 0 && <span className="text-success">+${group.income.toFixed(2)}</span>}
+                          {group.expense > 0 && <span className="text-destructive">-${group.expense.toFixed(2)}</span>}
+                        </div>
+                      </div>
+                      {group.items.map(renderRow)}
                     </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary"
-                        onClick={e => { e.stopPropagation(); openEditDialog(tx); }}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={e => { e.stopPropagation(); handleDelete(tx.id); }}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
+                  ));
+                }
+                return filteredTransactions.map(renderRow);
+              })()}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <p className="mb-2">No hay movimientos registrados</p>
-              <p className="text-sm">Usa los botones de arriba para agregar tu primer ingreso o gasto</p>
+              <p className="mb-2">{search ? "No se encontraron resultados" : "No hay movimientos registrados"}</p>
+              <p className="text-sm">{search ? "Prueba con otros términos de búsqueda" : "Usa los botones de arriba para agregar tu primer ingreso o gasto"}</p>
             </div>
           )}
         </CardContent>
