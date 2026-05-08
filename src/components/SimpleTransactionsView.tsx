@@ -353,6 +353,8 @@ export function SimpleTransactionsView() {
     const q = search.trim().toLowerCase();
     return allTransactions.filter(t => {
       if (filter !== "all" && t.type !== filter) return false;
+      if (categoryFilter && t.category !== categoryFilter) return false;
+      if (subcategoryFilter && t.subcategory !== subcategoryFilter) return false;
       if (!q) return true;
       const cat = getCategoryLabel(t.category, t.subcategory);
       const haystack = [
@@ -361,7 +363,55 @@ export function SimpleTransactionsView() {
       ].filter(Boolean).join(" ").toLowerCase();
       return haystack.includes(q);
     });
-  }, [allTransactions, filter, search, getCategoryLabel]);
+  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter]);
+
+  // Quick-filter suggestions: top categories/subcategories + recent keywords
+  const quickFilters = useMemo(() => {
+    const catCount = new Map<string, number>();
+    const subCount = new Map<string, { catId: string; subId: string; count: number }>();
+    const wordCount = new Map<string, number>();
+    for (const t of allTransactions) {
+      catCount.set(t.category, (catCount.get(t.category) ?? 0) + 1);
+      if (t.subcategory) {
+        const key = `${t.category}::${t.subcategory}`;
+        const prev = subCount.get(key);
+        subCount.set(key, { catId: t.category, subId: t.subcategory, count: (prev?.count ?? 0) + 1 });
+      }
+      const text = `${t.creditor ?? ""} ${t.description ?? ""}`.toLowerCase();
+      for (const w of text.split(/\s+/)) {
+        const word = w.replace(/[^\p{L}\p{N}]/gu, "");
+        if (word.length >= 4) wordCount.set(word, (wordCount.get(word) ?? 0) + 1);
+      }
+    }
+    const topCats = Array.from(catCount.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id);
+    const topSubs = Array.from(subCount.values()).sort((a, b) => b.count - a.count).slice(0, 5);
+    const topWords = Array.from(wordCount.entries()).filter(([, c]) => c >= 2).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([w]) => w);
+    return { topCats, topSubs, topWords };
+  }, [allTransactions]);
+
+  // Build regex for highlighting search matches
+  const highlightRegex = useMemo(() => {
+    const q = search.trim();
+    if (!q) return null;
+    try {
+      return new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    } catch {
+      return null;
+    }
+  }, [search]);
+
+  const renderHighlighted = useCallback((text: string | undefined | null) => {
+    if (!text) return text ?? "";
+    if (!highlightRegex) return text;
+    const parts = text.split(highlightRegex);
+    return parts.map((p, i) =>
+      highlightRegex.test(p) ? (
+        <mark key={i} className="bg-primary/20 text-foreground rounded px-0.5">{p}</mark>
+      ) : (
+        <span key={i}>{p}</span>
+      )
+    );
+  }, [highlightRegex]);
 
   const incomeTransactions = filteredTransactions.filter(t => t.type === "income");
   const expenseTransactions = filteredTransactions.filter(t => t.type === "expense");
