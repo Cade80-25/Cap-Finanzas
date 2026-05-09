@@ -304,6 +304,7 @@ export function SimpleTransactionsView() {
   const [maxAmount, setMaxAmount] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [sortBy, setSortBy] = useState<"date-desc" | "date-asc" | "amount-desc" | "amount-asc">("date-desc");
 
   const handleDelete = (id: number) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
@@ -361,7 +362,7 @@ export function SimpleTransactionsView() {
     const max = parseFlexibleNumber(maxAmount, 0);
     const from = dateFrom ? dateFrom : null;
     const to = dateTo ? dateTo : null;
-    return allTransactions.filter(t => {
+    const result = allTransactions.filter(t => {
       if (filter !== "all" && t.type !== filter) return false;
       if (categoryFilter && t.category !== categoryFilter) return false;
       if (subcategoryFilter && t.subcategory !== subcategoryFilter) return false;
@@ -377,7 +378,16 @@ export function SimpleTransactionsView() {
       ].filter(Boolean).join(" ").toLowerCase();
       return haystack.includes(q);
     });
-  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter, minAmount, maxAmount, dateFrom, dateTo]);
+    return [...result].sort((a, b) => {
+      switch (sortBy) {
+        case "date-asc": return a.date.localeCompare(b.date);
+        case "amount-desc": return b.amount - a.amount;
+        case "amount-asc": return a.amount - b.amount;
+        case "date-desc":
+        default: return b.date.localeCompare(a.date);
+      }
+    });
+  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter, minAmount, maxAmount, dateFrom, dateTo, sortBy]);
 
   // Quick-filter suggestions: top categories/subcategories + recent keywords
   const quickFilters = useMemo(() => {
@@ -457,7 +467,7 @@ export function SimpleTransactionsView() {
       groups.get(k)!.push(t);
     }
     return Array.from(groups.entries())
-      .sort((a, b) => b[0].localeCompare(a[0]))
+      .sort((a, b) => sortBy === "date-asc" ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]))
       .map(([key, items]) => ({
         key,
         label: labelFmt(key),
@@ -465,7 +475,7 @@ export function SimpleTransactionsView() {
         income: items.filter(i => i.type === "income").reduce((s, i) => s + i.amount, 0),
         expense: items.filter(i => i.type === "expense").reduce((s, i) => s + i.amount, 0),
       }));
-  }, [filteredTransactions, groupBy]);
+  }, [filteredTransactions, groupBy, sortBy]);
 
   const exportData = (): ExportTransaction[] => allTransactions.map(t => ({
     fecha: t.date,
@@ -677,6 +687,17 @@ export function SimpleTransactionsView() {
                     <SelectItem value="day">Por día</SelectItem>
                     <SelectItem value="month">Por mes</SelectItem>
                     <SelectItem value="year">Por año</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={sortBy} onValueChange={v => setSortBy(v as any)}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Ordenar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date-desc">Fecha (más reciente)</SelectItem>
+                    <SelectItem value="date-asc">Fecha (más antigua)</SelectItem>
+                    <SelectItem value="amount-desc">Monto (mayor a menor)</SelectItem>
+                    <SelectItem value="amount-asc">Monto (menor a mayor)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
