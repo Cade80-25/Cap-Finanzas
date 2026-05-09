@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText, Calculator, StickyNote, Search } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText, Calculator, StickyNote, Search, SlidersHorizontal, FilterX } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
 import { useCategories } from "@/hooks/useCategories";
@@ -298,6 +299,11 @@ export function SimpleTransactionsView() {
   const [editingTx, setEditingTx] = useState<EditingTransaction | null>(null);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [qrPrefill, setQrPrefill] = useState<QRPrefillData | null>(null);
+  // Filtros avanzados
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const handleDelete = (id: number) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
@@ -351,10 +357,18 @@ export function SimpleTransactionsView() {
 
   const filteredTransactions = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const min = parseFlexibleNumber(minAmount, 0);
+    const max = parseFlexibleNumber(maxAmount, 0);
+    const from = dateFrom ? dateFrom : null;
+    const to = dateTo ? dateTo : null;
     return allTransactions.filter(t => {
       if (filter !== "all" && t.type !== filter) return false;
       if (categoryFilter && t.category !== categoryFilter) return false;
       if (subcategoryFilter && t.subcategory !== subcategoryFilter) return false;
+      if (min > 0 && t.amount < min) return false;
+      if (max > 0 && t.amount > max) return false;
+      if (from && t.date < from) return false;
+      if (to && t.date > to) return false;
       if (!q) return true;
       const cat = getCategoryLabel(t.category, t.subcategory);
       const haystack = [
@@ -363,7 +377,7 @@ export function SimpleTransactionsView() {
       ].filter(Boolean).join(" ").toLowerCase();
       return haystack.includes(q);
     });
-  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter]);
+  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter, minAmount, maxAmount, dateFrom, dateTo]);
 
   // Quick-filter suggestions: top categories/subcategories + recent keywords
   const quickFilters = useMemo(() => {
@@ -595,17 +609,77 @@ export function SimpleTransactionsView() {
                   className="pl-9"
                 />
               </div>
-              <Select value={groupBy} onValueChange={v => setGroupBy(v as any)}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Agrupar por" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sin agrupar</SelectItem>
-                  <SelectItem value="day">Por día</SelectItem>
-                  <SelectItem value="month">Por mes</SelectItem>
-                  <SelectItem value="year">Por año</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" className="shrink-0 relative">
+                      <SlidersHorizontal className="h-4 w-4" />
+                      {(minAmount || maxAmount || dateFrom || dateTo) && (
+                        <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-primary" />
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-4 space-y-4" align="end">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold uppercase text-muted-foreground">Rango de Monto</Label>
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">Min $</span>
+                          <Input
+                            type="text" inputMode="decimal"
+                            value={minAmount} onChange={e => setMinAmount(e.target.value)}
+                            placeholder="0.00" className="pl-10 text-sm"
+                          />
+                        </div>
+                        <span className="text-muted-foreground text-xs">a</span>
+                        <div className="relative flex-1">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">Max $</span>
+                          <Input
+                            type="text" inputMode="decimal"
+                            value={maxAmount} onChange={e => setMaxAmount(e.target.value)}
+                            placeholder="0.00" className="pl-10 text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold uppercase text-muted-foreground">Rango de Fechas</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="date"
+                          value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+                          className="text-sm flex-1"
+                        />
+                        <span className="text-muted-foreground text-xs">a</span>
+                        <Input
+                          type="date"
+                          value={dateTo} onChange={e => setDateTo(e.target.value)}
+                          className="text-sm flex-1"
+                        />
+                      </div>
+                    </div>
+                    {(minAmount || maxAmount || dateFrom || dateTo) && (
+                      <Button
+                        variant="ghost" size="sm" className="w-full text-destructive hover:text-destructive"
+                        onClick={() => { setMinAmount(""); setMaxAmount(""); setDateFrom(""); setDateTo(""); }}
+                      >
+                        <FilterX className="h-4 w-4 mr-2" /> Limpiar filtros avanzados
+                      </Button>
+                    )}
+                  </PopoverContent>
+                </Popover>
+                <Select value={groupBy} onValueChange={v => setGroupBy(v as any)}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Agrupar por" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sin agrupar</SelectItem>
+                    <SelectItem value="day">Por día</SelectItem>
+                    <SelectItem value="month">Por mes</SelectItem>
+                    <SelectItem value="year">Por año</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Quick filters */}
