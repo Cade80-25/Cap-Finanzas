@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText, Calculator, StickyNote, Search } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText, Calculator, StickyNote, Search, SlidersHorizontal, FilterX } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
 import { useCategories } from "@/hooks/useCategories";
