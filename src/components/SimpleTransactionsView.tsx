@@ -689,6 +689,17 @@ export function SimpleTransactionsView() {
                     <SelectItem value="year">Por año</SelectItem>
                   </SelectContent>
                 </Select>
+                <Select value={sortBy} onValueChange={v => setSortBy(v as any)}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Ordenar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date-desc">Fecha (más reciente)</SelectItem>
+                    <SelectItem value="date-asc">Fecha (más antigua)</SelectItem>
+                    <SelectItem value="amount-desc">Monto (mayor a menor)</SelectItem>
+                    <SelectItem value="amount-asc">Monto (menor a mayor)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
