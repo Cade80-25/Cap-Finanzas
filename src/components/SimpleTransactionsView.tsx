@@ -357,10 +357,18 @@ export function SimpleTransactionsView() {
 
   const filteredTransactions = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const min = parseFlexibleNumber(minAmount, 0);
+    const max = parseFlexibleNumber(maxAmount, 0);
+    const from = dateFrom ? dateFrom : null;
+    const to = dateTo ? dateTo : null;
     return allTransactions.filter(t => {
       if (filter !== "all" && t.type !== filter) return false;
       if (categoryFilter && t.category !== categoryFilter) return false;
       if (subcategoryFilter && t.subcategory !== subcategoryFilter) return false;
+      if (min > 0 && t.amount < min) return false;
+      if (max > 0 && t.amount > max) return false;
+      if (from && t.date < from) return false;
+      if (to && t.date > to) return false;
       if (!q) return true;
       const cat = getCategoryLabel(t.category, t.subcategory);
       const haystack = [
@@ -369,7 +377,7 @@ export function SimpleTransactionsView() {
       ].filter(Boolean).join(" ").toLowerCase();
       return haystack.includes(q);
     });
-  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter]);
+  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter, minAmount, maxAmount, dateFrom, dateTo]);
 
   // Quick-filter suggestions: top categories/subcategories + recent keywords
   const quickFilters = useMemo(() => {
