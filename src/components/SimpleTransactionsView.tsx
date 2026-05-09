@@ -467,7 +467,7 @@ export function SimpleTransactionsView() {
       groups.get(k)!.push(t);
     }
     return Array.from(groups.entries())
-      .sort((a, b) => b[0].localeCompare(a[0]))
+      .sort((a, b) => sortBy === "date-asc" ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]))
       .map(([key, items]) => ({
         key,
         label: labelFmt(key),
@@ -475,7 +475,7 @@ export function SimpleTransactionsView() {
         income: items.filter(i => i.type === "income").reduce((s, i) => s + i.amount, 0),
         expense: items.filter(i => i.type === "expense").reduce((s, i) => s + i.amount, 0),
       }));
-  }, [filteredTransactions, groupBy]);
+  }, [filteredTransactions, groupBy, sortBy]);
 
   const exportData = (): ExportTransaction[] => allTransactions.map(t => ({
     fecha: t.date,
