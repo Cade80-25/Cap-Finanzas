@@ -299,6 +299,11 @@ export function SimpleTransactionsView() {
   const [editingTx, setEditingTx] = useState<EditingTransaction | null>(null);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [qrPrefill, setQrPrefill] = useState<QRPrefillData | null>(null);
+  // Filtros avanzados
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const handleDelete = (id: number) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
