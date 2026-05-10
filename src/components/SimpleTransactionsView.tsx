@@ -304,7 +304,13 @@ export function SimpleTransactionsView() {
   const [maxAmount, setMaxAmount] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [sortBy, setSortBy] = useState<"date-desc" | "date-asc" | "amount-desc" | "amount-asc">("date-desc");
+  const [sortBy, setSortBy] = useState<"date-desc" | "date-asc" | "amount-desc" | "amount-asc" | "net-desc" | "net-asc">("date-desc");
+
+  const amountRangeInvalid = useMemo(() => {
+    const min = parseFlexibleNumber(minAmount, 0);
+    const max = parseFlexibleNumber(maxAmount, 0);
+    return min > 0 && max > 0 && min > max;
+  }, [minAmount, maxAmount]);
 
   const handleDelete = (id: number) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
@@ -366,8 +372,8 @@ export function SimpleTransactionsView() {
       if (filter !== "all" && t.type !== filter) return false;
       if (categoryFilter && t.category !== categoryFilter) return false;
       if (subcategoryFilter && t.subcategory !== subcategoryFilter) return false;
-      if (min > 0 && t.amount < min) return false;
-      if (max > 0 && t.amount > max) return false;
+      if (!amountRangeInvalid && min > 0 && t.amount < min) return false;
+      if (!amountRangeInvalid && max > 0 && t.amount > max) return false;
       if (from && t.date < from) return false;
       if (to && t.date > to) return false;
       if (!q) return true;
@@ -387,7 +393,7 @@ export function SimpleTransactionsView() {
         default: return b.date.localeCompare(a.date);
       }
     });
-  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter, minAmount, maxAmount, dateFrom, dateTo, sortBy]);
+  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter, minAmount, maxAmount, dateFrom, dateTo, sortBy, amountRangeInvalid]);
 
   // Quick-filter suggestions: top categories/subcategories + recent keywords
   const quickFilters = useMemo(() => {
@@ -467,14 +473,20 @@ export function SimpleTransactionsView() {
       groups.get(k)!.push(t);
     }
     return Array.from(groups.entries())
-      .sort((a, b) => sortBy === "date-asc" ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]))
       .map(([key, items]) => ({
         key,
         label: labelFmt(key),
         items,
         income: items.filter(i => i.type === "income").reduce((s, i) => s + i.amount, 0),
         expense: items.filter(i => i.type === "expense").reduce((s, i) => s + i.amount, 0),
-      }));
+      }))
+      .sort((a, b) => {
+        if (sortBy === "net-desc") return (b.income - b.expense) - (a.income - a.expense);
+        if (sortBy === "net-asc") return (a.income - a.expense) - (b.income - b.expense);
+        if (sortBy === "amount-desc") return (b.income + b.expense) - (a.income + a.expense);
+        if (sortBy === "amount-asc") return (a.income + a.expense) - (b.income + b.expense);
+        return sortBy === "date-asc" ? a.key.localeCompare(b.key) : b.key.localeCompare(a.key);
+      });
   }, [filteredTransactions, groupBy, sortBy]);
 
   const exportData = (): ExportTransaction[] => allTransactions.map(t => ({
@@ -638,7 +650,8 @@ export function SimpleTransactionsView() {
                           <Input
                             type="text" inputMode="decimal"
                             value={minAmount} onChange={e => setMinAmount(e.target.value)}
-                            placeholder="0.00" className="pl-10 text-sm"
+                            placeholder="0.00"
+                            className={cn("pl-10 text-sm", amountRangeInvalid && "border-destructive focus-visible:ring-destructive")}
                           />
                         </div>
                         <span className="text-muted-foreground text-xs">a</span>
@@ -647,10 +660,17 @@ export function SimpleTransactionsView() {
                           <Input
                             type="text" inputMode="decimal"
                             value={maxAmount} onChange={e => setMaxAmount(e.target.value)}
-                            placeholder="0.00" className="pl-10 text-sm"
+                            placeholder="0.00"
+                            className={cn("pl-10 text-sm", amountRangeInvalid && "border-destructive focus-visible:ring-destructive")}
                           />
                         </div>
                       </div>
+                      {amountRangeInvalid && (
+                        <p className="text-xs text-destructive flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          El monto mínimo no puede ser mayor que el máximo
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs font-semibold uppercase text-muted-foreground">Rango de Fechas</Label>
@@ -678,7 +698,10 @@ export function SimpleTransactionsView() {
                     )}
                   </PopoverContent>
                 </Popover>
-                <Select value={groupBy} onValueChange={v => setGroupBy(v as any)}>
+                <Select value={groupBy} onValueChange={v => {
+                  setGroupBy(v as any);
+                  if (v === "none" && (sortBy === "net-desc" || sortBy === "net-asc")) setSortBy("date-desc");
+                }}>
                   <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Agrupar por" />
                   </SelectTrigger>
@@ -698,6 +721,12 @@ export function SimpleTransactionsView() {
                     <SelectItem value="date-asc">Fecha (más antigua)</SelectItem>
                     <SelectItem value="amount-desc">Monto (mayor a menor)</SelectItem>
                     <SelectItem value="amount-asc">Monto (menor a mayor)</SelectItem>
+                    {groupBy !== "none" && (
+                      <>
+                        <SelectItem value="net-desc">Saldo neto (mayor a menor)</SelectItem>
+                        <SelectItem value="net-asc">Saldo neto (menor a mayor)</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
