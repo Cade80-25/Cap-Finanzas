@@ -473,14 +473,20 @@ export function SimpleTransactionsView() {
       groups.get(k)!.push(t);
     }
     return Array.from(groups.entries())
-      .sort((a, b) => sortBy === "date-asc" ? a[0].localeCompare(b[0]) : b[0].localeCompare(a[0]))
       .map(([key, items]) => ({
         key,
         label: labelFmt(key),
         items,
         income: items.filter(i => i.type === "income").reduce((s, i) => s + i.amount, 0),
         expense: items.filter(i => i.type === "expense").reduce((s, i) => s + i.amount, 0),
-      }));
+      }))
+      .sort((a, b) => {
+        if (sortBy === "net-desc") return (b.income - b.expense) - (a.income - a.expense);
+        if (sortBy === "net-asc") return (a.income - a.expense) - (b.income - b.expense);
+        if (sortBy === "amount-desc") return (b.income + b.expense) - (a.income + a.expense);
+        if (sortBy === "amount-asc") return (a.income + a.expense) - (b.income + b.expense);
+        return sortBy === "date-asc" ? a.key.localeCompare(b.key) : b.key.localeCompare(a.key);
+      });
   }, [filteredTransactions, groupBy, sortBy]);
 
   const exportData = (): ExportTransaction[] => allTransactions.map(t => ({
