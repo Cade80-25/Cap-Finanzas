@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useJournalTransactions } from "@/hooks/useJournalTransactions";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
 import { useCategories } from "@/hooks/useCategories";
 import { CategorySelector } from "@/components/CategorySelector";
