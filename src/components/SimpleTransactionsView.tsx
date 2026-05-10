@@ -710,6 +710,12 @@ export function SimpleTransactionsView() {
                     <SelectItem value="date-asc">Fecha (más antigua)</SelectItem>
                     <SelectItem value="amount-desc">Monto (mayor a menor)</SelectItem>
                     <SelectItem value="amount-asc">Monto (menor a mayor)</SelectItem>
+                    {groupBy !== "none" && (
+                      <>
+                        <SelectItem value="net-desc">Saldo neto (mayor a menor)</SelectItem>
+                        <SelectItem value="net-asc">Saldo neto (menor a mayor)</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
