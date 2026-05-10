@@ -393,7 +393,7 @@ export function SimpleTransactionsView() {
         default: return b.date.localeCompare(a.date);
       }
     });
-  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter, minAmount, maxAmount, dateFrom, dateTo, sortBy]);
+  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter, minAmount, maxAmount, dateFrom, dateTo, sortBy, amountRangeInvalid]);
 
   // Quick-filter suggestions: top categories/subcategories + recent keywords
   const quickFilters = useMemo(() => {
