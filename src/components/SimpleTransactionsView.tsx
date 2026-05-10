@@ -304,7 +304,13 @@ export function SimpleTransactionsView() {
   const [maxAmount, setMaxAmount] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [sortBy, setSortBy] = useState<"date-desc" | "date-asc" | "amount-desc" | "amount-asc">("date-desc");
+  const [sortBy, setSortBy] = useState<"date-desc" | "date-asc" | "amount-desc" | "amount-asc" | "net-desc" | "net-asc">("date-desc");
+
+  const amountRangeInvalid = useMemo(() => {
+    const min = parseFlexibleNumber(minAmount, 0);
+    const max = parseFlexibleNumber(maxAmount, 0);
+    return min > 0 && max > 0 && min > max;
+  }, [minAmount, maxAmount]);
 
   const handleDelete = (id: number) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
