@@ -690,7 +690,10 @@ export function SimpleTransactionsView() {
                     )}
                   </PopoverContent>
                 </Popover>
-                <Select value={groupBy} onValueChange={v => setGroupBy(v as any)}>
+                <Select value={groupBy} onValueChange={v => {
+                  setGroupBy(v as any);
+                  if (v === "none" && (sortBy === "net-desc" || sortBy === "net-asc")) setSortBy("date-desc");
+                }}>
                   <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Agrupar por" />
                   </SelectTrigger>
