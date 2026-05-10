@@ -650,7 +650,8 @@ export function SimpleTransactionsView() {
                           <Input
                             type="text" inputMode="decimal"
                             value={minAmount} onChange={e => setMinAmount(e.target.value)}
-                            placeholder="0.00" className="pl-10 text-sm"
+                            placeholder="0.00"
+                            className={cn("pl-10 text-sm", amountRangeInvalid && "border-destructive focus-visible:ring-destructive")}
                           />
                         </div>
                         <span className="text-muted-foreground text-xs">a</span>
@@ -659,10 +660,17 @@ export function SimpleTransactionsView() {
                           <Input
                             type="text" inputMode="decimal"
                             value={maxAmount} onChange={e => setMaxAmount(e.target.value)}
-                            placeholder="0.00" className="pl-10 text-sm"
+                            placeholder="0.00"
+                            className={cn("pl-10 text-sm", amountRangeInvalid && "border-destructive focus-visible:ring-destructive")}
                           />
                         </div>
                       </div>
+                      {amountRangeInvalid && (
+                        <p className="text-xs text-destructive flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          El monto mínimo no puede ser mayor que el máximo
+                        </p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs font-semibold uppercase text-muted-foreground">Rango de Fechas</Label>
