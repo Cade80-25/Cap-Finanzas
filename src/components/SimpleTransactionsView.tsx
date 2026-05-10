@@ -372,8 +372,8 @@ export function SimpleTransactionsView() {
       if (filter !== "all" && t.type !== filter) return false;
       if (categoryFilter && t.category !== categoryFilter) return false;
       if (subcategoryFilter && t.subcategory !== subcategoryFilter) return false;
-      if (min > 0 && t.amount < min) return false;
-      if (max > 0 && t.amount > max) return false;
+      if (!amountRangeInvalid && min > 0 && t.amount < min) return false;
+      if (!amountRangeInvalid && max > 0 && t.amount > max) return false;
       if (from && t.date < from) return false;
       if (to && t.date > to) return false;
       if (!q) return true;
