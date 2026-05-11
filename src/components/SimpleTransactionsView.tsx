@@ -294,7 +294,7 @@ export function SimpleTransactionsView() {
   const [defaultType, setDefaultType] = useState<"income" | "expense">("expense");
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
   const [search, setSearch] = useState("");
-  const [groupBy, setGroupBy] = useLocalStorage<"none" | "day" | "month" | "year">("simple-tx-groupBy", "none");
+  const [groupBy, setGroupBy] = useLocalStorage<"none" | "day" | "month" | "year">(`simple-tx-groupBy:${filter}`, "none");
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [subcategoryFilter, setSubcategoryFilter] = useState<string | null>(null);
   const [editingTx, setEditingTx] = useState<EditingTransaction | null>(null);
