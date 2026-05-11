@@ -305,7 +305,7 @@ export function SimpleTransactionsView() {
   const [maxAmount, setMaxAmount] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [sortBy, setSortBy] = useLocalStorage<"date-desc" | "date-asc" | "amount-desc" | "amount-asc" | "net-desc" | "net-asc">("simple-tx-sortBy", "date-desc");
+  const [sortBy, setSortBy] = useLocalStorage<"date-desc" | "date-asc" | "amount-desc" | "amount-asc" | "net-desc" | "net-asc">(`simple-tx-sortBy:${filter}`, "date-desc");
 
   const amountRangeInvalid = useMemo(() => {
     const min = parseFlexibleNumber(minAmount, 0);
