@@ -738,6 +738,16 @@ export function SimpleTransactionsView() {
                     )}
                   </SelectContent>
                 </Select>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 text-muted-foreground hover:text-foreground"
+                  title="Restablecer preferencias"
+                  onClick={handleResetPreferences}
+                  disabled={!hasCustomPreferences}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
               </div>
             </div>
 
