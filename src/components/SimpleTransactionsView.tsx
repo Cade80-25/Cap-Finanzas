@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText, Calculator, StickyNote, Search, SlidersHorizontal, FilterX } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText, Calculator, StickyNote, Search, SlidersHorizontal, FilterX, RotateCcw } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -306,6 +306,14 @@ export function SimpleTransactionsView() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [sortBy, setSortBy] = useLocalStorage<"date-desc" | "date-asc" | "amount-desc" | "amount-asc" | "net-desc" | "net-asc">(`simple-tx-sortBy:${filter}`, "date-desc");
+
+  const hasCustomPreferences = groupBy !== "none" || sortBy !== "date-desc";
+
+  const handleResetPreferences = () => {
+    setGroupBy("none");
+    setSortBy("date-desc");
+    toast.success("Preferencias restablecidas");
+  };
 
   const amountRangeInvalid = useMemo(() => {
     const min = parseFlexibleNumber(minAmount, 0);
@@ -730,6 +738,16 @@ export function SimpleTransactionsView() {
                     )}
                   </SelectContent>
                 </Select>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 text-muted-foreground hover:text-foreground"
+                  title="Restablecer preferencias"
+                  onClick={handleResetPreferences}
+                  disabled={!hasCustomPreferences}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
               </div>
             </div>
 
