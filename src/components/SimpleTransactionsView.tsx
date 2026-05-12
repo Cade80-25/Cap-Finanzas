@@ -307,6 +307,14 @@ export function SimpleTransactionsView() {
   const [dateTo, setDateTo] = useState("");
   const [sortBy, setSortBy] = useLocalStorage<"date-desc" | "date-asc" | "amount-desc" | "amount-asc" | "net-desc" | "net-asc">(`simple-tx-sortBy:${filter}`, "date-desc");
 
+  const hasCustomPreferences = groupBy !== "none" || sortBy !== "date-desc";
+
+  const handleResetPreferences = () => {
+    setGroupBy("none");
+    setSortBy("date-desc");
+    toast.success("Preferencias restablecidas");
+  };
+
   const amountRangeInvalid = useMemo(() => {
     const min = parseFlexibleNumber(minAmount, 0);
     const max = parseFlexibleNumber(maxAmount, 0);
