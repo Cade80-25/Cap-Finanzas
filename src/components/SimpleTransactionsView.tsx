@@ -942,6 +942,27 @@ export function SimpleTransactionsView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Confirm reset preferences */}
+      <AlertDialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5 text-muted-foreground" />
+              ¿Restablecer preferencias?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminarán las preferencias de orden y agrupación del filtro actual ({filter === "all" ? "Todos" : filter === "income" ? "Ingresos" : "Gastos"}) y se restaurarán los valores por defecto.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmResetPreferences}>
+              Restablecer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
