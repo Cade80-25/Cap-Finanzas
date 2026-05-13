@@ -299,6 +299,8 @@ export function SimpleTransactionsView() {
   const [subcategoryFilter, setSubcategoryFilter] = useState<string | null>(null);
   const [editingTx, setEditingTx] = useState<EditingTransaction | null>(null);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
+  const [previousPreferences, setPreviousPreferences] = useState<{ groupBy: "none" | "day" | "month" | "year"; sortBy: "date-desc" | "date-asc" | "amount-desc" | "amount-asc" | "net-desc" | "net-asc" } | null>(null);
   const [qrPrefill, setQrPrefill] = useState<QRPrefillData | null>(null);
   // Filtros avanzados
   const [minAmount, setMinAmount] = useState("");
@@ -310,9 +312,26 @@ export function SimpleTransactionsView() {
   const hasCustomPreferences = groupBy !== "none" || sortBy !== "date-desc";
 
   const handleResetPreferences = () => {
+    setPreviousPreferences({ groupBy, sortBy });
+    setConfirmResetOpen(true);
+  };
+
+  const confirmResetPreferences = () => {
     setGroupBy("none");
     setSortBy("date-desc");
-    toast.success("Preferencias restablecidas");
+    setConfirmResetOpen(false);
+    toast.success("Preferencias restablecidas", {
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          if (previousPreferences) {
+            setGroupBy(previousPreferences.groupBy);
+            setSortBy(previousPreferences.sortBy);
+            toast.success("Preferencias recuperadas");
+          }
+        },
+      },
+    });
   };
 
   const amountRangeInvalid = useMemo(() => {
@@ -919,6 +938,27 @@ export function SimpleTransactionsView() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleClearAll} className="bg-destructive hover:bg-destructive/90">
               Sí, borrar todo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm reset preferences */}
+      <AlertDialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5 text-muted-foreground" />
+              ¿Restablecer preferencias?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminarán las preferencias de orden y agrupación del filtro actual ({filter === "all" ? "Todos" : filter === "income" ? "Ingresos" : "Gastos"}) y se restaurarán los valores por defecto.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmResetPreferences}>
+              Restablecer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
