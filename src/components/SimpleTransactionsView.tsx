@@ -299,6 +299,8 @@ export function SimpleTransactionsView() {
   const [subcategoryFilter, setSubcategoryFilter] = useState<string | null>(null);
   const [editingTx, setEditingTx] = useState<EditingTransaction | null>(null);
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
+  const [previousPreferences, setPreviousPreferences] = useState<{ groupBy: "none" | "day" | "month" | "year"; sortBy: "date-desc" | "date-asc" | "amount-desc" | "amount-asc" | "net-desc" | "net-asc" } | null>(null);
   const [qrPrefill, setQrPrefill] = useState<QRPrefillData | null>(null);
   // Filtros avanzados
   const [minAmount, setMinAmount] = useState("");
@@ -310,9 +312,26 @@ export function SimpleTransactionsView() {
   const hasCustomPreferences = groupBy !== "none" || sortBy !== "date-desc";
 
   const handleResetPreferences = () => {
+    setPreviousPreferences({ groupBy, sortBy });
+    setConfirmResetOpen(true);
+  };
+
+  const confirmResetPreferences = () => {
     setGroupBy("none");
     setSortBy("date-desc");
-    toast.success("Preferencias restablecidas");
+    setConfirmResetOpen(false);
+    toast.success("Preferencias restablecidas", {
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          if (previousPreferences) {
+            setGroupBy(previousPreferences.groupBy);
+            setSortBy(previousPreferences.sortBy);
+            toast.success("Preferencias recuperadas");
+          }
+        },
+      },
+    });
   };
 
   const amountRangeInvalid = useMemo(() => {
