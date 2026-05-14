@@ -945,18 +945,67 @@ export function SimpleTransactionsView() {
 
       {/* Confirm reset preferences */}
       <AlertDialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent
+          role="alertdialog"
+          aria-labelledby="reset-prefs-title"
+          aria-describedby="reset-prefs-desc"
+          onOpenAutoFocus={(e) => {
+            // Move focus to Cancel (safer default for destructive confirmations)
+            e.preventDefault();
+            const cancelBtn = document.getElementById("reset-prefs-cancel");
+            cancelBtn?.focus();
+          }}
+        >
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <RotateCcw className="h-5 w-5 text-muted-foreground" />
+            <AlertDialogTitle id="reset-prefs-title" className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
               ¿Restablecer preferencias?
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              Se eliminarán las preferencias de orden y agrupación del filtro actual ({filter === "all" ? "Todos" : filter === "income" ? "Ingresos" : "Gastos"}) y se restaurarán los valores por defecto.
+            <AlertDialogDescription id="reset-prefs-desc" asChild>
+              <div className="space-y-3">
+                <p>
+                  Se restablecerán las preferencias del filtro{" "}
+                  <strong>
+                    {filter === "all" ? "Todos" : filter === "income" ? "Ingresos" : "Gastos"}
+                  </strong>{" "}
+                  a sus valores por defecto. Se perderá la siguiente configuración:
+                </p>
+                <ul className="rounded-md border border-border bg-muted/40 p-3 text-sm space-y-1 list-none">
+                  <li>
+                    <span className="text-muted-foreground">Agrupar por:</span>{" "}
+                    <strong className="text-foreground">
+                      {{
+                        none: "Sin agrupar",
+                        day: "Por día",
+                        month: "Por mes",
+                        year: "Por año",
+                      }[groupBy]}
+                    </strong>
+                  </li>
+                  <li>
+                    <span className="text-muted-foreground">Ordenar por:</span>{" "}
+                    <strong className="text-foreground">
+                      {{
+                        "date-desc": "Fecha (más reciente)",
+                        "date-asc": "Fecha (más antigua)",
+                        "amount-desc": "Monto (mayor a menor)",
+                        "amount-asc": "Monto (menor a mayor)",
+                        "net-desc": "Saldo neto (mayor a menor)",
+                        "net-asc": "Saldo neto (menor a mayor)",
+                      }[sortBy]}
+                    </strong>
+                  </li>
+                </ul>
+                <p className="text-xs text-muted-foreground">
+                  Podrás deshacer esta acción desde la notificación que aparecerá tras restablecer.
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel id="reset-prefs-cancel" autoFocus>
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction onClick={confirmResetPreferences}>
               Restablecer
             </AlertDialogAction>
