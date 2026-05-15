@@ -1024,6 +1024,11 @@ export function SimpleTransactionsView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Anuncio accesible para lectores de pantalla */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {resetAnnouncement}
+      </div>
     </div>
   );
 }
