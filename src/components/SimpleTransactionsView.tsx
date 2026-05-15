@@ -301,6 +301,7 @@ export function SimpleTransactionsView() {
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const [previousPreferences, setPreviousPreferences] = useState<{ groupBy: "none" | "day" | "month" | "year"; sortBy: "date-desc" | "date-asc" | "amount-desc" | "amount-asc" | "net-desc" | "net-asc" } | null>(null);
+  const [resetAnnouncement, setResetAnnouncement] = useState("");
   const [qrPrefill, setQrPrefill] = useState<QRPrefillData | null>(null);
   // Filtros avanzados
   const [minAmount, setMinAmount] = useState("");
@@ -320,6 +321,13 @@ export function SimpleTransactionsView() {
     setGroupBy("none");
     setSortBy("date-desc");
     setConfirmResetOpen(false);
+    // Reset then set, so screen readers re-announce even on repeated resets
+    setResetAnnouncement("");
+    setTimeout(() => {
+      setResetAnnouncement(
+        "Preferencias restablecidas. Hay una notificación con la opción Deshacer disponible durante unos segundos."
+      );
+    }, 50);
     toast.success("Preferencias restablecidas", {
       action: {
         label: "Deshacer",
@@ -328,6 +336,10 @@ export function SimpleTransactionsView() {
             setGroupBy(previousPreferences.groupBy);
             setSortBy(previousPreferences.sortBy);
             toast.success("Preferencias recuperadas");
+            setResetAnnouncement("");
+            setTimeout(() => {
+              setResetAnnouncement("Preferencias recuperadas a los valores anteriores.");
+            }, 50);
           }
         },
       },
