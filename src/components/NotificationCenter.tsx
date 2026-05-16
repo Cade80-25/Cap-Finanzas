@@ -82,12 +82,13 @@ export function NotificationCenter() {
     <>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="relative" aria-label={unreadCount > 0 ? `Notificaciones (${unreadCount} sin leer)` : "Notificaciones"}>
+            <Bell className="h-5 w-5" aria-hidden="true" />
             {unreadCount > 0 && (
               <Badge
                 variant="destructive"
                 className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                aria-hidden="true"
               >
                 {unreadCount > 9 ? "9+" : unreadCount}
               </Badge>
@@ -110,6 +111,7 @@ export function NotificationCenter() {
                 className="h-8 w-8"
                 onClick={handleOpenSettings}
                 title="Configuración"
+                aria-label="Configuración de notificaciones"
               >
                 <Settings className="h-4 w-4" />
               </Button>
@@ -121,6 +123,7 @@ export function NotificationCenter() {
                     className="h-8 w-8"
                     onClick={markAllAsRead}
                     title="Marcar todas como leídas"
+                    aria-label="Marcar todas como leídas"
                   >
                     <CheckCheck className="h-4 w-4" />
                   </Button>
@@ -130,6 +133,7 @@ export function NotificationCenter() {
                     className="h-8 w-8"
                     onClick={clearAll}
                     title="Eliminar todas"
+                    aria-label="Eliminar todas las notificaciones"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -174,6 +178,7 @@ export function NotificationCenter() {
                                 size="icon"
                                 className="h-6 w-6"
                                 onClick={() => markAsRead(notification.id)}
+                                aria-label="Marcar como leída"
                               >
                                 <Check className="h-3 w-3" />
                               </Button>
@@ -183,6 +188,7 @@ export function NotificationCenter() {
                               size="icon"
                               className="h-6 w-6"
                               onClick={() => deleteNotification(notification.id)}
+                              aria-label="Eliminar notificación"
                             >
                               <X className="h-3 w-3" />
                             </Button>

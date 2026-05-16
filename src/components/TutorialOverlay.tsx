@@ -188,6 +188,7 @@ export function TutorialOverlay() {
                 size="icon"
                 className="h-7 w-7 rounded-full hover:bg-destructive/10 hover:text-destructive"
                 onClick={skipTutorial}
+                aria-label="Cerrar tutorial"
               >
                 <X className="h-4 w-4" />
               </Button>

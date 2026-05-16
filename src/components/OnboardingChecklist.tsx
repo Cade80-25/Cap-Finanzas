@@ -59,7 +59,7 @@ export function OnboardingChecklist() {
               )}
               {progress === 100 ? "¡Felicidades! Configuración completa" : "Primeros pasos"}
             </CardTitle>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={dismiss}>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={dismiss} aria-label="Cerrar lista de tareas iniciales">
               <X className="h-4 w-4" />
             </Button>
           </div>
