@@ -160,7 +160,7 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
       <div className="border-b border-sidebar-border bg-sidebar flex items-center justify-between px-2 h-12">
         {/* Left: hamburger menu */}
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(true)} className="h-9 w-9">
+          <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(true)} className="h-9 w-9" aria-label="Abrir menú de navegación">
             <Menu className="h-5 w-5" />
           </Button>
           <span className="text-sm font-bold bg-gradient-primary bg-clip-text text-transparent">
@@ -170,14 +170,14 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
 
         {/* Right: key actions */}
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={onSearchClick} className="h-8 w-8">
+          <Button variant="ghost" size="icon" onClick={onSearchClick} className="h-8 w-8" aria-label="Buscar">
             <Search className="h-4 w-4" />
           </Button>
 
           {/* Theme toggle */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Cambiar tema">
                 {themeVariant === "dark" ? <Moon className="h-4 w-4" /> : themeVariant === "dim" ? <SunMoon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </Button>
             </DropdownMenuTrigger>
@@ -194,10 +194,10 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button variant="ghost" size="icon" className="relative h-8 w-8" onClick={() => navigate("/notificaciones")}>
-            <Bell className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="relative h-8 w-8" onClick={() => navigate("/notificaciones")} aria-label={unreadCount > 0 ? `Notificaciones (${unreadCount} sin leer)` : "Notificaciones"}>
+            <Bell className="h-4 w-4" aria-hidden="true" />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium px-1">
+              <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium px-1" aria-hidden="true">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
@@ -273,6 +273,8 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
           onClick={onToggleSidebar}
           className="mr-2 h-9 w-9"
           title={sidebarVisible ? "Ocultar panel lateral" : "Mostrar panel lateral"}
+          aria-label={sidebarVisible ? "Ocultar panel lateral" : "Mostrar panel lateral"}
+          aria-pressed={sidebarVisible}
         >
           {sidebarVisible ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
         </Button>
@@ -461,7 +463,7 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
         {/* Theme Toggle */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" title="Cambiar tema">
+            <Button variant="ghost" size="icon" className="h-8 w-8" title="Cambiar tema" aria-label="Cambiar tema">
               {themeVariant === "dark" ? <Moon className="h-4 w-4" /> : themeVariant === "dim" ? <SunMoon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
           </DropdownMenuTrigger>
@@ -480,10 +482,10 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
 
         <TutorialButton />
         
-        <Button variant="ghost" size="icon" className="relative h-8 w-8" onClick={() => navigate("/notificaciones")} title="Notificaciones">
-          <Bell className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="relative h-8 w-8" onClick={() => navigate("/notificaciones")} title="Notificaciones" aria-label={unreadCount > 0 ? `Notificaciones (${unreadCount} sin leer)` : "Notificaciones"}>
+          <Bell className="h-4 w-4" aria-hidden="true" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium px-1">
+            <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium px-1" aria-hidden="true">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}

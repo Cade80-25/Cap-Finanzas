@@ -53,7 +53,7 @@ export function FirstVisitTooltip() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <h4 className="font-semibold text-sm">{tooltip.title}</h4>
-              <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={handleDismiss}>
+              <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={handleDismiss} aria-label="Cerrar consejo">
                 <X className="h-3.5 w-3.5" />
               </Button>
             </div>

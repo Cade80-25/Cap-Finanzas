@@ -269,7 +269,7 @@ export default function LandingPage() {
 
         {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <ChevronDown className="h-6 w-6 text-muted-foreground/50" />
+          <ChevronDown className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
         </div>
       </section>
 

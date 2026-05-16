@@ -73,6 +73,7 @@ export function TrialBanner() {
             variant="ghost"
             className="h-7 w-7"
             onClick={() => setDismissed(true)}
+            aria-label="Cerrar aviso de prueba"
           >
             <X className="h-3 w-3" />
           </Button>

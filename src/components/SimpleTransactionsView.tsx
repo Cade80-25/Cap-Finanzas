@@ -674,10 +674,10 @@ export function SimpleTransactionsView() {
               <div className="flex gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="icon" className="shrink-0 relative">
-                      <SlidersHorizontal className="h-4 w-4" />
+                    <Button variant="outline" size="icon" className="shrink-0 relative" aria-label="Filtros avanzados">
+                      <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
                       {(minAmount || maxAmount || dateFrom || dateTo) && (
-                        <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-primary" />
+                        <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-primary" aria-hidden="true" />
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -774,6 +774,7 @@ export function SimpleTransactionsView() {
                   size="icon"
                   className="shrink-0 text-muted-foreground hover:text-foreground"
                   title="Restablecer preferencias"
+                  aria-label="Restablecer preferencias de filtros"
                   onClick={handleResetPreferences}
                   disabled={!hasCustomPreferences}
                 >
@@ -876,10 +877,12 @@ export function SimpleTransactionsView() {
                       </div>
                       <div className="flex gap-1 shrink-0">
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          aria-label={`Editar transacción: ${tx.description}`}
                           onClick={e => { e.stopPropagation(); openEditDialog(tx); }}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          aria-label={`Eliminar transacción: ${tx.description}`}
                           onClick={e => { e.stopPropagation(); handleDelete(tx.id); }}>
                           <Trash2 className="h-4 w-4" />
                         </Button>

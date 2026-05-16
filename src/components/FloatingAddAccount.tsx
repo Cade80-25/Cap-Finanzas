@@ -65,9 +65,10 @@ export function FloatingAddAccount() {
             <Button
               onClick={handleClick}
               size="icon"
+              aria-label={`Crear nueva cuenta (${wallets.length} de ${maxWallets})`}
               className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all bg-primary hover:bg-primary/90"
             >
-              <Plus className="h-6 w-6" />
+              <Plus className="h-6 w-6" aria-hidden="true" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">

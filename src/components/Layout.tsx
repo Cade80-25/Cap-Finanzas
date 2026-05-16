@@ -104,6 +104,7 @@ export default function Layout() {
                   size="icon"
                   onClick={() => setSidebarVisible(false)}
                   className="h-8 w-8"
+                  aria-label="Cerrar panel lateral"
                 >
                   <X className="h-4 w-4" />
                 </Button>
