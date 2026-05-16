@@ -1,10 +1,11 @@
-const CACHE_NAME = 'cap-finanzas-v2';
+const CACHE_NAME = 'cap-finanzas-v3';
 
 const PRECACHE_URLS = [
   '/',
   '/index.html',
-  '/icon-final.png',
-  '/icons/icon-final.png'
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png'
 ];
 
 // Install: precache essential assets
