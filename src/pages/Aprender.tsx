@@ -5,6 +5,7 @@ import { GraduationCap, BookOpen, Sparkles, Book } from "lucide-react";
 import Enciclopedia from "./Enciclopedia";
 import Manual from "./Manual";
 import Recomendaciones from "./Recomendaciones";
+import { SeoHead } from "@/components/SeoHead";
 
 export default function Aprender() {
   const [params, setParams] = useSearchParams();
@@ -18,6 +19,11 @@ export default function Aprender() {
 
   return (
     <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 animate-fade-in">
+      <SeoHead
+        title="Aprender — Tutor financiero IA, manual y enciclopedia"
+        description="Aprende finanzas con el tutor IA, manual de uso y enciclopedia financiera de Cap Finanzas."
+        path="/aprender"
+      />
       <div className="flex items-center gap-3">
         <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-primary flex items-center justify-center shadow-soft">
           <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />

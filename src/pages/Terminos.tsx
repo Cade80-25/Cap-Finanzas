@@ -1,12 +1,18 @@
 import { ArrowLeft, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { SeoHead } from "@/components/SeoHead";
 
 export default function Terminos() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
+      <SeoHead
+        title="Términos del Servicio — Cap Finanzas"
+        description="Términos de uso y licencia de Cap Finanzas. Pago único de $10 USD, sin suscripciones."
+        path="/terminos"
+      />
       <div className="container mx-auto px-4 py-12 max-w-3xl">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 gap-2">
           <ArrowLeft className="h-4 w-4" /> Volver

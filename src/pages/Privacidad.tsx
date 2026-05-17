@@ -1,12 +1,18 @@
 import { ArrowLeft, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { SeoHead } from "@/components/SeoHead";
 
 export default function Privacidad() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
+      <SeoHead
+        title="Política de Privacidad — Cap Finanzas"
+        description="Cap Finanzas guarda tus datos 100% locales. No hay telemetría ni servidores externos. Conoce nuestra política de privacidad."
+        path="/privacidad"
+      />
       <div className="container mx-auto px-4 py-12 max-w-3xl">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 gap-2">
           <ArrowLeft className="h-4 w-4" /> Volver

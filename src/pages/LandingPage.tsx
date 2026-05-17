@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SeoHead } from "@/components/SeoHead";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -196,6 +197,11 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SeoHead
+        title="Cap Finanzas — Contabilidad personal offline y privada"
+        description="Software de finanzas personales y contabilidad 100% offline. Gastos, libros contables y tutor IA. Pago único $10 USD. Prueba gratis 30 días."
+        path="/landing"
+      />
       {/* Hero Section - Bold & Engaging */}
       <section className="relative overflow-hidden min-h-[85vh] flex items-center">
         {/* Animated background */}
