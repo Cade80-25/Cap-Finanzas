@@ -65,6 +65,11 @@ export default function Instalar() {
 
   return (
     <div className="p-6 md:p-8 space-y-8 animate-fade-in max-w-3xl mx-auto">
+      <SeoHead
+        title="Descargar Cap Finanzas — App de escritorio y PWA"
+        description="Descarga Cap Finanzas para Windows o instálala como PWA en móvil y escritorio. 100% offline, pago único $10 USD."
+        path="/instalar"
+      />
       {/* Header */}
       <div className="text-center">
         <div className="h-20 w-20 mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg">
