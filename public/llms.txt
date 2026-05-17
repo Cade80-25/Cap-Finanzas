@@ -1,0 +1,26 @@
+# Cap Finanzas
+
+> Software de finanzas personales y contabilidad 100% offline. Control de gastos, presupuestos, libros contables (partida doble) y tutor financiero con IA. Pago único de $10 USD de por vida, sin suscripciones. Prueba gratis 30 días.
+
+Cap Finanzas funciona localmente en el dispositivo del usuario (los datos nunca salen del equipo salvo para licencias y avatares). Tiene dos modos: Finanzas Simples (sin conceptos contables) y Contabilidad Tradicional (partida doble completa con libro diario, mayor, balance y estado de resultados). Disponible como app web (PWA) y aplicación de escritorio para Windows.
+
+## Páginas principales
+
+- [Inicio / Landing](https://capfinanzas.com/landing): Resumen del producto, precios y descarga.
+- [Instalar](https://capfinanzas.com/instalar): Descargas para Windows y guía de instalación PWA.
+- [Aprender](https://capfinanzas.com/aprender): Enciclopedia financiera, tutor IA y recomendaciones.
+- [Privacidad](https://capfinanzas.com/privacidad): Política de privacidad (datos 100% locales).
+- [Términos](https://capfinanzas.com/terminos): Términos de servicio y licencia.
+
+## Características clave
+
+- Offline-first: todos los datos en localStorage del navegador / equipo.
+- Hasta 5 cuentas base, hasta 50 perfiles, multimoneda con tasas en vivo.
+- Importación: JSON, CSV, QIF, OFX, Excel, ODS. Exportación: CSV, Excel, PDF.
+- Recordatorios por email (vía cron) y notificaciones in-app.
+- Escáner de tickets QR (CFE DGI Uruguay).
+
+## Modelo de negocio
+
+- Pago único: $10 USD lifetime vía PayPal.
+- Sin telemetría, sin anuncios, sin suscripciones.
