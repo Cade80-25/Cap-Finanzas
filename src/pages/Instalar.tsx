@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
 import { useLicense } from "@/hooks/useLicense";
+import { SeoHead } from "@/components/SeoHead";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
