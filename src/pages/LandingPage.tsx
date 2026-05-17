@@ -167,6 +167,8 @@ function useAnimatedNumber(target: number, duration = 2000) {
   return { value, start: () => setStarted(true) };
 }
 
+import { SeoHead } from "@/components/SeoHead";
+
 export default function LandingPage() {
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const [activationOpen, setActivationOpen] = useState(false);
