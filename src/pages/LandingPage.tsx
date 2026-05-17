@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SeoHead } from "@/components/SeoHead";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -166,8 +167,6 @@ function useAnimatedNumber(target: number, duration = 2000) {
 
   return { value, start: () => setStarted(true) };
 }
-
-import { SeoHead } from "@/components/SeoHead";
 
 export default function LandingPage() {
   const [purchaseOpen, setPurchaseOpen] = useState(false);
