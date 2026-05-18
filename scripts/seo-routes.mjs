@@ -8,17 +8,17 @@ export const DEFAULT_IMAGE = `${BASE_URL}/og-image.jpg`;
 export const ROUTES = [
   {
     path: "/landing",
-    title: "Cap Finanzas — Software de Contabilidad Personal Offline",
+    title: "Cap Finanzas — Contabilidad personal offline y privada",
     description:
-      "Control total de tus finanzas personales. 100% offline y privado. Pago único $10 USD. Prueba gratis 30 días.",
+      "Software de finanzas personales y contabilidad 100% offline. Gastos, libros contables y tutor IA. Pago único $10 USD. Prueba gratis 30 días.",
     image: DEFAULT_IMAGE,
     type: "website",
   },
   {
     path: "/instalar",
-    title: "Instalar Cap Finanzas — Windows, Mac, Linux y Web",
+    title: "Descargar Cap Finanzas — App de escritorio y PWA",
     description:
-      "Descarga e instala Cap Finanzas en tu dispositivo. Versiones para Windows, Mac, Linux y PWA web.",
+      "Descarga Cap Finanzas para Windows o instálala como PWA en móvil y escritorio. 100% offline, pago único $10 USD.",
     image: DEFAULT_IMAGE,
     type: "website",
   },
