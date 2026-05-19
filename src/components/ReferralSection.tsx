@@ -20,15 +20,6 @@ function getInstallationId(): string {
   return id;
 }
 
-function generateReferralCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return `REF-${code}`;
-}
-
 export function ReferralSection() {
   const { status, trialInfo } = useLicense();
   const [myCode, setMyCode] = useState<string | null>(null);
@@ -60,19 +51,20 @@ export function ReferralSection() {
 
   const loadReferralCount = async () => {
     const code = localStorage.getItem("cap-finanzas-referral-code");
-    if (!code) return;
+    if (!code && !installationId) return;
 
     try {
-      const { count } = await (supabase as any)
-        .from("referrals")
-        .select("id", { count: "exact", head: true })
-        .eq("referrer_code", code)
-        .not("redeemed_at", "is", null);
-      
-      setReferralCount(count || 0);
-      localStorage.setItem("cap-finanzas-referral-count", (count || 0).toString());
-      // Update bonus for referrer: 15 days per redemption
-      const totalBonus = (count || 0) * 15;
+      const { data } = await supabase.functions.invoke("referral-stats", {
+        body: { installationId, code },
+      });
+      if (data?.code && !code) {
+        localStorage.setItem("cap-finanzas-referral-code", data.code);
+        setMyCode(data.code);
+      }
+      const count = data?.count || 0;
+      setReferralCount(count);
+      localStorage.setItem("cap-finanzas-referral-count", count.toString());
+      const totalBonus = count * 15;
       const ownRedeemBonus = parseInt(localStorage.getItem("cap-finanzas-referral-own-bonus") || "0");
       const total = totalBonus + ownRedeemBonus;
       setBonusDays(total);
@@ -83,27 +75,13 @@ export function ReferralSection() {
   };
 
   const handleCreateCode = async () => {
-    const code = generateReferralCode();
-    
     try {
-      const { error } = await supabase.from("referrals").insert({
-        referrer_code: code,
-        referrer_installation_id: installationId,
-      } as any);
-
-      if (error) {
-        // Code collision, try again
-        const code2 = generateReferralCode();
-        await supabase.from("referrals").insert({
-          referrer_code: code2,
-          referrer_installation_id: installationId,
-        } as any);
-        setMyCode(code2);
-        localStorage.setItem("cap-finanzas-referral-code", code2);
-      } else {
-        setMyCode(code);
-        localStorage.setItem("cap-finanzas-referral-code", code);
-      }
+      const { data, error } = await supabase.functions.invoke("referral-create", {
+        body: { installationId },
+      });
+      if (error || !data?.code) throw error || new Error("no code");
+      setMyCode(data.code);
+      localStorage.setItem("cap-finanzas-referral-code", data.code);
       toast.success("¡Código de referido creado!");
     } catch {
       toast.error("Error al crear código. Intenta de nuevo.");
