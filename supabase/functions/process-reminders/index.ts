@@ -16,7 +16,25 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    const cronSecret = Deno.env.get("CRON_SECRET");
+
+    // Require a shared secret to prevent unauthenticated abuse.
+    // Accept either CRON_SECRET or the service role key as Bearer token.
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    const isAuthorized =
+      (cronSecret && token === cronSecret) ||
+      (supabaseServiceKey && token === supabaseServiceKey);
+
+    if (!isAuthorized) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
 
     // Get pending reminders that should fire now
     const now = new Date().toISOString();
