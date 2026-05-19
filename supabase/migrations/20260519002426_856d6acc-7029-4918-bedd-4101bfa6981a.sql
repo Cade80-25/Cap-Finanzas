@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Allow public insert for reminders" ON public.calendar_reminders;
