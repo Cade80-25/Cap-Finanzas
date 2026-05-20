@@ -257,7 +257,7 @@ export default function Instalar() {
                   <p className="text-sm text-muted-foreground">Instalador .exe — Windows 10/11</p>
                 </div>
                 <Button
-                  onClick={() => window.open(GITHUB_RELEASES, "_blank")}
+                  onClick={() => window.open(DOWNLOADS.windows, "_blank")}
                   disabled={!hasLicense}
                   size="sm"
                 >
@@ -269,46 +269,86 @@ export default function Instalar() {
 
             {/* macOS */}
             <Card>
-              <CardContent className="flex items-center gap-4 p-5">
-                <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                  <Apple className="h-6 w-6 text-muted-foreground" />
+              <CardContent className="flex flex-col gap-3 p-5">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                    <Apple className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold">macOS</p>
+                    <p className="text-sm text-muted-foreground">Archivo .dmg — macOS 11+</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold">macOS</p>
-                  <p className="text-sm text-muted-foreground">Archivo .dmg — macOS 11+</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    onClick={() => window.open(DOWNLOADS.macArm, "_blank")}
+                    disabled={!hasLicense}
+                    size="sm"
+                    variant="default"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Apple Silicon (M1/M2/M3)
+                  </Button>
+                  <Button
+                    onClick={() => window.open(DOWNLOADS.macIntel, "_blank")}
+                    disabled={!hasLicense}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Intel
+                  </Button>
                 </div>
-                <Button
-                  onClick={() => window.open(GITHUB_RELEASES, "_blank")}
-                  disabled={!hasLicense}
-                  size="sm"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Descargar
-                </Button>
               </CardContent>
             </Card>
 
             {/* Linux */}
             <Card>
-              <CardContent className="flex items-center gap-4 p-5">
-                <div className="h-12 w-12 rounded-xl bg-accent flex items-center justify-center shrink-0">
-                  <Laptop className="h-6 w-6 text-accent-foreground" />
+              <CardContent className="flex flex-col gap-3 p-5">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-xl bg-accent flex items-center justify-center shrink-0">
+                    <Laptop className="h-6 w-6 text-accent-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold">Linux</p>
+                    <p className="text-sm text-muted-foreground">AppImage / .deb — Ubuntu, Fedora, etc.</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold">Linux</p>
-                  <p className="text-sm text-muted-foreground">AppImage / .deb — Ubuntu, Fedora, etc.</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    onClick={() => window.open(DOWNLOADS.linuxAppImage, "_blank")}
+                    disabled={!hasLicense}
+                    size="sm"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    AppImage
+                  </Button>
+                  <Button
+                    onClick={() => window.open(DOWNLOADS.linuxDeb, "_blank")}
+                    disabled={!hasLicense}
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    .deb
+                  </Button>
                 </div>
-                <Button
-                  onClick={() => window.open(GITHUB_RELEASES, "_blank")}
-                  disabled={!hasLicense}
-                  size="sm"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Descargar
-                </Button>
               </CardContent>
             </Card>
           </div>
+
+          <p className="text-xs text-muted-foreground text-center">
+            ¿Versión específica o problemas con la descarga?{" "}
+            <a
+              href={GITHUB_RELEASES}
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
+              Ver todas las versiones en GitHub
+            </a>
+          </p>
+
 
           {/* Desktop install instructions */}
           <Card>
