@@ -64,34 +64,46 @@ export type Database = {
       }
       licenses: {
         Row: {
+          activated_at: string | null
           code: string
           created_at: string
           customer_email: string
           id: string
+          installation_id: string | null
           is_delivered: boolean
           is_used: boolean
+          last_seen_at: string | null
           license_type: string
           order_id: string | null
+          revoked: boolean
         }
         Insert: {
+          activated_at?: string | null
           code: string
           created_at?: string
           customer_email: string
           id?: string
+          installation_id?: string | null
           is_delivered?: boolean
           is_used?: boolean
+          last_seen_at?: string | null
           license_type: string
           order_id?: string | null
+          revoked?: boolean
         }
         Update: {
+          activated_at?: string | null
           code?: string
           created_at?: string
           customer_email?: string
           id?: string
+          installation_id?: string | null
           is_delivered?: boolean
           is_used?: boolean
+          last_seen_at?: string | null
           license_type?: string
           order_id?: string | null
+          revoked?: boolean
         }
         Relationships: [
           {
