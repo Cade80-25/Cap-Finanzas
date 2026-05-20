@@ -14,7 +14,18 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-const GITHUB_RELEASES = "https://github.com/Cade80-25/cap-finanzas/releases/latest";
+const GITHUB_RELEASES = "https://github.com/Cade80-25/Cap-Finanzas/releases/latest";
+const PKG_NAME = "Cap-Finanzas";
+const APP_VERSION = "1.1.7";
+const DL = (file: string) =>
+  `https://github.com/Cade80-25/Cap-Finanzas/releases/latest/download/${file}`;
+const DOWNLOADS = {
+  windows: DL(`${PKG_NAME}-${APP_VERSION}-win-x64.exe`),
+  macIntel: DL(`${PKG_NAME}-${APP_VERSION}-mac-x64.dmg`),
+  macArm: DL(`${PKG_NAME}-${APP_VERSION}-mac-arm64.dmg`),
+  linuxAppImage: DL(`${PKG_NAME}-${APP_VERSION}-linux-x64.AppImage`),
+  linuxDeb: DL(`${PKG_NAME}-${APP_VERSION}-linux-amd64.deb`),
+};
 
 export default function Instalar() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);

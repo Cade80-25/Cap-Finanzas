@@ -1,16 +1,25 @@
 import { useLocalStorage } from "./useLocalStorage";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export type LicenseMode = "simple" | "traditional";
 export type LicenseStatus = "trial" | "active" | "expired";
 
+interface LicenseTokenData {
+  token: string;
+  exp: number; // unix seconds
+  code: string;
+  activated_at: string;
+  installation_id: string;
+}
+
 interface LicenseData {
   mode: LicenseMode;
   trialStartDate: string | null;
+  // Legacy fields kept for backward compatibility with stored state
   activatedAt: string | null;
   licenseCode: string | null;
   isActivated: boolean;
-  // Legacy fields kept for backward compatibility
   purchasedModes: LicenseMode[];
   extraAccountSlots: number;
   usedAccountCodes: string[];
@@ -18,45 +27,45 @@ interface LicenseData {
 
 const TRIAL_DAYS = 30;
 const LICENSE_KEY = "cap-finanzas-license";
+const TOKEN_KEY = "cap-finanzas-license-token";
+const INSTALLATION_KEY = "cap-finanzas-installation-id";
 const TRIAL_MAX_PROFILES = 3;
 const ACTIVE_MAX_PROFILES = 50;
 
-// Validate license codes with checksum verification
-// All codes now use CF-FULL format (single plan)
-// Legacy formats CF-SIMP and CF-TRAD are still accepted
-function validateLicenseCode(code: string): { valid: boolean } {
-  const cleanCode = code.trim().toUpperCase();
-  
-  // All valid formats
-  const patterns = [
-    /^CF-FULL-([A-Z0-9]{4})-([A-Z0-9]{5})$/,
-    /^CF-SIMP-([A-Z0-9]{4})-([A-Z0-9]{5})$/,
-    /^CF-TRAD-([A-Z0-9]{4})-([A-Z0-9]{5})$/,
-  ];
-
-  for (const pattern of patterns) {
-    const match = cleanCode.match(pattern);
-    if (match) {
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      const codeBody = match[1] + match[2].substring(0, 4);
-      let checksum = 0;
-      for (let i = 0; i < codeBody.length; i++) {
-        checksum += codeBody.charCodeAt(i);
-      }
-      const expectedChecksum = chars.charAt(checksum % chars.length);
-      if (match[2].charAt(4) !== expectedChecksum) {
-        return { valid: false };
-      }
-      return { valid: true };
-    }
+function getInstallationId(): string {
+  let id = localStorage.getItem(INSTALLATION_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(INSTALLATION_KEY, id);
   }
+  return id;
+}
 
-  // Legacy format support
-  if (/^CF-SIMPLE-[A-Z0-9]{4,}$/.test(cleanCode) || /^CF-TRAD-[A-Z0-9]{4,}$/.test(cleanCode)) {
-    return { valid: true };
+function readToken(): LicenseTokenData | null {
+  try {
+    const raw = localStorage.getItem(TOKEN_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as LicenseTokenData;
+    if (!parsed.token || !parsed.exp || !parsed.installation_id) return null;
+    return parsed;
+  } catch {
+    return null;
   }
+}
 
-  return { valid: false };
+function writeToken(data: LicenseTokenData) {
+  localStorage.setItem(TOKEN_KEY, JSON.stringify(data));
+}
+
+function clearToken() {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+function isTokenValid(t: LicenseTokenData | null, installationId: string): boolean {
+  if (!t) return false;
+  if (t.installation_id !== installationId) return false;
+  const nowSec = Math.floor(Date.now() / 1000);
+  return t.exp > nowSec;
 }
 
 const defaultLicenseData: LicenseData = {
@@ -73,8 +82,10 @@ const defaultLicenseData: LicenseData = {
 export function useLicense() {
   const [licenseData, setLicenseData] = useLocalStorage<LicenseData>(
     LICENSE_KEY,
-    defaultLicenseData
+    defaultLicenseData,
   );
+  const installationId = useMemo(() => getInstallationId(), []);
+  const [token, setTokenState] = useState<LicenseTokenData | null>(() => readToken());
 
   // Initialize trial on first use
   const initializeTrial = useCallback(() => {
@@ -86,126 +97,207 @@ export function useLicense() {
     }
   }, [licenseData.trialStartDate, setLicenseData]);
 
-  // Calculate trial status (includes referral bonus days)
+  // Trial info (includes referral bonus days)
   const trialInfo = useMemo(() => {
     if (!licenseData.trialStartDate) {
       return { daysRemaining: TRIAL_DAYS, isExpired: false, bonusDays: 0 };
     }
-
-    const bonusDays = parseInt(localStorage.getItem("cap-finanzas-referral-bonus") || "0", 10);
+    const bonusDays = parseInt(
+      localStorage.getItem("cap-finanzas-referral-bonus") || "0",
+      10,
+    );
     const totalTrialDays = TRIAL_DAYS + bonusDays;
     const startDate = new Date(licenseData.trialStartDate);
     const now = new Date();
     const diffTime = now.getTime() - startDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     const daysRemaining = Math.max(0, totalTrialDays - diffDays);
-    
     return {
       daysRemaining,
       isExpired: daysRemaining <= 0,
       bonusDays,
     };
-  }, [licenseData.trialStartDate, licenseData.activatedAt, licenseData.licenseCode]);
+  }, [licenseData.trialStartDate]);
 
-  // Determine current license status
-  // Support both new isActivated flag and legacy purchasedModes
+  // Status: active requires a non-expired signed token
   const status: LicenseStatus = useMemo(() => {
-    if (licenseData.isActivated || licenseData.purchasedModes.length > 0) {
-      return "active";
-    }
-    if (trialInfo.isExpired) {
-      return "expired";
-    }
+    if (isTokenValid(token, installationId)) return "active";
+    if (trialInfo.isExpired) return "expired";
     return "trial";
-  }, [licenseData.isActivated, licenseData.purchasedModes, trialInfo.isExpired]);
+  }, [token, installationId, trialInfo.isExpired]);
 
-  // All modes available when active or trial
   const isModeAvailable = useCallback(
-    (_mode: LicenseMode): boolean => {
-      return status === "trial" || status === "active";
-    },
-    [status]
+    (_mode: LicenseMode): boolean =>
+      status === "trial" || status === "active",
+    [status],
   );
 
-  // Set current mode
   const setMode = useCallback(
     (mode: LicenseMode) => {
       if (isModeAvailable(mode)) {
         setLicenseData((prev) => ({ ...prev, mode }));
       }
     },
-    [isModeAvailable, setLicenseData]
+    [isModeAvailable, setLicenseData],
   );
 
-  // Activate license with code
+  // Server activation
   const activateLicense = useCallback(
-    (code: string): { success: boolean; message: string } => {
-      const { valid } = validateLicenseCode(code);
-      
-      if (!valid) {
-        return { 
-          success: false, 
-          message: "Código de licencia inválido. Verifica que esté escrito correctamente." 
-        };
-      }
-
+    async (
+      code: string,
+    ): Promise<{ success: boolean; message: string }> => {
       const cleanCode = code.trim().toUpperCase();
-      
-      // Check if code was already used
-      if (licenseData.licenseCode === cleanCode) {
-        return { 
-          success: false, 
-          message: "Este código ya fue activado en esta instalación." 
-        };
+      if (!cleanCode) {
+        return { success: false, message: "Ingresa un código de licencia." };
       }
 
-      setLicenseData((prev) => ({
-        ...prev,
-        activatedAt: new Date().toISOString(),
-        licenseCode: cleanCode,
-        isActivated: true,
-        purchasedModes: ["simple", "traditional"], // Full access
-      }));
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "license-activate",
+          { body: { code: cleanCode, installation_id: installationId } },
+        );
 
-      return { 
-        success: true, 
-        message: "¡Licencia activada exitosamente! Tienes acceso completo a Cap Finanzas."
-      };
+        if (error) {
+          // Network or non-2xx
+          const msg =
+            (error as any)?.context?.responseJson?.error ||
+            (error as any)?.message ||
+            "network_error";
+          return {
+            success: false,
+            message: humanizeError(msg),
+          };
+        }
+
+        if (!data?.token) {
+          return {
+            success: false,
+            message: "Respuesta inválida del servidor. Intenta de nuevo.",
+          };
+        }
+
+        const newToken: LicenseTokenData = {
+          token: data.token,
+          exp: data.exp,
+          activated_at: data.activated_at,
+          code: cleanCode,
+          installation_id: installationId,
+        };
+        writeToken(newToken);
+        setTokenState(newToken);
+
+        // Mirror for backwards compatibility
+        setLicenseData((prev) => ({
+          ...prev,
+          activatedAt: data.activated_at,
+          licenseCode: cleanCode,
+          isActivated: true,
+          purchasedModes: ["simple", "traditional"],
+        }));
+
+        return {
+          success: true,
+          message:
+            "¡Licencia activada exitosamente! Tienes acceso completo a Cap Finanzas.",
+        };
+      } catch (e: any) {
+        return {
+          success: false,
+          message:
+            "No se pudo conectar con el servidor. Necesitas conexión a internet para activar la licencia la primera vez.",
+        };
+      }
     },
-    [licenseData, setLicenseData]
+    [installationId, setLicenseData],
   );
 
-  // Pricing info - single plan
-  const pricing = {
-    full: 10,
-  };
+  // Periodic re-validation when online (silent)
+  useEffect(() => {
+    let cancelled = false;
+    const t = readToken();
+    if (!t) return;
+    // Only revalidate if we have internet
+    if (typeof navigator !== "undefined" && navigator.onLine === false) return;
 
-  // Active license: 5 base + referral bonus (max 10). Trial: 3 accounts.
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "license-verify",
+          { body: { token: t.token, installation_id: t.installation_id } },
+        );
+        if (cancelled) return;
+
+        if (error) {
+          // Distinguish revoked/invalid vs network
+          const status = (error as any)?.context?.status;
+          if (status === 401 || status === 403 || status === 404) {
+            clearToken();
+            setTokenState(null);
+          }
+          // network errors: keep cached token
+          return;
+        }
+
+        if (data?.token) {
+          const renewed: LicenseTokenData = {
+            token: data.token,
+            exp: data.exp,
+            activated_at: data.activated_at ?? t.activated_at,
+            code: t.code,
+            installation_id: t.installation_id,
+          };
+          writeToken(renewed);
+          setTokenState(renewed);
+        }
+      } catch {
+        // offline: keep cached token
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const pricing = { full: 10 };
+
   const referralAccountBonus = Math.min(
     parseInt(localStorage.getItem("cap-finanzas-referral-count") || "0", 10),
-    5
+    5,
   );
-  const accountSlots = status === "trial" ? 3 : Math.min(5 + referralAccountBonus, 10);
-  const maxProfiles = status === "active" ? ACTIVE_MAX_PROFILES : TRIAL_MAX_PROFILES;
+  const accountSlots =
+    status === "trial" ? 3 : Math.min(5 + referralAccountBonus, 10);
+  const maxProfiles =
+    status === "active" ? ACTIVE_MAX_PROFILES : TRIAL_MAX_PROFILES;
 
   return {
-    // Current state
     mode: licenseData.mode,
     status,
     trialInfo,
-    purchasedModes: licenseData.purchasedModes,
-    
-    // Actions
+    purchasedModes:
+      status === "active" ? (["simple", "traditional"] as LicenseMode[]) : [],
     initializeTrial,
     setMode,
     activateLicense,
     isModeAvailable,
-    
-    // Pricing
     pricing,
-    
-    // Account slots & profiles
     accountSlots,
     maxProfiles,
   };
+}
+
+function humanizeError(err: string): string {
+  switch (err) {
+    case "code_not_found":
+      return "Código de licencia inválido. Verifica que esté escrito correctamente.";
+    case "code_revoked":
+      return "Esta licencia fue revocada. Contacta a soporte.";
+    case "code_used_elsewhere":
+      return "Este código ya fue activado en otra instalación.";
+    case "invalid_input":
+      return "Código con formato inválido.";
+    case "network_error":
+    default:
+      return "No se pudo conectar con el servidor. Verifica tu conexión a internet e intenta de nuevo.";
+  }
 }
