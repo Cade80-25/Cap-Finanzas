@@ -36,9 +36,9 @@ export function ActivationDialog({ open, onOpenChange, onSuccess }: ActivationDi
     setIsLoading(true);
     setResult(null);
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const activationResult = activateLicense(code);
+    const activationResult = await activateLicense(code);
     setResult(activationResult);
     setIsLoading(false);
 

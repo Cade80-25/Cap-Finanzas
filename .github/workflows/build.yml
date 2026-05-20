@@ -50,25 +50,29 @@ jobs:
           VITE_SUPABASE_URL: https://pcxvnqsoafagnthazoir.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjeHZucXNvYWZhZ250aGF6b2lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDkxMTUsImV4cCI6MjA4NTI4NTExNX0.KHQfeM-Jfv1hp8mKZSKXM9gFbCC9AlrgGx68Ee7JJzo"
 
-      - name: Build Electron (Windows)
+      # --publish always uploads installers AND latest*.yml feed files to the GitHub release
+      - name: Build & publish Electron (Windows)
         if: matrix.platform == 'win'
-        run: npx electron-builder --win
+        run: npx electron-builder --win --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Electron (macOS)
+      - name: Build & publish Electron (macOS)
         if: matrix.platform == 'mac'
-        run: npx electron-builder --mac
+        run: npx electron-builder --mac --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
-      - name: Build Electron (Linux)
+      - name: Build & publish Electron (Linux)
         if: matrix.platform == 'linux'
-        run: npx electron-builder --linux
+        run: npx electron-builder --linux --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifacts
+      # Backup: also keep build artifacts in the workflow run for debugging
+      - name: Upload artifacts (debug)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: release-${{ matrix.platform }}
@@ -78,25 +82,6 @@ jobs:
             release/*.zip
             release/*.AppImage
             release/*.deb
+            release/*.yml
+            release/*.blockmap
           if-no-files-found: ignore
-
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: true
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: artifacts/**/*
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
