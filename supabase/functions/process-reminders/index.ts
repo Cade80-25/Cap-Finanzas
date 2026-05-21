@@ -7,6 +7,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+function escapeHtml(input: unknown): string {
+  const s = String(input ?? "");
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -70,6 +80,14 @@ serve(async (req) => {
             month: "long",
           });
 
+          // Escape all user-supplied fields before HTML interpolation
+          const safeTitle = escapeHtml(reminder.title);
+          const safeDate = escapeHtml(dateStr);
+          const safeTime = escapeHtml(reminder.event_time);
+          const safeDescription = reminder.description
+            ? escapeHtml(reminder.description)
+            : "";
+
           const emailRes = await fetch("https://api.resend.com/emails", {
             method: "POST",
             headers: {
@@ -79,14 +97,14 @@ serve(async (req) => {
             body: JSON.stringify({
               from: "Cap Finanzas <noreply@capfinanzas.com>",
               to: [reminder.email],
-              subject: `⏰ Recordatorio: ${reminder.title}`,
+              subject: `⏰ Recordatorio: ${safeTitle}`,
               html: `
                 <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
                   <h2 style="color: #3b82f6;">⏰ Recordatorio</h2>
-                  <h3>${reminder.title}</h3>
-                  <p><strong>📅 Fecha:</strong> ${dateStr}</p>
-                  <p><strong>🕐 Hora:</strong> ${reminder.event_time}</p>
-                  ${reminder.description ? `<p><strong>📝 Nota:</strong> ${reminder.description}</p>` : ""}
+                  <h3>${safeTitle}</h3>
+                  <p><strong>📅 Fecha:</strong> ${safeDate}</p>
+                  <p><strong>🕐 Hora:</strong> ${safeTime}</p>
+                  ${safeDescription ? `<p><strong>📝 Nota:</strong> ${safeDescription}</p>` : ""}
                   <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
                   <p style="color: #6b7280; font-size: 12px;">
                     Este recordatorio fue programado desde Cap Finanzas.
@@ -106,7 +124,9 @@ serve(async (req) => {
           const twilioFrom = Deno.env.get("TWILIO_PHONE_NUMBER");
 
           if (twilioSid && twilioAuth && twilioFrom) {
-            const smsBody = `⏰ Recordatorio Cap Finanzas: "${reminder.title}" - ${reminder.event_date} a las ${reminder.event_time}`;
+            // Plain-text SMS: strip any HTML tags from title for safety
+            const safeTitleSms = String(reminder.title ?? "").replace(/<[^>]*>/g, "");
+            const smsBody = `⏰ Recordatorio Cap Finanzas: "${safeTitleSms}" - ${reminder.event_date} a las ${reminder.event_time}`;
 
             const smsRes = await fetch(
               `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`,
