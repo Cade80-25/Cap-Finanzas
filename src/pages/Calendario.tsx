@@ -34,6 +34,7 @@ export default function Calendario() {
     updatePreferences,
   } = useCalendarEvents();
   const { addNotification } = useNotifications();
+  const { licenseToken, installationId } = useLicense();
 
   // Convert transactions to calendar display items
   const transactionEvents = useMemo(() => {
