@@ -11,6 +11,61 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9\s\-()]{7,20}$/;
 const ALLOWED_METHODS = new Set(["email", "sms", "push"]);
 
+// Strip HTML tags / dangerous characters from plain-text fields stored in DB.
+// This is the primary defense against phishing payloads being persisted.
+function sanitizePlainText(input: string): string {
+  return input
+    .replace(/<[^>]*>/g, "") // strip tags
+    .replace(/[\u0000-\u001F\u007F]/g, " ") // strip control chars
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// ---- License token verification (HMAC-SHA256) ----
+function b64urlDecode(s: string): Uint8Array {
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  const bin = atob(s);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+async function verifyLicenseToken(
+  token: string,
+  installationId: string,
+  secret: string,
+): Promise<boolean> {
+  try {
+    const [data, sig] = token.split(".");
+    if (!data || !sig) return false;
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"],
+    );
+    const ok = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      b64urlDecode(sig),
+      new TextEncoder().encode(data),
+    );
+    if (!ok) return false;
+    const payload = JSON.parse(new TextDecoder().decode(b64urlDecode(data))) as {
+      exp?: number;
+      installation_id?: string;
+    };
+    const nowSec = Math.floor(Date.now() / 1000);
+    if (typeof payload.exp !== "number" || payload.exp < nowSec) return false;
+    if (payload.installation_id !== installationId) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -18,7 +73,42 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { eventId, title, description, eventDate, eventTime, reminderAt, methods, email, phone } = body;
+    const {
+      eventId,
+      title,
+      description,
+      eventDate,
+      eventTime,
+      reminderAt,
+      methods,
+      email,
+      phone,
+      licenseToken,
+      installationId,
+    } = body;
+
+    // ---- Require a valid signed license token bound to an installation ----
+    // This closes the open-relay vector: only paying users can dispatch
+    // emails/SMS through the app's trusted sender identity.
+    const signingSecret = Deno.env.get("LICENSE_SIGNING_SECRET");
+    if (!signingSecret) {
+      return new Response(JSON.stringify({ error: "server_misconfigured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (
+      typeof licenseToken !== "string" ||
+      typeof installationId !== "string" ||
+      installationId.length < 8 ||
+      installationId.length > 128
+    ) {
+      return new Response(JSON.stringify({ error: "auth_required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const tokenOk = await verifyLicenseToken(licenseToken, installationId, signingSecret);
+    if (!tokenOk) {
+      return new Response(JSON.stringify({ error: "invalid_license_token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     // Strict input validation
     if (!eventId || typeof eventId !== "string" || eventId.length > 100) {
@@ -71,6 +161,14 @@ serve(async (req) => {
       }
     }
 
+    // Sanitize user-supplied text fields to plain text (no HTML) before persisting
+    const safeTitle = sanitizePlainText(title).slice(0, 200);
+    const safeDescription = description ? sanitizePlainText(description).slice(0, 1000) : "";
+    if (!safeTitle) {
+      return new Response(JSON.stringify({ error: "title vacío tras sanitizar" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -80,8 +178,8 @@ serve(async (req) => {
 
     const { data, error } = await supabase.from("calendar_reminders").insert({
       event_id: eventId,
-      title,
-      description: description || "",
+      title: safeTitle,
+      description: safeDescription,
       event_date: eventDate,
       event_time: eventTime,
       reminder_at: reminderAt,
