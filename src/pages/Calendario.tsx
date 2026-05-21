@@ -12,6 +12,7 @@ import { CalendarEventDialog } from "@/components/CalendarEventDialog";
 import { ReminderPreferencesDialog } from "@/components/ReminderPreferencesDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useLicense } from "@/hooks/useLicense";
 
 export default function Calendario() {
   const [date, setDate] = useState<Date | undefined>(new Date());
