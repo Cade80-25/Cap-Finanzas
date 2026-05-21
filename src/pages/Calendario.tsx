@@ -12,6 +12,7 @@ import { CalendarEventDialog } from "@/components/CalendarEventDialog";
 import { ReminderPreferencesDialog } from "@/components/ReminderPreferencesDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useLicense } from "@/hooks/useLicense";
 
 export default function Calendario() {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -33,6 +34,7 @@ export default function Calendario() {
     updatePreferences,
   } = useCalendarEvents();
   const { addNotification } = useNotifications();
+  const { licenseToken, installationId } = useLicense();
 
   // Convert transactions to calendar display items
   const transactionEvents = useMemo(() => {
@@ -114,6 +116,13 @@ export default function Calendario() {
       if (backendMethods.length === 0) return;
       if (backendMethods.includes("email") && !preferences.email) return;
 
+      // Backend reminders require an active license (signed token).
+      // Trial/unlicensed users still get local in-app reminders.
+      if (!licenseToken) {
+        toast.info("Los recordatorios por email requieren licencia activa. Se usará solo el aviso en la app.");
+        return;
+      }
+
       try {
         const eventDateTime = new Date(`${event.date}T${event.time}`);
         const reminderAt = new Date(eventDateTime.getTime() - event.reminder.minutesBefore * 60000);
@@ -132,13 +141,15 @@ export default function Calendario() {
             methods: backendMethods,
             email: preferences.email,
             phone: preferences.phone,
+            licenseToken,
+            installationId,
           },
         });
       } catch (err) {
         console.error("Error scheduling reminder:", err);
       }
     },
-    [preferences]
+    [preferences, licenseToken, installationId]
   );
 
   const handleSaveEvent = (eventData: Omit<CalendarEvent, "id" | "createdAt">) => {

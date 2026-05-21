@@ -283,6 +283,8 @@ export function useLicense() {
     pricing,
     accountSlots,
     maxProfiles,
+    licenseToken: token?.token ?? null,
+    installationId,
   };
 }
 
