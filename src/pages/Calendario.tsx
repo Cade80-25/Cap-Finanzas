@@ -116,6 +116,13 @@ export default function Calendario() {
       if (backendMethods.length === 0) return;
       if (backendMethods.includes("email") && !preferences.email) return;
 
+      // Backend reminders require an active license (signed token).
+      // Trial/unlicensed users still get local in-app reminders.
+      if (!licenseToken) {
+        toast.info("Los recordatorios por email requieren licencia activa. Se usará solo el aviso en la app.");
+        return;
+      }
+
       try {
         const eventDateTime = new Date(`${event.date}T${event.time}`);
         const reminderAt = new Date(eventDateTime.getTime() - event.reminder.minutesBefore * 60000);
@@ -134,13 +141,15 @@ export default function Calendario() {
             methods: backendMethods,
             email: preferences.email,
             phone: preferences.phone,
+            licenseToken,
+            installationId,
           },
         });
       } catch (err) {
         console.error("Error scheduling reminder:", err);
       }
     },
-    [preferences]
+    [preferences, licenseToken, installationId]
   );
 
   const handleSaveEvent = (eventData: Omit<CalendarEvent, "id" | "createdAt">) => {
