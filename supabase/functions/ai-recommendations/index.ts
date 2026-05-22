@@ -21,7 +21,16 @@ Deno.serve(async (req) => {
   try {
     const { type, context } = await req.json();
 
-    const systemPrompt = prompts[type] || prompts.educacion;
+    const safeType = typeof type === "string" && Object.prototype.hasOwnProperty.call(prompts, type) ? type : "educacion";
+    const systemPrompt = prompts[safeType];
+
+    if (context !== undefined && (typeof context !== "string" || context.length > 2000)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid or oversized context (max 2000 chars)" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const safeContext = typeof context === "string" ? context : "";
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
@@ -45,7 +54,7 @@ Deno.serve(async (req) => {
             { role: "system", content: systemPrompt },
             {
               role: "user",
-              content: `Contexto del usuario: ${context}\n\nDa recomendaciones prácticas y actualizadas.`,
+              content: `Contexto del usuario: ${safeContext}\n\nDa recomendaciones prácticas y actualizadas.`,
             },
           ],
           max_tokens: 800,

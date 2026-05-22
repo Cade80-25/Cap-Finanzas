@@ -41,7 +41,39 @@ Deno.serve(async (req) => {
   try {
     const { messages, mode } = await req.json();
 
-    const systemPrompt = systemPrompts[mode] || systemPrompts.tutor;
+    // Validate messages: only user/assistant roles, capped count and length
+    if (!Array.isArray(messages)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid messages format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (messages.length > 20) {
+      return new Response(
+        JSON.stringify({ error: "Too many messages (max 20)" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const sanitizedMessages = [];
+    for (const m of messages) {
+      if (!m || typeof m !== "object") continue;
+      if (m.role !== "user" && m.role !== "assistant") {
+        return new Response(
+          JSON.stringify({ error: "Invalid message role" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (typeof m.content !== "string" || m.content.length > 4000) {
+        return new Response(
+          JSON.stringify({ error: "Invalid or oversized message content (max 4000 chars)" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      sanitizedMessages.push({ role: m.role, content: m.content });
+    }
+
+    const safeMode = typeof mode === "string" && Object.prototype.hasOwnProperty.call(systemPrompts, mode) ? mode : "tutor";
+    const systemPrompt = systemPrompts[safeMode];
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
@@ -53,7 +85,7 @@ Deno.serve(async (req) => {
 
     const allMessages = [
       { role: "system", content: systemPrompt },
-      ...messages,
+      ...sanitizedMessages,
     ];
 
     const response = await fetch(
