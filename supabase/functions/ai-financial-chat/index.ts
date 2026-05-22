@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
 
     const allMessages = [
       { role: "system", content: systemPrompt },
-      ...messages,
+      ...sanitizedMessages,
     ];
 
     const response = await fetch(
