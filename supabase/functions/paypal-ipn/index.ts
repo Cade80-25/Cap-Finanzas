@@ -33,9 +33,16 @@ Deno.serve(async (req) => {
     const body = await req.text();
     const params = new URLSearchParams(body);
 
-    // Detect sandbox vs production
+    // Detect sandbox vs production. Reject sandbox IPNs unless explicitly enabled,
+    // otherwise an attacker with a sandbox account using the same receiver email
+    // could forge VERIFIED IPNs and mint real licenses.
     const testIpn = params.get("test_ipn");
+    const sandboxAllowed = Deno.env.get("PAYPAL_SANDBOX_MODE") === "true";
     const isSandbox = testIpn === "1";
+    if (isSandbox && !sandboxAllowed) {
+      console.error("Sandbox IPN rejected in production");
+      return new Response("Sandbox IPN rejected", { status: 400 });
+    }
     const verifyUrl = isSandbox
       ? "https://ipnpb.sandbox.paypal.com/cgi-bin/webscr"
       : "https://ipnpb.paypal.com/cgi-bin/webscr";
