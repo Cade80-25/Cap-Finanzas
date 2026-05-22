@@ -34,8 +34,9 @@ export function ProfilePhotoUpload({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Solo se permiten imágenes");
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Solo se permiten imágenes JPG, PNG, GIF o WEBP");
       return;
     }
 
