@@ -12,9 +12,15 @@ Deno.serve(async (req) => {
   try {
     const { symbol, action } = await req.json();
 
-    if (!symbol) {
+    if (!symbol || typeof symbol !== "string") {
       return new Response(
         JSON.stringify({ error: "Symbol is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (symbol.length > 20 || !/^[A-Za-z0-9.\^\-]+$/.test(symbol.trim())) {
+      return new Response(
+        JSON.stringify({ error: "Invalid symbol format" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
