@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
             { role: "system", content: systemPrompt },
             {
               role: "user",
-              content: `Contexto del usuario: ${context}\n\nDa recomendaciones prácticas y actualizadas.`,
+              content: `Contexto del usuario: ${safeContext}\n\nDa recomendaciones prácticas y actualizadas.`,
             },
           ],
           max_tokens: 800,
