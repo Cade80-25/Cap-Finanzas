@@ -7,8 +7,10 @@ const corsHeaders = {
 
 function generateCode() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
   let s = "";
-  for (let i = 0; i < 6; i++) s += chars.charAt(Math.floor(Math.random() * chars.length));
+  for (let i = 0; i < 6; i++) s += chars[bytes[i] % chars.length];
   return `REF-${s}`;
 }
 
