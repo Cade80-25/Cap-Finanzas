@@ -66,10 +66,14 @@ Deno.serve(async (req) => {
     const custom = params.get("custom") || "";
     const parentTxnId = params.get("parent_txn_id") || "";
 
-    // Verify it's for our account
-    const expectedReceiver = "pierresshop48@gmail.com";
+    // Verify it's for our account (configured via secret)
+    const expectedReceiver = Deno.env.get("PAYPAL_RECEIVER_EMAIL");
+    if (!expectedReceiver) {
+      console.error("PAYPAL_RECEIVER_EMAIL secret not configured");
+      return new Response("Server misconfiguration", { status: 500 });
+    }
     if (receiverEmail !== expectedReceiver) {
-      console.error("Wrong receiver:", receiverEmail);
+      console.error("Wrong receiver");
       return new Response("Wrong receiver", { status: 400 });
     }
 
