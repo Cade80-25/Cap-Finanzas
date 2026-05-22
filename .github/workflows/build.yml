@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'  # Se ejecuta al crear un tag como v1.0.0
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
