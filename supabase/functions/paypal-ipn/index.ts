@@ -10,9 +10,11 @@ const corsHeaders = {
 function generateLicenseCode(): string {
   const prefix = "CF-FULL";
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
   let code = "";
   for (let i = 0; i < 8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars[bytes[i] % chars.length];
   }
   let checksum = 0;
   for (let i = 0; i < code.length; i++) {
