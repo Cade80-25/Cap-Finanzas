@@ -174,7 +174,12 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    await supabase.from("calendar_reminders").delete().eq("event_id", eventId);
+    // Scope delete to caller's own reminders only — prevents one user wiping another's reminders.
+    await supabase
+      .from("calendar_reminders")
+      .delete()
+      .eq("event_id", eventId)
+      .eq("installation_id", installationId);
 
     const { data, error } = await supabase.from("calendar_reminders").insert({
       event_id: eventId,
@@ -186,6 +191,7 @@ serve(async (req) => {
       methods,
       email: methods.includes("email") ? email : null,
       phone: methods.includes("sms") ? phone : null,
+      installation_id: installationId,
       status: "pending",
     }).select().single();
 

@@ -23,6 +23,7 @@ export type Database = {
           event_id: string
           event_time: string
           id: string
+          installation_id: string | null
           methods: string[]
           phone: string | null
           processed_at: string | null
@@ -38,6 +39,7 @@ export type Database = {
           event_id: string
           event_time: string
           id?: string
+          installation_id?: string | null
           methods?: string[]
           phone?: string | null
           processed_at?: string | null
@@ -53,6 +55,7 @@ export type Database = {
           event_id?: string
           event_time?: string
           id?: string
+          installation_id?: string | null
           methods?: string[]
           phone?: string | null
           processed_at?: string | null
