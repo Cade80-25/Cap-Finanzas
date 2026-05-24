@@ -284,6 +284,7 @@ export function useLicense() {
     accountSlots,
     maxProfiles,
     licenseToken: token?.token ?? null,
+    licenseCode: token?.code ?? licenseData.licenseCode ?? null,
     installationId,
   };
 }

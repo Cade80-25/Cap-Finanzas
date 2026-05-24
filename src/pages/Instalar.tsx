@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Download, Smartphone, Monitor, CheckCircle2, Share, MoreVertical, Plus, Apple, Laptop, ShieldCheck, CreditCard } from "lucide-react";
+import { Download, Smartphone, Monitor, CheckCircle2, Share, MoreVertical, Plus, Apple, Laptop, ShieldCheck, CreditCard, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
 import { useLicense } from "@/hooks/useLicense";
 import { SeoHead } from "@/components/SeoHead";
+import { toast } from "sonner";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -15,16 +16,14 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const GITHUB_RELEASES = "https://github.com/Cade80-25/Cap-Finanzas/releases/latest";
-const PKG_NAME = "Cap-Finanzas";
 const APP_VERSION = "1.1.7";
-const DL = (file: string) =>
-  `https://github.com/Cade80-25/Cap-Finanzas/releases/latest/download/${file}`;
+// Direct asset URLs (match actual GitHub release artifact names)
+const REL = (file: string) =>
+  `https://github.com/Cade80-25/Cap-Finanzas/releases/download/v${APP_VERSION}/${file}`;
 const DOWNLOADS = {
-  windows: DL(`${PKG_NAME}-${APP_VERSION}-win-x64.exe`),
-  macIntel: DL(`${PKG_NAME}-${APP_VERSION}-mac-x64.dmg`),
-  macArm: DL(`${PKG_NAME}-${APP_VERSION}-mac-arm64.dmg`),
-  linuxAppImage: DL(`${PKG_NAME}-${APP_VERSION}-linux-x64.AppImage`),
-  linuxDeb: DL(`${PKG_NAME}-${APP_VERSION}-linux-amd64.deb`),
+  windows: REL(`Cap.Finanzas.Setup.${APP_VERSION}.exe`),
+  macArm: REL(`Cap.Finanzas-${APP_VERSION}-arm64.dmg`),
+  linuxAppImage: REL(`Cap.Finanzas-${APP_VERSION}.AppImage`),
 };
 
 export default function Instalar() {
@@ -32,8 +31,39 @@ export default function Instalar() {
   const [isInstalled, setIsInstalled] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const navigate = useNavigate();
-  const { status } = useLicense();
+  const { status, licenseCode } = useLicense();
   const hasLicense = status === "active" || status === "trial";
+
+  const handleDesktopDownload = async (url: string, label: string) => {
+    // Auto-copy license code to clipboard so user can paste it on first launch
+    if (status === "active" && licenseCode) {
+      try {
+        await navigator.clipboard.writeText(licenseCode);
+        toast.success(`Descargando ${label}`, {
+          description: `Tu código de licencia (${licenseCode}) se copió al portapapeles. Pégalo cuando la app te lo pida tras instalar.`,
+          duration: 8000,
+        });
+      } catch {
+        toast.info(`Descargando ${label}`, {
+          description: `Usa tu código de licencia: ${licenseCode}`,
+          duration: 8000,
+        });
+      }
+    } else {
+      toast.success(`Descargando ${label}`);
+    }
+    window.open(url, "_blank");
+  };
+
+  const copyCode = async () => {
+    if (!licenseCode) return;
+    try {
+      await navigator.clipboard.writeText(licenseCode);
+      toast.success("Código copiado al portapapeles");
+    } catch {
+      toast.error("No se pudo copiar el código");
+    }
+  };
 
   useEffect(() => {
     const ua = navigator.userAgent;
