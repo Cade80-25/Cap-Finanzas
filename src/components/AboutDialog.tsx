@@ -81,7 +81,7 @@ export function AboutDialog({ asMenuItem = false, children }: AboutDialogProps) 
                   Cap Finanzas
                 </DialogTitle>
                 <DialogDescription className="text-xs">
-                  Versión {packageJson.version} · Edición de por vida
+                  Versión {APP_VERSION} · Edición de por vida
                 </DialogDescription>
               </div>
             </div>
