@@ -275,6 +275,28 @@ export default function Instalar() {
             </Alert>
           )}
 
+          {/* License code helper */}
+          {status === "active" && licenseCode && (
+            <Alert className="border-success/30 bg-success/5">
+              <CheckCircle2 className="h-4 w-4 text-success" />
+              <AlertDescription className="flex flex-col gap-2">
+                <span className="font-medium">
+                  Tu licencia ya está validada. Al descargar copiaremos tu código al portapapeles automáticamente.
+                </span>
+                <div className="flex items-center gap-2">
+                  <code className="px-2 py-1 rounded bg-background border text-sm font-mono">{licenseCode}</code>
+                  <Button size="sm" variant="outline" onClick={copyCode}>
+                    <Copy className="h-3.5 w-3.5 mr-1" />
+                    Copiar código
+                  </Button>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  Después de instalar, abre la app y pega el código en "Licencia → Activar Licencia".
+                </span>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid gap-4">
             {/* Windows */}
             <Card>
@@ -287,7 +309,7 @@ export default function Instalar() {
                   <p className="text-sm text-muted-foreground">Instalador .exe — Windows 10/11</p>
                 </div>
                 <Button
-                  onClick={() => window.open(DOWNLOADS.windows, "_blank")}
+                  onClick={() => handleDesktopDownload(DOWNLOADS.windows, "Windows")}
                   disabled={!hasLicense}
                   size="sm"
                 >
@@ -306,29 +328,18 @@ export default function Instalar() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold">macOS</p>
-                    <p className="text-sm text-muted-foreground">Archivo .dmg — macOS 11+</p>
+                    <p className="text-sm text-muted-foreground">Archivo .dmg — Apple Silicon (M1/M2/M3) · macOS 11+</p>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    onClick={() => window.open(DOWNLOADS.macArm, "_blank")}
-                    disabled={!hasLicense}
-                    size="sm"
-                    variant="default"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Apple Silicon (M1/M2/M3)
-                  </Button>
-                  <Button
-                    onClick={() => window.open(DOWNLOADS.macIntel, "_blank")}
-                    disabled={!hasLicense}
-                    size="sm"
-                    variant="outline"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Intel
-                  </Button>
-                </div>
+                <Button
+                  onClick={() => handleDesktopDownload(DOWNLOADS.macArm, "macOS")}
+                  disabled={!hasLicense}
+                  size="sm"
+                  className="w-fit"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Descargar para Apple Silicon
+                </Button>
               </CardContent>
             </Card>
 
@@ -341,31 +352,22 @@ export default function Instalar() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold">Linux</p>
-                    <p className="text-sm text-muted-foreground">AppImage / .deb — Ubuntu, Fedora, etc.</p>
+                    <p className="text-sm text-muted-foreground">AppImage portable — Ubuntu, Fedora, Debian, etc.</p>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    onClick={() => window.open(DOWNLOADS.linuxAppImage, "_blank")}
-                    disabled={!hasLicense}
-                    size="sm"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    AppImage
-                  </Button>
-                  <Button
-                    onClick={() => window.open(DOWNLOADS.linuxDeb, "_blank")}
-                    disabled={!hasLicense}
-                    size="sm"
-                    variant="outline"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    .deb
-                  </Button>
-                </div>
+                <Button
+                  onClick={() => handleDesktopDownload(DOWNLOADS.linuxAppImage, "Linux")}
+                  disabled={!hasLicense}
+                  size="sm"
+                  className="w-fit"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Descargar AppImage
+                </Button>
               </CardContent>
             </Card>
           </div>
+
 
           <p className="text-xs text-muted-foreground text-center">
             ¿Versión específica o problemas con la descarga?{" "}
