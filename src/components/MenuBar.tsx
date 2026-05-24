@@ -67,6 +67,7 @@ import { TutorialButton } from "@/components/TutorialButton";
 import { ModeSelector } from "@/components/ModeSelector";
 import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { ActivationDialog } from "@/components/ActivationDialog";
+import { AboutDialog } from "@/components/AboutDialog";
 import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { useTheme } from "next-themes";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -374,10 +375,8 @@ export default function MenuBar({ onSearchClick, onToggleSidebar, sidebarVisible
                 Atajos de Teclado
               </MenubarItem>
               <MenubarSeparator />
-              <MenubarItem>
-                <Info className="mr-2 h-4 w-4" />
-                Acerca de Cap Finanzas
-              </MenubarItem>
+              <AboutDialog asMenuItem />
+
             </MenubarContent>
           </MenubarMenu>
 
