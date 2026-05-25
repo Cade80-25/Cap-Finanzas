@@ -15,15 +15,14 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-const GITHUB_RELEASES = "https://github.com/Cade80-25/Cap-Finanzas/releases/latest";
-const APP_VERSION = "1.1.7";
-// Direct asset URLs (match actual GitHub release artifact names)
-const REL = (file: string) =>
-  `https://github.com/Cade80-25/Cap-Finanzas/releases/download/v${APP_VERSION}/${file}`;
+import { APP_VERSION, GITHUB_LATEST_RELEASE_URL, releaseAssetUrl, installerFiles } from "@/lib/app-version";
+
+const GITHUB_RELEASES = GITHUB_LATEST_RELEASE_URL;
+const FILES = installerFiles();
 const DOWNLOADS = {
-  windows: REL(`Cap.Finanzas.Setup.${APP_VERSION}.exe`),
-  macArm: REL(`Cap.Finanzas-${APP_VERSION}-arm64.dmg`),
-  linuxAppImage: REL(`Cap.Finanzas-${APP_VERSION}.AppImage`),
+  windows: releaseAssetUrl(FILES.windows),
+  macArm: releaseAssetUrl(FILES.macArm),
+  linuxAppImage: releaseAssetUrl(FILES.linuxAppImage),
 };
 
 export default function Instalar() {

@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Info, Shield, Wifi, Smartphone, Coins, BookOpen, Sparkles, Heart } from "lucide-react";
 import { MenubarItem } from "@/components/ui/menubar";
-const APP_VERSION = "1.1.8";
+import { APP_VERSION } from "@/lib/app-version";
 
 interface AboutDialogProps {
   /** Render as a menu item trigger (default) or a custom trigger element via children */
