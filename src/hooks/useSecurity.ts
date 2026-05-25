@@ -161,8 +161,11 @@ export function useSecurity() {
   const restoreBackup = useCallback((backupJson: string): boolean => {
     try {
       const backup = JSON.parse(backupJson);
-      if (!backup.data) return false;
-      
+      if (!backup.data || typeof backup.data !== "object") return false;
+
+      // Strict allowlist: only these keys can be restored. Unknown keys are
+      // ignored to prevent a crafted backup from overwriting security settings
+      // (e.g. cap-finanzas-security) and bypassing the PIN lock.
       const storageKeyMap: Record<string, string> = {
         transactions: "cap-finanzas-libro-diario-transactions",
         transacciones: "cap-finanzas-libro-diario-transactions",
@@ -172,11 +175,20 @@ export function useSecurity() {
         categorias: "cap-finanzas-categorias",
       };
 
-      Object.entries(backup.data).forEach(([key, value]) => {
-        if (!value) return;
-        const storageKey = storageKeyMap[key] ?? `cap-finanzas-${key}`;
-        localStorage.setItem(storageKey, value as string);
+      // Preserve current security settings explicitly as a defense-in-depth
+      // measure in case the map ever expands.
+      const preservedSecurity = localStorage.getItem(SECURITY_KEY);
+
+      Object.entries(backup.data as Record<string, unknown>).forEach(([key, value]) => {
+        if (!value || typeof value !== "string") return;
+        const storageKey = storageKeyMap[key];
+        if (!storageKey) return; // reject unknown keys
+        localStorage.setItem(storageKey, value);
       });
+
+      if (preservedSecurity !== null) {
+        localStorage.setItem(SECURITY_KEY, preservedSecurity);
+      }
 
       return true;
     } catch {
