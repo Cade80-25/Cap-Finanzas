@@ -139,11 +139,11 @@ export function exportToPDF(transactions: ExportTransaction[], filename?: string
     .map(
       (t, i) => `
     <tr style="background:${i % 2 === 0 ? "#fff" : "#f8f9fa"}">
-      <td style="padding:8px;border-bottom:1px solid #eee">${t.fecha}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(t.fecha)}</td>
       <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(t.descripcion)}</td>
       <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(t.categoria)}</td>
       <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">
-        <span style="padding:2px 8px;border-radius:12px;font-size:12px;background:${t.tipo === "Ingreso" ? "#dcfce7" : t.tipo === "Gasto" ? "#fee2e2" : "#f3f4f6"};color:${t.tipo === "Ingreso" ? "#16a34a" : t.tipo === "Gasto" ? "#dc2626" : "#333"}">${t.tipo}</span>
+        <span style="padding:2px 8px;border-radius:12px;font-size:12px;background:${t.tipo === "Ingreso" ? "#dcfce7" : t.tipo === "Gasto" ? "#fee2e2" : "#f3f4f6"};color:${t.tipo === "Ingreso" ? "#16a34a" : t.tipo === "Gasto" ? "#dc2626" : "#333"}">${escapeHtml(t.tipo)}</span>
       </td>
       <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;font-weight:600;color:${t.monto >= 0 ? "#16a34a" : "#dc2626"}">${t.monto >= 0 ? "+" : ""}$${Math.abs(t.monto).toFixed(2)}</td>
     </tr>`
