@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocalStorage } from "./useLocalStorage";
+import { sanitizeBackupField, MAX_BACKUP_BYTES } from "@/lib/sanitize-backup";
 
 const SECURITY_KEY = "cap-finanzas-security";
 const LOCK_STATE_KEY = "cap-finanzas-locked";
@@ -160,8 +161,11 @@ export function useSecurity() {
   // Restore from backup
   const restoreBackup = useCallback((backupJson: string): boolean => {
     try {
+      if (typeof backupJson !== "string" || backupJson.length > MAX_BACKUP_BYTES) {
+        return false;
+      }
       const backup = JSON.parse(backupJson);
-      if (!backup.data || typeof backup.data !== "object") return false;
+      if (!backup || !backup.data || typeof backup.data !== "object") return false;
 
       // Strict allowlist: only these keys can be restored. Unknown keys are
       // ignored to prevent a crafted backup from overwriting security settings
@@ -183,7 +187,12 @@ export function useSecurity() {
         if (!value || typeof value !== "string") return;
         const storageKey = storageKeyMap[key];
         if (!storageKey) return; // reject unknown keys
-        localStorage.setItem(storageKey, value);
+        // Validate + sanitize the payload BEFORE persisting. Strips HTML,
+        // control chars, dangerous keys (__proto__), and oversized fields,
+        // so later CSV/Excel/PDF exports cannot be weaponized.
+        const cleaned = sanitizeBackupField(key, value);
+        if (cleaned === null) return; // reject malformed/unsafe payload
+        localStorage.setItem(storageKey, cleaned);
       });
 
       if (preservedSecurity !== null) {
@@ -199,6 +208,10 @@ export function useSecurity() {
   // Import backup from file
   const importBackup = useCallback((file: File): Promise<boolean> => {
     return new Promise((resolve) => {
+      if (file.size > MAX_BACKUP_BYTES) {
+        resolve(false);
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result as string;
