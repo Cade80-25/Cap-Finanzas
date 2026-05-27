@@ -69,7 +69,7 @@ export async function exportToExcel(transactions: ExportTransaction[], filename?
   let totalGastos = 0;
 
   transactions.forEach((t) => {
-    const row = ws.addRow([t.fecha, t.descripcion, t.categoria, t.tipo, t.monto]);
+    const row = ws.addRow([csvSafe(t.fecha), csvSafe(t.descripcion), csvSafe(t.categoria), csvSafe(t.tipo), t.monto]);
     const montoCell = row.getCell(5);
     montoCell.numFmt = '#,##0.00';
 
