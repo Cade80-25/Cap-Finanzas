@@ -201,3 +201,9 @@ function downloadBlob(blob: Blob, filename: string) {
 function escapeHtml(str: string) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
+
+// Prevent CSV/Excel formula injection by prefixing dangerous leading chars.
+function csvSafe(val: unknown): string {
+  const s = String(val ?? "");
+  return /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+}
