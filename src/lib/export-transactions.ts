@@ -13,10 +13,10 @@ export function exportToCSV(transactions: ExportTransaction[], filename?: string
   if (transactions.length === 0) return;
   const headers = ["Fecha", "Descripción", "Categoría", "Tipo", "Monto"];
   const rows = transactions.map((t) => [
-    t.fecha,
-    `"${t.descripcion.replace(/"/g, '""')}"`,
-    `"${t.categoria.replace(/"/g, '""')}"`,
-    t.tipo,
+    csvSafe(t.fecha),
+    `"${csvSafe(t.descripcion).replace(/"/g, '""')}"`,
+    `"${csvSafe(t.categoria).replace(/"/g, '""')}"`,
+    csvSafe(t.tipo),
     t.monto.toFixed(2),
   ]);
   const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
