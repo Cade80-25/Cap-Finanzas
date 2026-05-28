@@ -12,11 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Check, CreditCard, Mail, ArrowRight, Sparkles, Loader2, Search, Copy, CheckCircle2 } from "lucide-react";
+import { Check, CreditCard, Mail, ArrowRight, Sparkles, Loader2, Search, Copy, CheckCircle2, Zap } from "lucide-react";
 import { useLicense } from "@/hooks/useLicense";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-
+import { initializePaddle, getPaddlePriceId, getPaddleEnvironment } from "@/lib/paddle";
 interface PurchaseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -35,9 +35,42 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
   } | null>(null);
   const [showCheck, setShowCheck] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [paddleEmail, setPaddleEmail] = useState("");
+  const [isPaddleLoading, setIsPaddleLoading] = useState(false);
+  const [showPaddleForm, setShowPaddleForm] = useState(false);
+  const paddleEnv = getPaddleEnvironment();
 
   const paypalButtonId = "KZXBA5QRWVQV2";
   const paypalUrl = `https://www.paypal.com/ncp/payment/${paypalButtonId}`;
+
+  const handlePaddleCheckout = async () => {
+    if (!paddleEmail.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(paddleEmail.trim())) {
+      toast({ title: "Correo inválido", description: "Ingresa un correo válido para recibir tu licencia.", variant: "destructive" });
+      return;
+    }
+    setIsPaddleLoading(true);
+    try {
+      await initializePaddle();
+      const paddlePriceId = await getPaddlePriceId("cap_finanzas_lifetime_usd");
+      window.Paddle.Checkout.open({
+        items: [{ priceId: paddlePriceId, quantity: 1 }],
+        customer: { email: paddleEmail.trim() },
+        customData: { customerEmail: paddleEmail.trim() },
+        settings: {
+          displayMode: "overlay",
+          successUrl: `${window.location.origin}${window.location.pathname}#/?paid=1`,
+          allowLogout: false,
+          variant: "one-page",
+        },
+      });
+    } catch (err) {
+      console.error("Paddle error:", err);
+      toast({ title: "Error al abrir el pago", description: String(err), variant: "destructive" });
+    } finally {
+      setIsPaddleLoading(false);
+    }
+  };
+
 
   const handleCheckLicense = async () => {
     if (!checkEmail.trim()) return;
@@ -144,6 +177,58 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
               <ArrowRight className="h-4 w-4" />
               Pagar con PayPal (${pricing.full} USD)
             </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-muted/50 px-2 text-muted-foreground">o pagar con tarjeta</span>
+              </div>
+            </div>
+
+            {!showPaddleForm ? (
+              <Button
+                variant="secondary"
+                className="w-full gap-2"
+                onClick={() => setShowPaddleForm(true)}
+              >
+                <Zap className="h-4 w-4" />
+                Pagar con tarjeta / Apple Pay / Google Pay
+              </Button>
+            ) : (
+              <div className="space-y-2 bg-background rounded-lg p-3 border">
+                <Label htmlFor="paddle-email" className="text-sm">
+                  Correo donde recibirás tu licencia
+                </Label>
+                <Input
+                  id="paddle-email"
+                  type="email"
+                  placeholder="tu-correo@email.com"
+                  value={paddleEmail}
+                  onChange={(e) => setPaddleEmail(e.target.value)}
+                  disabled={isPaddleLoading}
+                />
+                <Button
+                  className="w-full gap-2"
+                  onClick={handlePaddleCheckout}
+                  disabled={isPaddleLoading || !paddleEmail.trim()}
+                >
+                  {isPaddleLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CreditCard className="h-4 w-4" />
+                  )}
+                  Continuar al pago seguro (${pricing.full} USD)
+                </Button>
+                {paddleEnv === "sandbox" && (
+                  <p className="text-xs text-orange-600 text-center">
+                    Modo de prueba — usa tarjeta 4242 4242 4242 4242
+                  </p>
+                )}
+              </div>
+            )}
+
 
             <div className="border-t pt-4 space-y-3">
               <Button
