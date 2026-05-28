@@ -178,6 +178,58 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
               Pagar con PayPal (${pricing.full} USD)
             </Button>
 
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-muted/50 px-2 text-muted-foreground">o pagar con tarjeta</span>
+              </div>
+            </div>
+
+            {!showPaddleForm ? (
+              <Button
+                variant="secondary"
+                className="w-full gap-2"
+                onClick={() => setShowPaddleForm(true)}
+              >
+                <Zap className="h-4 w-4" />
+                Pagar con tarjeta / Apple Pay / Google Pay
+              </Button>
+            ) : (
+              <div className="space-y-2 bg-background rounded-lg p-3 border">
+                <Label htmlFor="paddle-email" className="text-sm">
+                  Correo donde recibirás tu licencia
+                </Label>
+                <Input
+                  id="paddle-email"
+                  type="email"
+                  placeholder="tu-correo@email.com"
+                  value={paddleEmail}
+                  onChange={(e) => setPaddleEmail(e.target.value)}
+                  disabled={isPaddleLoading}
+                />
+                <Button
+                  className="w-full gap-2"
+                  onClick={handlePaddleCheckout}
+                  disabled={isPaddleLoading || !paddleEmail.trim()}
+                >
+                  {isPaddleLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CreditCard className="h-4 w-4" />
+                  )}
+                  Continuar al pago seguro (${pricing.full} USD)
+                </Button>
+                {paddleEnv === "sandbox" && (
+                  <p className="text-xs text-orange-600 text-center">
+                    Modo de prueba — usa tarjeta 4242 4242 4242 4242
+                  </p>
+                )}
+              </div>
+            )}
+
+
             <div className="border-t pt-4 space-y-3">
               <Button
                 variant="outline"
