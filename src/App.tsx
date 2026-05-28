@@ -28,6 +28,7 @@ const LicenseGenerator = lazy(() => import("./pages/LicenseGenerator"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Privacidad = lazy(() => import("./pages/Privacidad"));
 const Terminos = lazy(() => import("./pages/Terminos"));
+const PaddleStatus = lazy(() => import("./pages/PaddleStatus"));
 
 const queryClient = new QueryClient();
 
