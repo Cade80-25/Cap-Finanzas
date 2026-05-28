@@ -35,9 +35,42 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
   } | null>(null);
   const [showCheck, setShowCheck] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [paddleEmail, setPaddleEmail] = useState("");
+  const [isPaddleLoading, setIsPaddleLoading] = useState(false);
+  const [showPaddleForm, setShowPaddleForm] = useState(false);
+  const paddleEnv = getPaddleEnvironment();
 
   const paypalButtonId = "KZXBA5QRWVQV2";
   const paypalUrl = `https://www.paypal.com/ncp/payment/${paypalButtonId}`;
+
+  const handlePaddleCheckout = async () => {
+    if (!paddleEmail.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(paddleEmail.trim())) {
+      toast({ title: "Correo inválido", description: "Ingresa un correo válido para recibir tu licencia.", variant: "destructive" });
+      return;
+    }
+    setIsPaddleLoading(true);
+    try {
+      await initializePaddle();
+      const paddlePriceId = await getPaddlePriceId("cap_finanzas_lifetime_usd");
+      window.Paddle.Checkout.open({
+        items: [{ priceId: paddlePriceId, quantity: 1 }],
+        customer: { email: paddleEmail.trim() },
+        customData: { customerEmail: paddleEmail.trim() },
+        settings: {
+          displayMode: "overlay",
+          successUrl: `${window.location.origin}${window.location.pathname}#/?paid=1`,
+          allowLogout: false,
+          variant: "one-page",
+        },
+      });
+    } catch (err) {
+      console.error("Paddle error:", err);
+      toast({ title: "Error al abrir el pago", description: String(err), variant: "destructive" });
+    } finally {
+      setIsPaddleLoading(false);
+    }
+  };
+
 
   const handleCheckLicense = async () => {
     if (!checkEmail.trim()) return;
