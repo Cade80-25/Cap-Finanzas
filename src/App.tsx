@@ -42,10 +42,11 @@ const isFileProtocol =
 
 const Router = isElectron || isFileProtocol ? HashRouter : BrowserRouter;
 
-// Componente para activar el generador de notificaciones
 function NotificationProvider({ children }: { children: React.ReactNode }) {
   useNotificationGenerator();
+  usePurchaseIssueNotifications();
   return <>{children}</>;
+}
 }
 
 const PageFallback = () => (
