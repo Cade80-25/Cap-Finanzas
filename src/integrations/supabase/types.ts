@@ -211,7 +211,11 @@ export type Database = {
           created_at: string
           currency: string
           customer_email: string
+          delivery_attempts: number
+          failure_notified_at: string | null
+          failure_reason: string | null
           id: string
+          last_delivery_error: string | null
           paddle_txn_id: string | null
           paypal_payer_email: string | null
           paypal_txn_id: string | null
@@ -224,7 +228,11 @@ export type Database = {
           created_at?: string
           currency?: string
           customer_email: string
+          delivery_attempts?: number
+          failure_notified_at?: string | null
+          failure_reason?: string | null
           id?: string
+          last_delivery_error?: string | null
           paddle_txn_id?: string | null
           paypal_payer_email?: string | null
           paypal_txn_id?: string | null
@@ -237,7 +245,11 @@ export type Database = {
           created_at?: string
           currency?: string
           customer_email?: string
+          delivery_attempts?: number
+          failure_notified_at?: string | null
+          failure_reason?: string | null
           id?: string
+          last_delivery_error?: string | null
           paddle_txn_id?: string | null
           paypal_payer_email?: string | null
           paypal_txn_id?: string | null
