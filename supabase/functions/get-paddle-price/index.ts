@@ -18,7 +18,6 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
-  } catch (e) {
     console.error('get-paddle-price error:', e);
     return new Response(JSON.stringify({ error: 'Price lookup failed. Please try again.' }), {
       status: 400,
