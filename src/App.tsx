@@ -68,7 +68,8 @@ const App = () => (
                 <Route path="/landing" element={<LandingPage />} />
                 <Route path="/privacidad" element={<Privacidad />} />
                 <Route path="/terminos" element={<Terminos />} />
-                <Route path="/admin" element={<Admin />} />
+                <Route path="/license-generator" element={<LicenseGenerator />} />
+                <Route path="/paddle-status" element={<PaddleStatus />} />
                 <Route path="/license-generator" element={<LicenseGenerator />} />
 
                 {/* App principal */}
