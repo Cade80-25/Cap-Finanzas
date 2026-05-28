@@ -1,32 +1,34 @@
 /// <reference types="npm:@types/react@18.3.1" />
 
 import * as React from 'npm:react@18.3.1'
-
 import {
-  Body,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Preview,
-  Text,
+  Body, Container, Head, Heading, Hr, Html, Img, Preview, Section, Text,
 } from 'npm:@react-email/components@0.0.22'
+import { LOGO_URL, styles } from './_brand.ts'
 
-interface ReauthenticationEmailProps {
-  token: string
-}
+interface Props { token: string }
 
-export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => (
+export const ReauthenticationEmail = ({ token }: Props) => (
   <Html lang="es" dir="ltr">
     <Head />
     <Preview>Tu código de verificación</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Heading style={h1}>Confirma tu identidad</Heading>
-        <Text style={text}>Usa este código para confirmar tu identidad:</Text>
-        <Text style={codeStyle}>{token}</Text>
-        <Text style={footer}>
-          Este código expira pronto. Si no lo solicitaste, ignora este correo.
+    <Body style={styles.main}>
+      <Container style={styles.card}>
+        <Section style={styles.header}>
+          <Img src={LOGO_URL} alt="Cap Finanzas" style={styles.logo} />
+          <Text style={styles.brandName}>Cap Finanzas</Text>
+        </Section>
+        <Section style={styles.body}>
+          <Heading style={styles.h1}>Confirma tu identidad</Heading>
+          <Text style={styles.text}>Usa este código para confirmar tu identidad:</Text>
+          <Section style={styles.codeBox}>
+            <Text style={styles.code}>{token}</Text>
+          </Section>
+          <Hr style={styles.divider} />
+        </Section>
+        <Text style={styles.footer}>
+          Este código expira pronto. Si no lo solicitaste, ignora este correo.<br />
+          © Cap Finanzas
         </Text>
       </Container>
     </Body>
@@ -34,17 +36,3 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
 )
 
 export default ReauthenticationEmail
-
-const main = { backgroundColor: '#ffffff', fontFamily: 'system-ui, -apple-system, Segoe UI, Arial, sans-serif' }
-const container = { padding: '24px 28px', maxWidth: '560px' }
-const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: 'hsl(222, 20%, 18%)', margin: '0 0 20px' }
-const text = { fontSize: '14px', color: 'hsl(220, 10%, 44%)', lineHeight: '1.6', margin: '0 0 20px' }
-const codeStyle = {
-  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-  fontSize: '26px',
-  fontWeight: 'bold' as const,
-  color: 'hsl(238, 55%, 52%)',
-  letterSpacing: '4px',
-  margin: '0 0 30px',
-}
-const footer = { fontSize: '12px', color: 'hsl(220, 10%, 56%)', margin: '28px 0 0' }
