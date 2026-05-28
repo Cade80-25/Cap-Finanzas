@@ -8,6 +8,7 @@ import Layout from "./components/Layout";
 import LandingPage from "./pages/LandingPage";
 import { ThemeProvider } from "next-themes";
 import { useNotificationGenerator } from "./hooks/useNotificationGenerator";
+import { usePurchaseIssueNotifications } from "./hooks/usePurchaseIssueNotifications";
 import { WalletProvider } from "./contexts/WalletContext";
 
 // Code-split: páginas cargadas bajo demanda para acelerar la primera carga
