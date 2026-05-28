@@ -14,20 +14,20 @@ export const BRAND = {
 
 export const styles = {
   main: {
-    backgroundColor: '#f4f5fb',
+    backgroundColor: '#e8eaf0',
     fontFamily:
       'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     margin: 0,
     padding: '32px 12px',
   },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f3f4f8',
     maxWidth: '560px',
     margin: '0 auto',
     borderRadius: '16px',
     overflow: 'hidden' as const,
     border: `1px solid ${BRAND.border}`,
-    boxShadow: '0 8px 24px -12px rgba(60, 60, 120, 0.18)',
+    boxShadow: '0 10px 28px -10px rgba(20, 25, 50, 0.22)',
   },
   header: {
     background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.primaryGlow} 100%)`,
@@ -40,7 +40,7 @@ export const styles = {
     borderRadius: '14px',
     display: 'block',
     margin: '0 auto 10px',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'transparent',
     padding: '6px',
   },
   brandName: {
