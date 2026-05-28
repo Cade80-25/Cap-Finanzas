@@ -138,6 +138,8 @@ export default function Layout() {
                 })}
               </nav>
             </aside>
+          )}
+
           {/* Main Content */}
           <main className={cn("flex-1 overflow-auto flex flex-col", isMobile && "pb-14")}>
             <div className="flex-1">
@@ -160,8 +162,3 @@ export default function Layout() {
   );
 }
 
-        </div>
-      </div>
-    </LicenseGate>
-  );
-}
