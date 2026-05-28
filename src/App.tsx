@@ -47,7 +47,6 @@ function NotificationProvider({ children }: { children: React.ReactNode }) {
   usePurchaseIssueNotifications();
   return <>{children}</>;
 }
-}
 
 const PageFallback = () => (
   <div className="flex items-center justify-center min-h-[40vh] text-muted-foreground text-sm">
