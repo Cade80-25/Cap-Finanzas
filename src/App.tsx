@@ -28,6 +28,7 @@ const LicenseGenerator = lazy(() => import("./pages/LicenseGenerator"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Privacidad = lazy(() => import("./pages/Privacidad"));
 const Terminos = lazy(() => import("./pages/Terminos"));
+const PaddleStatus = lazy(() => import("./pages/PaddleStatus"));
 
 const queryClient = new QueryClient();
 
@@ -67,7 +68,8 @@ const App = () => (
                 <Route path="/landing" element={<LandingPage />} />
                 <Route path="/privacidad" element={<Privacidad />} />
                 <Route path="/terminos" element={<Terminos />} />
-                <Route path="/admin" element={<Admin />} />
+                <Route path="/license-generator" element={<LicenseGenerator />} />
+                <Route path="/paddle-status" element={<PaddleStatus />} />
                 <Route path="/license-generator" element={<LicenseGenerator />} />
 
                 {/* App principal */}
