@@ -33,3 +33,5 @@ project_id = "pcxvnqsoafagnthazoir"
     verify_jwt = false
   [functions.schedule-reminder]
     verify_jwt = false
+  [functions.purchase-status]
+    verify_jwt = false

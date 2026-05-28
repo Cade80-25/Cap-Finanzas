@@ -8,6 +8,7 @@ import Layout from "./components/Layout";
 import LandingPage from "./pages/LandingPage";
 import { ThemeProvider } from "next-themes";
 import { useNotificationGenerator } from "./hooks/useNotificationGenerator";
+import { usePurchaseIssueNotifications } from "./hooks/usePurchaseIssueNotifications";
 import { WalletProvider } from "./contexts/WalletContext";
 
 // Code-split: páginas cargadas bajo demanda para acelerar la primera carga
@@ -41,9 +42,9 @@ const isFileProtocol =
 
 const Router = isElectron || isFileProtocol ? HashRouter : BrowserRouter;
 
-// Componente para activar el generador de notificaciones
 function NotificationProvider({ children }: { children: React.ReactNode }) {
   useNotificationGenerator();
+  usePurchaseIssueNotifications();
   return <>{children}</>;
 }
 
