@@ -125,6 +125,7 @@ export type Database = {
           currency: string
           customer_email: string
           id: string
+          paddle_txn_id: string | null
           paypal_payer_email: string | null
           paypal_txn_id: string | null
           plan_type: string
@@ -137,6 +138,7 @@ export type Database = {
           currency?: string
           customer_email: string
           id?: string
+          paddle_txn_id?: string | null
           paypal_payer_email?: string | null
           paypal_txn_id?: string | null
           plan_type: string
@@ -149,6 +151,7 @@ export type Database = {
           currency?: string
           customer_email?: string
           id?: string
+          paddle_txn_id?: string | null
           paypal_payer_email?: string | null
           paypal_txn_id?: string | null
           plan_type?: string
