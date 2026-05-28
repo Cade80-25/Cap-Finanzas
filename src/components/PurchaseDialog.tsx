@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Check, CreditCard, Mail, ArrowRight, Sparkles, Loader2, Search, Copy, CheckCircle2 } from "lucide-react";
 import { Check, CreditCard, Mail, ArrowRight, Sparkles, Loader2, Search, Copy, CheckCircle2, Zap } from "lucide-react";
 import { useLicense } from "@/hooks/useLicense";
 import { supabase } from "@/integrations/supabase/client";
