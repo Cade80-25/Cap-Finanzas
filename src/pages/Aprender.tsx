@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GraduationCap, BookOpen, Sparkles, Book } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { GraduationCap, BookOpen, Sparkles, Book, FileText, ArrowRight } from "lucide-react";
 import Enciclopedia from "./Enciclopedia";
 import Manual from "./Manual";
 import Recomendaciones from "./Recomendaciones";
 import { SeoHead } from "@/components/SeoHead";
+import { ARTICLES } from "@/lib/articles";
 
 export default function Aprender() {
   const [params, setParams] = useSearchParams();
