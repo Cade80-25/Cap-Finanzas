@@ -81,11 +81,11 @@ const App = () => (
                 <Route path="/paddle-status" element={<PaddleStatus />} />
 
                 {/* App principal */}
-                <Route path="/" element={<><DemoModeBanner /><Layout /></>}>
+                <Route
+                  path="/"
+                  element={<><DemoModeBanner /><Layout /></>}
+                >
                   <Route path="aprender/articulos/:slug" element={<Articulo />} />
-
-                {/* App principal */}
-                <Route path="/" element={<Layout />}>
                   <Route index element={<Dashboard />} />
                   <Route path="transacciones" element={<Transacciones />} />
                   <Route path="calendario" element={<Calendario />} />
