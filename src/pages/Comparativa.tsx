@@ -7,6 +7,8 @@ import { Check, X, ArrowRight, Calculator } from "lucide-react";
 
 const URL = "https://capfinanzas.com/comparativa";
 
+type CompKey = "cap" | "fintonic" | "mobills" | "monefy" | "excel";
+
 const COMPETITORS: { key: CompKey; name: string; highlight?: boolean }[] = [
   { key: "cap", name: "Cap Finanzas", highlight: true },
   { key: "fintonic", name: "Fintonic" },
