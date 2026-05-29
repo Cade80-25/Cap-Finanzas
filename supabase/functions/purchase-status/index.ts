@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
     const { data: orders } = await supabase
       .from('orders')
       .select('id, status, failure_reason, last_delivery_error, created_at, paddle_txn_id')
-      .ilike('customer_email', normalized)
+      .eq('customer_email', normalized)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(10);
@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     const { data: licenses } = await supabase
       .from('licenses')
       .select('code, is_delivered, created_at')
-      .ilike('customer_email', normalized)
+      .eq('customer_email', normalized)
       .gte('created_at', since)
       .order('created_at', { ascending: false })
       .limit(10);
