@@ -61,7 +61,9 @@ export default function Aprender() {
         </TabsContent>
         <TabsContent value="recomendaciones" className="mt-4 -mx-3 sm:-mx-6 lg:-mx-8">
           <Recomendaciones />
+        </TabsContent>
         <TabsContent value="enciclopedia" className="mt-4 -mx-3 sm:-mx-6 lg:-mx-8">
+
           <Enciclopedia />
         </TabsContent>
       </Tabs>
