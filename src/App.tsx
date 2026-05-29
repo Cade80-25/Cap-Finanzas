@@ -9,7 +9,9 @@ import LandingPage from "./pages/LandingPage";
 import { ThemeProvider } from "next-themes";
 import { useNotificationGenerator } from "./hooks/useNotificationGenerator";
 import { usePurchaseIssueNotifications } from "./hooks/usePurchaseIssueNotifications";
+import { useTrialExpiryReminder } from "./hooks/useTrialExpiryReminder";
 import { WalletProvider } from "./contexts/WalletContext";
+import { DemoModeBanner } from "./components/DemoModeBanner";
 
 // Code-split: páginas cargadas bajo demanda para acelerar la primera carga
 const Dashboard = lazy(() => import("./pages/Dashboard"));
