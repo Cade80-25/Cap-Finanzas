@@ -1,90 +1,100 @@
-# Plan: Licencias firmadas + descargables multiplataforma
+# Plan: Mejoras integrales (SEO, Pagos, Seguridad, Retención)
 
-## Parte 1 — Sistema de licencias con tokens firmados (HMAC) y revalidación
+Voy a implementar las 8 sugerencias agrupadas por área. Todo es trabajo de frontend + algunas edge functions, sin tocar la lógica core offline.
 
-### Objetivo
-Mantener la app **offline-first**, pero hacer que la activación y la revalidación periódica pasen por el servidor. La copia local pasa a ser un **caché firmado** que no puede falsificarse sin el secreto del servidor.
+## SEO y búsqueda AI
 
-### Backend
+1. **Página `/comparativa`** (nueva ruta)
+   - Tabla comparativa Cap Finanzas vs Fintonic, Mobills, Monefy, Excel
+   - Ejes: precio, offline, contabilidad doble, multimoneda, suscripción, datos propios
+   - SEO completo con `<Helmet>`: title, description, canonical, JSON-LD `Product` + `FAQPage`
+   - Añadir a `sitemap.xml`, `robots.txt`, `llms.txt` y al menú/footer
 
-1. **Migración DB** — agregar a `licenses`:
-   - `installation_id text` (qué instalación activó el código)
-   - `activated_at timestamptz`
-   - `last_seen_at timestamptz`
-   - `revoked boolean default false`
-   Índice único parcial: `(code) where is_used = true` evita doble activación.
+2. **3 artículos indexables bajo `/aprender/articulos/:slug`**
+   - "Cómo llevar contabilidad personal sin Excel"
+   - "Partida doble explicada simple"
+   - "Diferencia entre finanzas personales y contabilidad"
+   - Cada uno con Helmet (Article JSON-LD + BreadcrumbList), contenido ~600 palabras
+   - Index en `/aprender` con tarjetas de cada artículo
+   - Listados en sitemap.xml y llms.txt
 
-2. **Nuevo secret** `LICENSE_SIGNING_SECRET` (HMAC-SHA256). Lo agrego con `add_secret` y lo confirmás.
+3. **FAQ Schema JSON-LD en landing**
+   - Sección visible "Preguntas frecuentes" en `LandingPage.tsx` (6 preguntas)
+   - JSON-LD `FAQPage` para SERP
 
-3. **Edge function `license-activate`** (verify_jwt=false, público):
-   - Input: `{ code, installation_id }` validado con Zod.
-   - Busca el código en `licenses`. Si no existe o está `revoked` → 404.
-   - Si ya está usado por **otra** installation_id → 409 ("código ya activado en otro dispositivo").
-   - Si está libre o ya pertenece a esta installation: marca `is_used=true`, guarda `installation_id`, `activated_at`, `last_seen_at`.
-   - Emite **token firmado** con payload `{ installation_id, code, activated_at, exp: +90d, iat }` y firma HMAC-SHA256 base64url.
-   - Devuelve `{ token, exp }`.
+4. **CTA reforzado para instalar PWA en `/`**
+   - Banner/sección destacada con botones "Instalar como app" + "Descargar Windows"
+   - Hook que detecte `beforeinstallprompt` y muestre botón nativo de instalar PWA
 
-4. **Edge function `license-verify`** (público):
-   - Input: `{ token, installation_id }`.
-   - Verifica firma HMAC y `exp`. Si `installation_id` del payload no coincide → 401.
-   - Comprueba en DB que no esté `revoked`. Si todo OK → devuelve **token renovado** (+90d) y actualiza `last_seen_at`.
-   - Si está revocado → 403.
+## Pagos
 
-### Frontend (`useLicense.ts` + `LicenseGate.tsx`)
+5. **Pantalla `/checkout/success`**
+   - Confirmación visual, instrucciones de activación paso a paso
+   - Formulario "No recibí mi licencia" que llama edge function nueva `resend-license` (busca por email y reenvía)
+   - Ruta agregada a `App.tsx`
 
-5. **Installation ID estable**: generar UUID v4 en primer arranque y guardarlo en `cap-finanzas-installation-id`. Persistente.
+6. **Recordatorio en-app cuando trial está por vencer**
+   - Hook `useTrialExpiryReminder` que mira `useLicense` y, si quedan ≤5 días, muestra notificación con CTA a checkout
+   - Una vez al día (localStorage flag)
 
-6. **Activación**: `activateLicense(code)` llama a `license-activate`. Guarda `{ token, exp, code, installation_id }` en localStorage bajo `cap-finanzas-license-token`. Solo si la llamada al servidor tiene éxito se considera activa.
-   - Si no hay red → mensaje claro: "Necesitas conexión la primera vez para activar".
+7. **Prueba social en landing**
+   - Sección "Lo que dicen los usuarios" con 3 testimonios (placeholders honestos: "Reseñas pendientes" o testimonios genuinos de uso si existen)
+   - Contador "+N descargas" basado en visitas/total (estático honesto: "Desde 2024")
 
-7. **Verificación local** en cada arranque:
-   - Si hay token cacheado: verifica firma localmente NO ES POSIBLE (el secreto vive en server). En su lugar: aceptar el token si **no expiró** y `installation_id` del payload coincide. La firma es no-falsificable sin el secret, así que el caché es seguro.
-   - Cliente verifica `exp` + decodifica payload (no firma) y confía mientras el server no lo revoque.
+## Seguridad
 
-8. **Revalidación periódica online**: en `useEffect` al iniciar, si hay red intenta `license-verify`. Si el server responde 403/revoked → limpia token y bloquea. Si responde 200 → guarda token renovado. Si falla por red → sigue funcionando offline con el token cacheado mientras no expire.
+8. **Rate limiting en `license-activate` y `license-verify`**
+   - Tabla `rate_limits` (key text, count int, window_start timestamp)
+   - Helper compartido `_shared/rate-limit.ts`: máx 10 intentos por IP+key cada 15 min
+   - Devuelve 429 con `Retry-After`
 
-9. **Trial**: igual que hoy en localStorage (no requiere backend). Mantener `mem://security/licensing-tradeoff` actualizado: el trial sigue siendo bypassable, eso se acepta. Lo que ya **no** se puede es forjar una licencia full.
+## Retención
 
-10. **Eliminar el validador checksum del cliente**: ya no se acepta nada que no venga firmado por el server. Eliminar `validateLicenseCode` del cliente.
+9. **Modo demo sin instalar**
+   - Botón "Probar con datos de ejemplo" en landing → navega a `/?demo=1`
+   - Hook que detecta `?demo=1`, carga dataset semilla en localStorage (perfil "Demo", ~30 transacciones, presupuestos) y muestra banner "Estás en modo demo - [Borrar datos demo]"
 
-### Lo que mejora vs hoy
-- Forjar `isActivated:true` en localStorage ya no sirve: el `LicenseGate` exige un token con firma válida en `exp`.
-- No se pueden inventar códigos: el server consulta la tabla `licenses`.
-- Un mismo código no activa dos instalaciones distintas.
-- Códigos pueden revocarse desde la DB y la app lo detecta en la siguiente revalidación.
+10. **Reporte mensual PDF por email (opt-in)**
+    - Configuración existente de email para recordatorios ya tiene email del usuario
+    - Edge function `monthly-report` programada vía pg_cron mensual: genera resumen (NO datos personales, solo lo que el usuario decida enviar)
+    - **Realismo:** como los datos son 100% locales, el servidor no puede generar el PDF. En su lugar implemento:
+      - Botón en app "Generar reporte mensual PDF" (cliente, usando jsPDF que ya existe en `export-transactions`)
+      - Opción "Enviármelo por email" → cliente sube el PDF base64 a edge function `send-report-email` que lo adjunta y reenvía
+      - Toggle en Configuración → Notificaciones: "Recordarme generar el reporte cada mes" (recordatorio local in-app el día 1)
 
-### Lo que sigue siendo trade-off (documentado)
-- Un atacante con conocimientos avanzados puede parchear el JS para saltarse el gate. Eso es inherente a apps de cliente y aceptado.
+## Cambios técnicos resumidos
 
----
+```text
+NEW src/pages/Comparativa.tsx
+NEW src/pages/ArticuloEducativo.tsx (+ datos en src/lib/articles.ts)
+NEW src/pages/CheckoutSuccess.tsx
+NEW src/components/PWAInstallButton.tsx
+NEW src/components/FAQSection.tsx
+NEW src/components/TestimonialsSection.tsx
+NEW src/components/DemoModeBanner.tsx
+NEW src/hooks/useTrialExpiryReminder.ts
+NEW src/hooks/useDemoMode.ts
+NEW src/lib/demo-data.ts
+NEW src/lib/monthly-report-pdf.ts
+EDIT src/App.tsx (rutas nuevas + hooks)
+EDIT src/pages/LandingPage.tsx (FAQ, testimonios, CTA PWA, link demo)
+EDIT src/pages/Aprender.tsx (index de artículos)
+EDIT src/pages/Configuracion.tsx (toggle reporte mensual)
+EDIT public/sitemap.xml, public/robots.txt, public/llms.txt
+EDIT scripts/seo-routes.mjs
 
-## Parte 2 — Descargables Mac / Linux / Windows
+NEW supabase/functions/resend-license/index.ts
+NEW supabase/functions/send-report-email/index.ts
+NEW supabase/functions/_shared/rate-limit.ts
+EDIT supabase/functions/license-activate/index.ts (rate limit)
+EDIT supabase/functions/license-verify/index.ts (rate limit)
+EDIT supabase/config.toml (declarar nuevas funciones)
 
-### Diagnóstico previo
-Revisar `electron-builder.yml`, `.github/workflows/build.yml`, `electron/main.cjs`, `electron/installer.nsh` y la página `/instalar` para encontrar:
-- Si los assets del release de GitHub tienen los nombres que la página `Instalar.tsx` espera.
-- Si el workflow está generando los tres targets (`.dmg`/`.zip` para Mac, `.AppImage`/`.deb` para Linux, `.exe` NSIS para Windows).
-- Si `autoUpdater` apunta al feed correcto.
-- Si hay errores típicos: firma de código faltante en Mac (quarantine), permisos `chmod +x` en AppImage, `latest.yml`/`latest-mac.yml`/`latest-linux.yml` para auto-update.
+MIGRATION: tabla rate_limits + RLS (service_role)
+```
 
-### Acciones
-1. **Workflow GitHub Actions** (`.github/workflows/build.yml`): asegurar matriz `macos-latest`, `ubuntu-latest`, `windows-latest`; publicar al release con los `latest*.yml` necesarios para auto-update; subir artefactos con nombres consistentes.
-2. **electron-builder.yml**: targets `dmg+zip` (mac), `nsis` (win), `AppImage+deb` (linux); `publish: github`; `artifactName` predecible.
-3. **`/instalar`**: actualizar URLs de descarga al patrón del release más reciente (`https://github.com/<owner>/<repo>/releases/latest/download/<asset>`).
-4. **Auto-update**: confirmar `useAutoUpdater` y `electron/main.cjs` consumen el feed de GitHub.
-5. Documentar en `INSTRUCCIONES_AUTO_UPDATE.md` los nombres finales.
+## Fuera de alcance (lo aclaro)
 
-Nota: la firma de código real (Apple notarization, Windows codesign) requiere certificados de pago — quedará como warning conocido (Mac mostrará "app no verificada", Windows SmartScreen). Si querés que lo cubra, hace falta agregar los certs como build secrets.
-
----
-
-## Detalles técnicos (resumen)
-
-- **Firma HMAC** en edge function con `crypto.subtle.sign("HMAC", key, data)` + base64url, sin librerías.
-- **Token format**: `base64url(payloadJSON).base64url(signature)` (JWT-like simplificado, sin header).
-- Migración añade columnas a `licenses`, sin tocar `orders`.
-- Las funciones nuevas se agregan a `supabase/config.toml` con `verify_jwt = false`.
-- Para descargables: cambios solo en workflow, electron config y `Instalar.tsx`.
-
-## ¿Avanzo?
-Si aprobás, primero corro la migración (necesita tu OK), después pido el secret `LICENSE_SIGNING_SECRET`, después implemento backend + frontend, y finalmente arreglo los descargables. ¿Le damos?
+- No genero testimonios falsos: dejo placeholder honesto si no tenés reseñas reales
+- El "reporte mensual automático" puro server-side es imposible con datos 100% locales — implemento la versión cliente + envío opcional
+- No toco el flujo offline ni la estructura de datos en localStorage
