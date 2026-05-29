@@ -44,13 +44,13 @@ const isElectron =
 
 const isFileProtocol =
   typeof window !== "undefined" && window.location?.protocol === "file:";
+
+const Router = isElectron || isFileProtocol ? HashRouter : BrowserRouter;
+
 function NotificationProvider({ children }: { children: React.ReactNode }) {
   useNotificationGenerator();
   usePurchaseIssueNotifications();
   useTrialExpiryReminder();
-  return <>{children}</>;
-}
-  usePurchaseIssueNotifications();
   return <>{children}</>;
 }
 
