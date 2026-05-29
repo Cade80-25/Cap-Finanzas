@@ -242,12 +242,17 @@ export default function LandingPage() {
                 size="lg"
                 variant="outline"
                 className="gap-2 text-base h-14 px-8"
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/?demo=1")}
               >
-                <Eye className="h-5 w-5" />
-                Probar en el Navegador
+                <Play className="h-5 w-5" />
+                Probar con datos de ejemplo
               </Button>
             </div>
+            <p className="text-sm">
+              <Link to="/comparativa" className="text-primary hover:underline">
+                Ver comparativa con Fintonic, Mobills, Monefy y Excel →
+              </Link>
+            </p>
 
             <p className="text-sm text-muted-foreground mb-12">
               Windows 10/11 · Sin dependencias · También disponible como webapp
