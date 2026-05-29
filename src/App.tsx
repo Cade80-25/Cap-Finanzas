@@ -73,11 +73,16 @@ const App = () => (
               <Routes>
                 {/* Landing page y rutas públicas */}
                 <Route path="/landing" element={<LandingPage />} />
+                <Route path="/comparativa" element={<Comparativa />} />
+                <Route path="/checkout/success" element={<CheckoutSuccess />} />
                 <Route path="/privacidad" element={<Privacidad />} />
                 <Route path="/terminos" element={<Terminos />} />
                 <Route path="/license-generator" element={<LicenseGenerator />} />
                 <Route path="/paddle-status" element={<PaddleStatus />} />
-                <Route path="/license-generator" element={<LicenseGenerator />} />
+
+                {/* App principal */}
+                <Route path="/" element={<><DemoModeBanner /><Layout /></>}>
+                  <Route path="aprender/articulos/:slug" element={<Articulo />} />
 
                 {/* App principal */}
                 <Route path="/" element={<Layout />}>
