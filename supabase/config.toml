@@ -35,3 +35,5 @@ project_id = "pcxvnqsoafagnthazoir"
     verify_jwt = false
   [functions.purchase-status]
     verify_jwt = false
+  [functions.resend-license-by-email]
+    verify_jwt = false
