@@ -195,6 +195,16 @@ export default function LandingPage() {
     return () => observer.disconnect();
   }, []);
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SeoHead
@@ -202,6 +212,8 @@ export default function LandingPage() {
         description="Software de finanzas personales y contabilidad 100% offline. Gastos, libros contables y tutor IA. Pago único $10 USD. Prueba gratis 30 días."
         path="/landing"
       />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+
       {/* Hero Section - Bold & Engaging */}
       <section className="relative overflow-hidden min-h-[85vh] flex items-center">
         {/* Animated background */}
