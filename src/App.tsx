@@ -9,7 +9,9 @@ import LandingPage from "./pages/LandingPage";
 import { ThemeProvider } from "next-themes";
 import { useNotificationGenerator } from "./hooks/useNotificationGenerator";
 import { usePurchaseIssueNotifications } from "./hooks/usePurchaseIssueNotifications";
+import { useTrialExpiryReminder } from "./hooks/useTrialExpiryReminder";
 import { WalletProvider } from "./contexts/WalletContext";
+import { DemoModeBanner } from "./components/DemoModeBanner";
 
 // Code-split: páginas cargadas bajo demanda para acelerar la primera carga
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -30,6 +32,9 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Privacidad = lazy(() => import("./pages/Privacidad"));
 const Terminos = lazy(() => import("./pages/Terminos"));
 const PaddleStatus = lazy(() => import("./pages/PaddleStatus"));
+const Comparativa = lazy(() => import("./pages/Comparativa"));
+const Articulo = lazy(() => import("./pages/Articulo"));
+const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 
 const queryClient = new QueryClient();
 
@@ -45,6 +50,7 @@ const Router = isElectron || isFileProtocol ? HashRouter : BrowserRouter;
 function NotificationProvider({ children }: { children: React.ReactNode }) {
   useNotificationGenerator();
   usePurchaseIssueNotifications();
+  useTrialExpiryReminder();
   return <>{children}</>;
 }
 
@@ -67,14 +73,19 @@ const App = () => (
               <Routes>
                 {/* Landing page y rutas públicas */}
                 <Route path="/landing" element={<LandingPage />} />
+                <Route path="/comparativa" element={<Comparativa />} />
+                <Route path="/checkout/success" element={<CheckoutSuccess />} />
                 <Route path="/privacidad" element={<Privacidad />} />
                 <Route path="/terminos" element={<Terminos />} />
                 <Route path="/license-generator" element={<LicenseGenerator />} />
                 <Route path="/paddle-status" element={<PaddleStatus />} />
-                <Route path="/license-generator" element={<LicenseGenerator />} />
 
                 {/* App principal */}
-                <Route path="/" element={<Layout />}>
+                <Route
+                  path="/"
+                  element={<><DemoModeBanner /><Layout /></>}
+                >
+                  <Route path="aprender/articulos/:slug" element={<Articulo />} />
                   <Route index element={<Dashboard />} />
                   <Route path="transacciones" element={<Transacciones />} />
                   <Route path="calendario" element={<Calendario />} />
