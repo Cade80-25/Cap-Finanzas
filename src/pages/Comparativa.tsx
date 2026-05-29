@@ -15,9 +15,8 @@ const COMPETITORS: { key: CompKey; name: string; highlight?: boolean }[] = [
   { key: "excel", name: "Excel / Hojas de cálculo" },
 ];
 
-type CompKey = "cap" | "fintonic" | "mobills" | "monefy" | "excel";
 
-type CompKey = (typeof COMPETITORS)[number]["key"];
+
 
 const ROWS: { label: string; values: Record<CompKey, string | boolean> }[] = [
   {
