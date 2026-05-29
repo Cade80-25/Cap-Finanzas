@@ -32,6 +32,9 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Privacidad = lazy(() => import("./pages/Privacidad"));
 const Terminos = lazy(() => import("./pages/Terminos"));
 const PaddleStatus = lazy(() => import("./pages/PaddleStatus"));
+const Comparativa = lazy(() => import("./pages/Comparativa"));
+const Articulo = lazy(() => import("./pages/Articulo"));
+const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 
 const queryClient = new QueryClient();
 
