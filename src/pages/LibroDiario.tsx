@@ -327,45 +327,26 @@ export default function LibroDiario() {
                   }}
                 />
               </div>
-              {/* Price × Quantity Calculator */}
-              <div className="space-y-2 border rounded-md p-3 bg-muted/30">
+              {/* Full Calculator (+, −, ×, ÷) */}
+              <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Calculator className="h-4 w-4 text-muted-foreground" />
-                  Calculadora de Importe (opcional)
+                  Calculadora (opcional)
                 </div>
-                <div className="grid grid-cols-[1fr,auto,60px,auto,1fr] items-end gap-2">
-                  <div>
-                    <Label className="text-xs">Precio</Label>
-                    <Input type="text" inputMode="decimal" autoComplete="off" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" />
-                  </div>
-                  <span className="text-muted-foreground font-bold pb-2">×</span>
-                  <div>
-                    <Label className="text-xs">Cant.</Label>
-                    <Input type="text" inputMode="decimal" autoComplete="off" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="1" />
-                  </div>
-                  <span className="text-muted-foreground font-bold pb-2">=</span>
-                  <div>
-                    <Label className="text-xs">Suma</Label>
-                    <div className="h-10 flex items-center px-3 rounded-md border bg-background font-bold">
-                      ${(parseFlexibleNumber(price) * parseFlexibleNumber(quantity, 1)).toFixed(2)}
-                    </div>
-                  </div>
-                </div>
-                {parseFlexibleNumber(price) > 0 && (
-                  <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => {
-                    const sum = parseFlexibleNumber(price) * parseFlexibleNumber(quantity, 1);
+                <FullCalculator
+                  initialValue={debit || credit || ""}
+                  onApply={(v) => {
                     if (debit === 0 && credit === 0) {
-                      setDebit(sum);
+                      setDebit(v);
                     } else if (debit > 0) {
-                      setDebit(sum);
+                      setDebit(v);
                     } else {
-                      setCredit(sum);
+                      setCredit(v);
                     }
-                    toast.success("Importe aplicado");
-                  }}>
-                    Aplicar al {debit > 0 || (debit === 0 && credit === 0) ? "Debe" : "Haber"}
-                  </Button>
-                )}
+                    toast.success(`Importe aplicado: $${v.toFixed(2)}`);
+                  }}
+                  applyLabel={debit > 0 || (debit === 0 && credit === 0) ? "Aplicar al Debe" : "Aplicar al Haber"}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
