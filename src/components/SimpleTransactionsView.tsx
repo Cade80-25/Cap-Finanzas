@@ -181,42 +181,22 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         </div>
 
         {useCalculator ? (
-          <div className="space-y-2 border rounded-md p-3 bg-muted/30">
-            <div className="grid grid-cols-[1fr,auto,60px,auto,1fr] items-center gap-2">
-              <div>
-                <Label className="text-xs text-muted-foreground">Precio</Label>
-                <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
-                  <Input
-                    type="text" inputMode="decimal" autoComplete="off"
-                    value={price} onChange={e => setPrice(e.target.value)}
-                    placeholder="0.00" className="pl-6" autoFocus
-                  />
-                </div>
-              </div>
-              <span className="text-muted-foreground font-bold mt-5">×</span>
-              <div>
-                <Label className="text-xs text-muted-foreground">Cant.</Label>
-                <Input
-                  type="text" inputMode="decimal" autoComplete="off"
-                  value={quantity} onChange={e => setQuantity(e.target.value)}
-                  placeholder="1"
-                />
-              </div>
-              <span className="text-muted-foreground font-bold mt-5">=</span>
-              <div>
-                <Label className="text-xs text-muted-foreground">Total</Label>
-                <div className="h-10 flex items-center px-3 rounded-md border bg-muted/50 font-bold text-lg">
-                  ${sum.toFixed(2)}
-                </div>
-              </div>
-            </div>
-            {parseFlexibleNumber(quantity, 1) !== 1 && parseFlexibleNumber(quantity, 1) > 0 && (
-              <p className="text-xs text-muted-foreground">
-                💡 {quantity} unid. × ${parseFlexibleNumber(price).toFixed(2)} = ${sum.toFixed(2)}
-              </p>
-            )}
-          </div>
+          <FullCalculator
+            initialValue={amount || (price ? String(parseFlexibleNumber(price) * parseFlexibleNumber(quantity, 1)) : "")}
+            onChange={(v) => {
+              setPrice(String(v));
+              setQuantity("1");
+              setAmount(String(v));
+            }}
+            onApply={(v) => {
+              setAmount(String(v));
+              setPrice(String(v));
+              setQuantity("1");
+              setUseCalculator(false);
+              toast.success(`Importe aplicado: $${v.toFixed(2)}`);
+            }}
+            applyLabel="Usar este importe"
+          />
         ) : (
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
