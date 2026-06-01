@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import QRReceiptScanner from "@/components/QRReceiptScanner";
 import { exportToCSV, exportToExcel, exportToPDF, type ExportTransaction } from "@/lib/export-transactions";
 import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
+import { FullCalculator } from "@/components/FullCalculator";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
