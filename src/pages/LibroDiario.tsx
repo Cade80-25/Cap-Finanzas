@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/select";
 import { ContextualHelp, AccountSelectionHelp } from "@/components/ContextualHelp";
 import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
+import { FullCalculator } from "@/components/FullCalculator";
 
 type Transaction = JournalTransaction;
 
