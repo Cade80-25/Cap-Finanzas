@@ -186,41 +186,47 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         </div>
 
         {useCalculator ? (
-          <>
-            <FullCalculator
-              initialValue={amount || (price ? String(parseFlexibleNumber(price) * parseFlexibleNumber(quantity, 1)) : "")}
-              onChange={(v) => {
-                setPrice(String(v));
-                setQuantity("1");
-                setAmount(String(v));
-              }}
-              onApply={(v, expr) => {
-                setAmount(String(v));
-                setPrice(String(v));
-                setQuantity("1");
-                setCalcExpression(expr || "");
-                setUseCalculator(false);
-                toast.success(
-                  expr ? `Importe aplicado: ${expr}` : `Importe aplicado: $${v.toFixed(2)}`
-                );
-              }}
-              applyLabel="Usar este importe"
-            />
-            {calcExpression && (
-              <p className="text-xs text-muted-foreground">
-                Cálculo guardado: <span className="font-mono">{calcExpression}</span>
-              </p>
-            )}
-          </>
+          <FullCalculator
+            initialValue={amount || (price ? String(parseFlexibleNumber(price) * parseFlexibleNumber(quantity, 1)) : "")}
+            onChange={(v) => {
+              setPrice(String(v));
+              setQuantity("1");
+              setAmount(String(v));
+            }}
+            onApply={(v, expr) => {
+              setAmount(String(v));
+              setPrice(String(v));
+              setQuantity("1");
+              setCalcExpression(expr || "");
+              setUseCalculator(false);
+              toast.success(
+                expr ? `Importe aplicado: ${expr}` : `Importe aplicado: $${v.toFixed(2)}`
+              );
+            }}
+            applyLabel="Usar este importe"
+          />
         ) : (
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
             <Input
               type="text" inputMode="decimal" autoComplete="off"
-              value={amount} onChange={e => setAmount(e.target.value)}
+              value={amount}
+              onChange={e => { setAmount(e.target.value); if (calcExpression) setCalcExpression(""); }}
               placeholder="0.00" className="pl-7 text-lg font-semibold h-12" autoFocus
             />
           </div>
+        )}
+        {calcExpression && (
+          <p className="text-xs text-muted-foreground">
+            Cálculo guardado: <span className="font-mono">{calcExpression}</span>
+            <button
+              type="button"
+              className="ml-2 underline hover:text-foreground"
+              onClick={() => setCalcExpression("")}
+            >
+              quitar
+            </button>
+          </p>
         )}
       </div>
 
