@@ -386,6 +386,7 @@ export function SimpleTransactionsView() {
         amount: tx.credit > 0 ? tx.credit : tx.debit,
         price: tx.price, quantity: tx.quantity,
         creditor: tx.creditor, notes: tx.notes,
+        calcExpression: tx.calcExpression,
       }))
       .sort((a, b) => b.date.localeCompare(a.date)),
     [transactions]
