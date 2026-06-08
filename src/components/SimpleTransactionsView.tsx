@@ -421,7 +421,7 @@ export function SimpleTransactionsView() {
       if (!q) return true;
       const cat = getCategoryLabel(t.category, t.subcategory);
       const haystack = [
-        t.description, t.creditor, t.notes, t.date,
+        t.description, t.creditor, t.notes, t.date, t.calcExpression,
         cat.label, String(t.amount), String(t.price ?? ""), String(t.quantity ?? ""),
       ].filter(Boolean).join(" ").toLowerCase();
       return haystack.includes(q);
