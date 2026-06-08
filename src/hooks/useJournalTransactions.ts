@@ -15,6 +15,8 @@ export type JournalTransaction = {
   creditor?: string;
   notes?: string;
   subcategory?: string;
+  /** Human-readable calculator expression that produced the amount (e.g. "1050 ÷ 3 = 350"). */
+  calcExpression?: string;
 };
 
 // KEY ÚNICA Y DEFINITIVA para todas las transacciones
