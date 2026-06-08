@@ -119,6 +119,7 @@ export default function LibroDiario() {
   const [quantity, setQuantity] = useState<string>("1");
   const [creditor, setCreditor] = useState("");
   const [txNotes, setTxNotes] = useState("");
+  const [calcExpression, setCalcExpression] = useState<string>("");
   const [showExtraFields, setShowExtraFields] = useState(false);
   const [validationSuggestions, setValidationSuggestions] = useState<
     Array<{
@@ -141,6 +142,7 @@ export default function LibroDiario() {
     setQuantity("1");
     setCreditor("");
     setTxNotes("");
+    setCalcExpression("");
     setShowExtraFields(false);
     setDate("");
     setEditingTransaction(null);
@@ -169,6 +171,7 @@ export default function LibroDiario() {
     setQuantity(transaction.quantity ? String(transaction.quantity) : "1");
     setCreditor(transaction.creditor || "");
     setTxNotes(transaction.notes || "");
+    setCalcExpression(transaction.calcExpression || "");
     setShowExtraFields(!!(transaction.creditor || transaction.notes));
     setOpen(true);
   };
@@ -215,6 +218,7 @@ export default function LibroDiario() {
       quantity: parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
       creditor: creditor || undefined,
       notes: txNotes || undefined,
+      calcExpression: calcExpression || undefined,
     };
 
     if (editingTransaction) {
@@ -336,7 +340,7 @@ export default function LibroDiario() {
                 </div>
                 <FullCalculator
                   initialValue={debit || credit || ""}
-                  onApply={(v) => {
+                  onApply={(v, expr) => {
                     if (debit === 0 && credit === 0) {
                       setDebit(v);
                     } else if (debit > 0) {
@@ -344,10 +348,20 @@ export default function LibroDiario() {
                     } else {
                       setCredit(v);
                     }
-                    toast.success(`Importe aplicado: $${v.toFixed(2)}`);
+                    setCalcExpression(expr || "");
+                    toast.success(
+                      expr
+                        ? `Importe aplicado: ${expr}`
+                        : `Importe aplicado: $${v.toFixed(2)}`
+                    );
                   }}
                   applyLabel={debit > 0 || (debit === 0 && credit === 0) ? "Aplicar al Debe" : "Aplicar al Haber"}
                 />
+                {calcExpression && (
+                  <p className="text-xs text-muted-foreground">
+                    Cálculo guardado: <span className="font-mono">{calcExpression}</span>
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
