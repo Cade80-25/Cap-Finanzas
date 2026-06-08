@@ -868,6 +868,11 @@ export function SimpleTransactionsView() {
                           {tx.creditor && (<span className="text-muted-foreground">• {renderHighlighted(tx.creditor)}</span>)}
                         </div>
                         {tx.notes && (<p className="text-xs text-muted-foreground mt-0.5 truncate italic">📝 {renderHighlighted(tx.notes)}</p>)}
+                        {tx.calcExpression && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5 truncate font-mono" title={tx.calcExpression}>
+                            🧮 {renderHighlighted(tx.calcExpression)}
+                          </p>
+                        )}
                       </div>
                       <div className="text-right shrink-0">
                         <p className={`font-bold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
