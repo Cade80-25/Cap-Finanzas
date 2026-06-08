@@ -44,6 +44,7 @@ interface EditingTransaction {
   quantity?: number;
   creditor?: string;
   notes?: string;
+  calcExpression?: string;
 }
 
 interface QRPrefillData {
@@ -74,6 +75,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   const [date, setDate] = useState(editing?.date ?? qrPrefill?.date ?? new Date().toISOString().split("T")[0]);
   const [creditor, setCreditor] = useState(editing?.creditor ?? qrPrefill?.description ?? "");
   const [notes, setNotes] = useState(editing?.notes ?? "");
+  const [calcExpression, setCalcExpression] = useState<string>(editing?.calcExpression ?? "");
 
   const sum = useMemo(() => {
     if (useCalculator) {
