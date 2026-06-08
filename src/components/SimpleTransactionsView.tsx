@@ -128,6 +128,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
               quantity: useCalculator && parsedQuantity !== 1 ? parsedQuantity : undefined,
               creditor: creditor || undefined,
               notes: notes || undefined,
+              calcExpression: calcExpression || undefined,
             }
           : tx
       ));
@@ -142,6 +143,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         quantity: useCalculator && parsedQuantity !== 1 ? parsedQuantity : undefined,
         creditor: creditor || undefined,
         notes: notes || undefined,
+        calcExpression: calcExpression || undefined,
       };
       setTransactions([...transactions, newTransaction]);
       toast.success(type === "income" ? "Ingreso registrado" : "Gasto registrado");
@@ -184,22 +186,32 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         </div>
 
         {useCalculator ? (
-          <FullCalculator
-            initialValue={amount || (price ? String(parseFlexibleNumber(price) * parseFlexibleNumber(quantity, 1)) : "")}
-            onChange={(v) => {
-              setPrice(String(v));
-              setQuantity("1");
-              setAmount(String(v));
-            }}
-            onApply={(v) => {
-              setAmount(String(v));
-              setPrice(String(v));
-              setQuantity("1");
-              setUseCalculator(false);
-              toast.success(`Importe aplicado: $${v.toFixed(2)}`);
-            }}
-            applyLabel="Usar este importe"
-          />
+          <>
+            <FullCalculator
+              initialValue={amount || (price ? String(parseFlexibleNumber(price) * parseFlexibleNumber(quantity, 1)) : "")}
+              onChange={(v) => {
+                setPrice(String(v));
+                setQuantity("1");
+                setAmount(String(v));
+              }}
+              onApply={(v, expr) => {
+                setAmount(String(v));
+                setPrice(String(v));
+                setQuantity("1");
+                setCalcExpression(expr || "");
+                setUseCalculator(false);
+                toast.success(
+                  expr ? `Importe aplicado: ${expr}` : `Importe aplicado: $${v.toFixed(2)}`
+                );
+              }}
+              applyLabel="Usar este importe"
+            />
+            {calcExpression && (
+              <p className="text-xs text-muted-foreground">
+                Cálculo guardado: <span className="font-mono">{calcExpression}</span>
+              </p>
+            )}
+          </>
         ) : (
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
