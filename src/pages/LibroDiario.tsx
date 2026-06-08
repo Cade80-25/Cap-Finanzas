@@ -490,6 +490,7 @@ export default function LibroDiario() {
                   <TableHead>Fecha</TableHead>
                   <TableHead>Cuenta</TableHead>
                   <TableHead>Descripción</TableHead>
+                  <TableHead>Cálculo</TableHead>
                   <TableHead data-tutorial="diario-debe-haber" className="text-right">Debe</TableHead>
                   <TableHead className="text-right">Haber</TableHead>
                   <TableHead className="text-right w-24">Acciones</TableHead>
@@ -501,6 +502,9 @@ export default function LibroDiario() {
                     <TableCell className="font-medium">{transaction.date}</TableCell>
                     <TableCell>{transaction.account}</TableCell>
                     <TableCell>{transaction.description}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {transaction.calcExpression || "—"}
+                    </TableCell>
                     <TableCell className="text-right font-medium text-success">
                       {transaction.debit > 0 ? `$${transaction.debit.toFixed(2)}` : "-"}
                     </TableCell>
