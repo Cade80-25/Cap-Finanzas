@@ -44,6 +44,7 @@ interface EditingTransaction {
   quantity?: number;
   creditor?: string;
   notes?: string;
+  calcExpression?: string;
 }
 
 interface QRPrefillData {
@@ -74,6 +75,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   const [date, setDate] = useState(editing?.date ?? qrPrefill?.date ?? new Date().toISOString().split("T")[0]);
   const [creditor, setCreditor] = useState(editing?.creditor ?? qrPrefill?.description ?? "");
   const [notes, setNotes] = useState(editing?.notes ?? "");
+  const [calcExpression, setCalcExpression] = useState<string>(editing?.calcExpression ?? "");
 
   const sum = useMemo(() => {
     if (useCalculator) {
@@ -126,6 +128,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
               quantity: useCalculator && parsedQuantity !== 1 ? parsedQuantity : undefined,
               creditor: creditor || undefined,
               notes: notes || undefined,
+              calcExpression: calcExpression || undefined,
             }
           : tx
       ));
@@ -140,6 +143,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         quantity: useCalculator && parsedQuantity !== 1 ? parsedQuantity : undefined,
         creditor: creditor || undefined,
         notes: notes || undefined,
+        calcExpression: calcExpression || undefined,
       };
       setTransactions([...transactions, newTransaction]);
       toast.success(type === "income" ? "Ingreso registrado" : "Gasto registrado");
@@ -189,12 +193,15 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
               setQuantity("1");
               setAmount(String(v));
             }}
-            onApply={(v) => {
+            onApply={(v, expr) => {
               setAmount(String(v));
               setPrice(String(v));
               setQuantity("1");
+              setCalcExpression(expr || "");
               setUseCalculator(false);
-              toast.success(`Importe aplicado: $${v.toFixed(2)}`);
+              toast.success(
+                expr ? `Importe aplicado: ${expr}` : `Importe aplicado: $${v.toFixed(2)}`
+              );
             }}
             applyLabel="Usar este importe"
           />
@@ -203,10 +210,23 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
             <Input
               type="text" inputMode="decimal" autoComplete="off"
-              value={amount} onChange={e => setAmount(e.target.value)}
+              value={amount}
+              onChange={e => { setAmount(e.target.value); if (calcExpression) setCalcExpression(""); }}
               placeholder="0.00" className="pl-7 text-lg font-semibold h-12" autoFocus
             />
           </div>
+        )}
+        {calcExpression && (
+          <p className="text-xs text-muted-foreground">
+            Cálculo guardado: <span className="font-mono">{calcExpression}</span>
+            <button
+              type="button"
+              className="ml-2 underline hover:text-foreground"
+              onClick={() => setCalcExpression("")}
+            >
+              quitar
+            </button>
+          </p>
         )}
       </div>
 
@@ -366,6 +386,7 @@ export function SimpleTransactionsView() {
         amount: tx.credit > 0 ? tx.credit : tx.debit,
         price: tx.price, quantity: tx.quantity,
         creditor: tx.creditor, notes: tx.notes,
+        calcExpression: tx.calcExpression,
       }))
       .sort((a, b) => b.date.localeCompare(a.date)),
     [transactions]
@@ -400,7 +421,7 @@ export function SimpleTransactionsView() {
       if (!q) return true;
       const cat = getCategoryLabel(t.category, t.subcategory);
       const haystack = [
-        t.description, t.creditor, t.notes, t.date,
+        t.description, t.creditor, t.notes, t.date, t.calcExpression,
         cat.label, String(t.amount), String(t.price ?? ""), String(t.quantity ?? ""),
       ].filter(Boolean).join(" ").toLowerCase();
       return haystack.includes(q);
@@ -847,6 +868,11 @@ export function SimpleTransactionsView() {
                           {tx.creditor && (<span className="text-muted-foreground">• {renderHighlighted(tx.creditor)}</span>)}
                         </div>
                         {tx.notes && (<p className="text-xs text-muted-foreground mt-0.5 truncate italic">📝 {renderHighlighted(tx.notes)}</p>)}
+                        {tx.calcExpression && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5 truncate font-mono" title={tx.calcExpression}>
+                            🧮 {renderHighlighted(tx.calcExpression)}
+                          </p>
+                        )}
                       </div>
                       <div className="text-right shrink-0">
                         <p className={`font-bold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>

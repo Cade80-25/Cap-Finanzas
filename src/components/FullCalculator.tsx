@@ -8,20 +8,30 @@ type Op = "+" | "-" | "×" | "÷" | null;
 interface FullCalculatorProps {
   /** Optional initial value loaded into the display. */
   initialValue?: number | string;
-  /** Called with the numeric result when the user taps "Aplicar". */
-  onApply?: (value: number) => void;
+  /**
+   * Called when the user taps "Aplicar".
+   * Second argument is the human-readable expression (e.g. "1050 ÷ 3 = 350")
+   * when one was computed via `=`, otherwise an empty string.
+   */
+  onApply?: (value: number, expression: string) => void;
   /** Label for the apply action. Defaults to "Aplicar". */
   applyLabel?: string;
   /** Hide the apply button (useful when value is read live via onChange). */
   hideApply?: boolean;
-  /** Called on every display change with the parsed number. */
-  onChange?: (value: number) => void;
+  /**
+   * Called on every display change with the parsed number and the current
+   * expression (empty until the user finishes with `=`).
+   */
+  onChange?: (value: number, expression: string) => void;
   className?: string;
 }
 
 /**
  * Full 4-function calculator (+, −, ×, ÷) with %, sign toggle, decimal, clear
  * and backspace. Self-contained — no eval, no external deps.
+ *
+ * Tracks the full operation chain so callers can persist *how* the result
+ * was reached (e.g. "1050 ÷ 3 = 350"), not just the final number.
  */
 export function FullCalculator({
   initialValue,
@@ -36,38 +46,57 @@ export function FullCalculator({
   const [prev, setPrev] = useState<number | null>(null);
   const [op, setOp] = useState<Op>(null);
   const [waiting, setWaiting] = useState<boolean>(false);
+  /** Running chain text, e.g. "1050 ÷" or "10 + 5 ×". */
+  const [chain, setChain] = useState<string>("");
+  /** Final expression after `=`, e.g. "1050 ÷ 3 = 350". */
+  const [finalExpr, setFinalExpr] = useState<string>("");
 
   useEffect(() => {
-    onChange?.(parseFloat(display) || 0);
-  }, [display, onChange]);
+    onChange?.(parseFloat(display) || 0, finalExpr);
+  }, [display, finalExpr, onChange]);
 
   const inputDigit = useCallback((d: string) => {
     setDisplay((cur) => {
       if (waiting) {
         setWaiting(false);
+        // Starting fresh entry after a completed `=` resets the chain.
+        if (finalExpr) {
+          setFinalExpr("");
+          setChain("");
+          setPrev(null);
+          setOp(null);
+        }
         return d;
       }
       if (cur === "0") return d;
       if (cur.replace(/[^0-9]/g, "").length >= 14) return cur;
       return cur + d;
     });
-  }, [waiting]);
+  }, [waiting, finalExpr]);
 
   const inputDot = useCallback(() => {
     setDisplay((cur) => {
       if (waiting) {
         setWaiting(false);
+        if (finalExpr) {
+          setFinalExpr("");
+          setChain("");
+          setPrev(null);
+          setOp(null);
+        }
         return "0.";
       }
       return cur.includes(".") ? cur : cur + ".";
     });
-  }, [waiting]);
+  }, [waiting, finalExpr]);
 
   const clearAll = useCallback(() => {
     setDisplay("0");
     setPrev(null);
     setOp(null);
     setWaiting(false);
+    setChain("");
+    setFinalExpr("");
   }, []);
 
   const backspace = useCallback(() => {
@@ -101,31 +130,47 @@ export function FullCalculator({
 
   const setOperator = useCallback((next: Exclude<Op, null>) => {
     const current = parseFloat(display) || 0;
+    // Operator after `=`: continue from the result.
+    if (finalExpr) {
+      setFinalExpr("");
+      setChain(`${formatResult(current)} ${next}`);
+      setPrev(current);
+      setOp(next);
+      setWaiting(true);
+      return;
+    }
     if (prev == null) {
       setPrev(current);
+      setChain(`${formatResult(current)} ${next}`);
     } else if (!waiting && op) {
       const result = compute(prev, current, op);
       setPrev(result);
       setDisplay(formatResult(result));
+      setChain((c) => `${c} ${formatResult(current)} ${next}`);
+    } else {
+      // Operator after operator — swap the last operator.
+      setChain((c) => c.replace(/[+\-×÷]\s*$/, next));
     }
     setOp(next);
     setWaiting(true);
-  }, [display, prev, op, waiting]);
+  }, [display, prev, op, waiting, finalExpr]);
 
   const equals = useCallback(() => {
     if (op == null || prev == null) return;
     const current = parseFloat(display) || 0;
     const result = compute(prev, current, op);
+    const expr = `${chain} ${formatResult(current)} = ${formatResult(result)}`.trim();
     setDisplay(formatResult(result));
+    setFinalExpr(expr);
     setPrev(null);
     setOp(null);
     setWaiting(true);
-  }, [op, prev, display]);
+    setChain("");
+  }, [op, prev, display, chain]);
 
   // Keyboard support
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Avoid hijacking when typing in other inputs outside this calc
       const target = e.target as HTMLElement | null;
       if (target && target.closest("[data-fullcalc-root]") == null) return;
       if (/^[0-9]$/.test(e.key)) { e.preventDefault(); inputDigit(e.key); return; }
@@ -142,15 +187,19 @@ export function FullCalculator({
     return () => window.removeEventListener("keydown", handler);
   }, [inputDigit, inputDot, setOperator, equals, backspace, clearAll, percent]);
 
-  const expressionLine = prev != null && op
-    ? `${formatResult(prev)} ${op}${waiting ? "" : " " + display}`
-    : "";
+  const liveExpression = finalExpr
+    ? finalExpr
+    : prev != null && op
+      ? `${chain}${waiting ? "" : " " + display}`
+      : "";
 
   return (
     <div data-fullcalc-root className={cn("space-y-3 rounded-md border bg-muted/30 p-3", className)}>
       {/* Display */}
       <div className="rounded-md border bg-background px-3 py-2 text-right">
-        <div className="text-xs text-muted-foreground h-4 truncate">{expressionLine || "\u00A0"}</div>
+        <div className="text-xs text-muted-foreground h-4 truncate" title={liveExpression}>
+          {liveExpression || "\u00A0"}
+        </div>
         <div className="text-2xl font-bold tabular-nums truncate" aria-live="polite">
           {display}
         </div>
@@ -191,7 +240,7 @@ export function FullCalculator({
           <Button
             type="button"
             size="sm"
-            onClick={() => onApply(parseFloat(display) || 0)}
+            onClick={() => onApply(parseFloat(display) || 0, finalExpr)}
           >
             {applyLabel}
           </Button>
@@ -238,7 +287,6 @@ function CalcButton({
 
 function formatResult(n: number): string {
   if (!isFinite(n)) return "0";
-  // Trim trailing zeros while limiting precision
   const fixed = Math.abs(n) < 1e-10 ? "0" : Number(n.toPrecision(12)).toString();
   return fixed;
 }
