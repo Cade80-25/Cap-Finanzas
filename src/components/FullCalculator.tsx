@@ -221,7 +221,9 @@ export function FullCalculator({
       {/* Keypad */}
       <div className="grid grid-cols-4 gap-1.5">
         <CalcButton variant="muted" onClick={clearAll}>C</CalcButton>
-        <CalcButton variant="muted" onClick={toggleSign} aria-label="Cambiar signo">±</CalcButton>
+        <CalcButton variant="muted" onClick={backspace} aria-label="Borrar último dígito">
+          <Delete className="h-5 w-5 mx-auto" />
+        </CalcButton>
         <CalcButton variant="muted" onClick={percent} aria-label="Porcentaje">%</CalcButton>
         <CalcButton variant="op" onClick={() => setOperator("÷")} active={op === "÷"}>÷</CalcButton>
 
