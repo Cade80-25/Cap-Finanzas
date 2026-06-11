@@ -242,15 +242,16 @@ export function FullCalculator({
         <CalcButton onClick={() => inputDigit("3")}>3</CalcButton>
         <CalcButton variant="op" onClick={() => setOperator("+")} active={op === "+"}>+</CalcButton>
 
-        <CalcButton onClick={() => inputDigit("0")} className="col-span-2">0</CalcButton>
+        <CalcButton variant="muted" onClick={toggleSign} aria-label="Cambiar signo">±</CalcButton>
+        <CalcButton onClick={() => inputDigit("0")}>0</CalcButton>
         <CalcButton onClick={inputDot}>.</CalcButton>
         <CalcButton variant="primary" onClick={equals} aria-label="Igual">=</CalcButton>
       </div>
 
-      <div className="flex items-center justify-between gap-2">
-        <Button type="button" variant="ghost" size="sm" className="gap-1 text-xs" onClick={backspace}>
-          <Delete className="h-3.5 w-3.5" /> Borrar
-        </Button>
+      <div className="flex items-center justify-end gap-2">
+        <p className="mr-auto text-[10px] text-muted-foreground hidden sm:block">
+          Tip: usa el teclado (0–9, + − × ÷, Enter, ⌫)
+        </p>
         {!hideApply && onApply && (
           <Button
             type="button"
