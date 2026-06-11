@@ -168,18 +168,31 @@ export function FullCalculator({
     setChain("");
   }, [op, prev, display, chain]);
 
-  // Keyboard support
+  // Keyboard support — works with the physical keyboard (PC) and external/soft
+  // keyboards on mobile. Active when the calculator's root contains focus OR
+  // when no editable element is focused (so the user can just type after
+  // opening the calculator without tapping it first).
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (target && target.closest("[data-fullcalc-root]") == null) return;
+      const root = document.querySelector("[data-fullcalc-root]") as HTMLElement | null;
+      if (!root) return;
+      const active = document.activeElement as HTMLElement | null;
+      const isEditable =
+        active &&
+        active !== document.body &&
+        !root.contains(active) &&
+        (active.tagName === "INPUT" ||
+          active.tagName === "TEXTAREA" ||
+          active.tagName === "SELECT" ||
+          active.isContentEditable);
+      if (isEditable) return;
       if (/^[0-9]$/.test(e.key)) { e.preventDefault(); inputDigit(e.key); return; }
-      if (e.key === ".") { e.preventDefault(); inputDot(); return; }
+      if (e.key === "." || e.key === ",") { e.preventDefault(); inputDot(); return; }
       if (e.key === "+" || e.key === "-") { e.preventDefault(); setOperator(e.key as "+"|"-"); return; }
       if (e.key === "*" || e.key.toLowerCase() === "x") { e.preventDefault(); setOperator("×"); return; }
       if (e.key === "/") { e.preventDefault(); setOperator("÷"); return; }
       if (e.key === "Enter" || e.key === "=") { e.preventDefault(); equals(); return; }
-      if (e.key === "Backspace") { e.preventDefault(); backspace(); return; }
+      if (e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); backspace(); return; }
       if (e.key === "Escape") { e.preventDefault(); clearAll(); return; }
       if (e.key === "%") { e.preventDefault(); percent(); return; }
     };
@@ -208,7 +221,9 @@ export function FullCalculator({
       {/* Keypad */}
       <div className="grid grid-cols-4 gap-1.5">
         <CalcButton variant="muted" onClick={clearAll}>C</CalcButton>
-        <CalcButton variant="muted" onClick={toggleSign} aria-label="Cambiar signo">±</CalcButton>
+        <CalcButton variant="muted" onClick={backspace} aria-label="Borrar último dígito">
+          <Delete className="h-5 w-5 mx-auto" />
+        </CalcButton>
         <CalcButton variant="muted" onClick={percent} aria-label="Porcentaje">%</CalcButton>
         <CalcButton variant="op" onClick={() => setOperator("÷")} active={op === "÷"}>÷</CalcButton>
 
@@ -227,15 +242,16 @@ export function FullCalculator({
         <CalcButton onClick={() => inputDigit("3")}>3</CalcButton>
         <CalcButton variant="op" onClick={() => setOperator("+")} active={op === "+"}>+</CalcButton>
 
-        <CalcButton onClick={() => inputDigit("0")} className="col-span-2">0</CalcButton>
+        <CalcButton variant="muted" onClick={toggleSign} aria-label="Cambiar signo">±</CalcButton>
+        <CalcButton onClick={() => inputDigit("0")}>0</CalcButton>
         <CalcButton onClick={inputDot}>.</CalcButton>
         <CalcButton variant="primary" onClick={equals} aria-label="Igual">=</CalcButton>
       </div>
 
-      <div className="flex items-center justify-between gap-2">
-        <Button type="button" variant="ghost" size="sm" className="gap-1 text-xs" onClick={backspace}>
-          <Delete className="h-3.5 w-3.5" /> Borrar
-        </Button>
+      <div className="flex items-center justify-end gap-2">
+        <p className="mr-auto text-[10px] text-muted-foreground hidden sm:block">
+          Tip: usa el teclado (0–9, + − × ÷, Enter, ⌫)
+        </p>
         {!hideApply && onApply && (
           <Button
             type="button"
