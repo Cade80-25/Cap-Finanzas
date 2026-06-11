@@ -168,18 +168,31 @@ export function FullCalculator({
     setChain("");
   }, [op, prev, display, chain]);
 
-  // Keyboard support
+  // Keyboard support — works with the physical keyboard (PC) and external/soft
+  // keyboards on mobile. Active when the calculator's root contains focus OR
+  // when no editable element is focused (so the user can just type after
+  // opening the calculator without tapping it first).
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (target && target.closest("[data-fullcalc-root]") == null) return;
+      const root = document.querySelector("[data-fullcalc-root]") as HTMLElement | null;
+      if (!root) return;
+      const active = document.activeElement as HTMLElement | null;
+      const isEditable =
+        active &&
+        active !== document.body &&
+        !root.contains(active) &&
+        (active.tagName === "INPUT" ||
+          active.tagName === "TEXTAREA" ||
+          active.tagName === "SELECT" ||
+          active.isContentEditable);
+      if (isEditable) return;
       if (/^[0-9]$/.test(e.key)) { e.preventDefault(); inputDigit(e.key); return; }
-      if (e.key === ".") { e.preventDefault(); inputDot(); return; }
+      if (e.key === "." || e.key === ",") { e.preventDefault(); inputDot(); return; }
       if (e.key === "+" || e.key === "-") { e.preventDefault(); setOperator(e.key as "+"|"-"); return; }
       if (e.key === "*" || e.key.toLowerCase() === "x") { e.preventDefault(); setOperator("×"); return; }
       if (e.key === "/") { e.preventDefault(); setOperator("÷"); return; }
       if (e.key === "Enter" || e.key === "=") { e.preventDefault(); equals(); return; }
-      if (e.key === "Backspace") { e.preventDefault(); backspace(); return; }
+      if (e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); backspace(); return; }
       if (e.key === "Escape") { e.preventDefault(); clearAll(); return; }
       if (e.key === "%") { e.preventDefault(); percent(); return; }
     };
