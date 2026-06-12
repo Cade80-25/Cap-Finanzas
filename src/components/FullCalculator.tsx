@@ -219,33 +219,33 @@ export function FullCalculator({
       </div>
 
       {/* Keypad */}
-      <div className="grid grid-cols-4 gap-1.5">
-        <CalcButton variant="muted" onClick={clearAll}>C</CalcButton>
+      <div role="group" aria-label="Teclado de calculadora" className="grid grid-cols-4 gap-1.5">
+        <CalcButton variant="muted" onClick={clearAll} aria-label="Limpiar todo">C</CalcButton>
         <CalcButton variant="muted" onClick={backspace} aria-label="Borrar último dígito">
-          <Delete className="h-5 w-5 mx-auto" />
+          <Delete className="h-5 w-5 mx-auto" aria-hidden="true" />
         </CalcButton>
         <CalcButton variant="muted" onClick={percent} aria-label="Porcentaje">%</CalcButton>
-        <CalcButton variant="op" onClick={() => setOperator("÷")} active={op === "÷"}>÷</CalcButton>
+        <CalcButton variant="op" onClick={() => setOperator("÷")} active={op === "÷"} aria-label="Dividir" aria-pressed={op === "÷"}>÷</CalcButton>
 
-        <CalcButton onClick={() => inputDigit("7")}>7</CalcButton>
-        <CalcButton onClick={() => inputDigit("8")}>8</CalcButton>
-        <CalcButton onClick={() => inputDigit("9")}>9</CalcButton>
-        <CalcButton variant="op" onClick={() => setOperator("×")} active={op === "×"}>×</CalcButton>
+        <CalcButton onClick={() => inputDigit("7")} aria-label="Siete">7</CalcButton>
+        <CalcButton onClick={() => inputDigit("8")} aria-label="Ocho">8</CalcButton>
+        <CalcButton onClick={() => inputDigit("9")} aria-label="Nueve">9</CalcButton>
+        <CalcButton variant="op" onClick={() => setOperator("×")} active={op === "×"} aria-label="Multiplicar" aria-pressed={op === "×"}>×</CalcButton>
 
-        <CalcButton onClick={() => inputDigit("4")}>4</CalcButton>
-        <CalcButton onClick={() => inputDigit("5")}>5</CalcButton>
-        <CalcButton onClick={() => inputDigit("6")}>6</CalcButton>
-        <CalcButton variant="op" onClick={() => setOperator("-")} active={op === "-"}>−</CalcButton>
+        <CalcButton onClick={() => inputDigit("4")} aria-label="Cuatro">4</CalcButton>
+        <CalcButton onClick={() => inputDigit("5")} aria-label="Cinco">5</CalcButton>
+        <CalcButton onClick={() => inputDigit("6")} aria-label="Seis">6</CalcButton>
+        <CalcButton variant="op" onClick={() => setOperator("-")} active={op === "-"} aria-label="Restar" aria-pressed={op === "-"}>−</CalcButton>
 
-        <CalcButton onClick={() => inputDigit("1")}>1</CalcButton>
-        <CalcButton onClick={() => inputDigit("2")}>2</CalcButton>
-        <CalcButton onClick={() => inputDigit("3")}>3</CalcButton>
-        <CalcButton variant="op" onClick={() => setOperator("+")} active={op === "+"}>+</CalcButton>
+        <CalcButton onClick={() => inputDigit("1")} aria-label="Uno">1</CalcButton>
+        <CalcButton onClick={() => inputDigit("2")} aria-label="Dos">2</CalcButton>
+        <CalcButton onClick={() => inputDigit("3")} aria-label="Tres">3</CalcButton>
+        <CalcButton variant="op" onClick={() => setOperator("+")} active={op === "+"} aria-label="Sumar" aria-pressed={op === "+"}>+</CalcButton>
 
         <CalcButton variant="muted" onClick={toggleSign} aria-label="Cambiar signo">±</CalcButton>
-        <CalcButton onClick={() => inputDigit("0")}>0</CalcButton>
-        <CalcButton onClick={inputDot}>.</CalcButton>
-        <CalcButton variant="primary" onClick={equals} aria-label="Igual">=</CalcButton>
+        <CalcButton onClick={() => inputDigit("0")} aria-label="Cero">0</CalcButton>
+        <CalcButton onClick={inputDot} aria-label="Punto decimal">.</CalcButton>
+        <CalcButton variant="primary" onClick={equals} aria-label="Calcular resultado">=</CalcButton>
       </div>
 
       <div className="flex items-center justify-end gap-2">
@@ -286,7 +286,7 @@ function CalcButton({
       onClick={onClick}
       className={cn(
         "h-11 rounded-md text-base font-semibold transition-colors select-none",
-        "active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         variant === "default" && "bg-background border hover:bg-accent",
         variant === "muted" && "bg-muted text-muted-foreground hover:bg-muted/70",
         variant === "op" && "bg-secondary text-secondary-foreground hover:bg-secondary/80",
