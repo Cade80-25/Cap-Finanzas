@@ -286,7 +286,7 @@ function CalcButton({
       onClick={onClick}
       className={cn(
         "h-11 rounded-md text-base font-semibold transition-colors select-none",
-        "active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         variant === "default" && "bg-background border hover:bg-accent",
         variant === "muted" && "bg-muted text-muted-foreground hover:bg-muted/70",
         variant === "op" && "bg-secondary text-secondary-foreground hover:bg-secondary/80",
