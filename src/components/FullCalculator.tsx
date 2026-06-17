@@ -242,8 +242,7 @@ export function FullCalculator({
         <CalcButton onClick={() => inputDigit("3")} aria-label="Tres">3</CalcButton>
         <CalcButton variant="op" onClick={() => setOperator("+")} active={op === "+"} aria-label="Sumar" aria-pressed={op === "+"}>+</CalcButton>
 
-        <CalcButton variant="muted" onClick={toggleSign} aria-label="Cambiar signo">±</CalcButton>
-        <CalcButton onClick={() => inputDigit("0")} aria-label="Cero">0</CalcButton>
+        <CalcButton onClick={() => inputDigit("0")} aria-label="Cero" className="col-span-2">0</CalcButton>
         <CalcButton onClick={inputDot} aria-label="Punto decimal">.</CalcButton>
         <CalcButton variant="primary" onClick={equals} aria-label="Calcular resultado">=</CalcButton>
       </div>
