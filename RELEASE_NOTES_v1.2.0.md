@@ -53,6 +53,15 @@ Reemplazada la antigua "calculadora de Precio × Cantidad" por una **calculadora
   - Debe / Haber (Libro Diario tradicional), según corresponda.
 - Componente reutilizable `FullCalculator` en `src/components/FullCalculator.tsx`.
 
+## ⚡ Rendimiento y arranque más rápido (NUEVO)
+
+- **Code-splitting de vendors** (`react`, `radix`, `lucide`, `recharts`, `exceljs`, `pdfjs`, `supabase`, `tanstack`, `date-fns`) → chunks más pequeños, mejor caché y descarga paralela.
+- **Eliminación de `console.log`/`debugger` en producción** vía esbuild → bundles más livianos.
+- **Fuente Inter cargada de forma no bloqueante** (preload + swap) → primer render perceptible más rápido.
+- **Google Analytics y Service Worker desactivados en `file://`** (Electron) → menos requests fallidos al abrir la app de escritorio.
+- **Electron**: ventana con `show: false` + `ready-to-show` y `backgroundColor` oscuro → se elimina el destello blanco al abrir; `backgroundThrottling: false` mantiene fluidez al perder foco.
+- `build.target: es2020`, `cssCodeSplit` y `chunkSizeWarningLimit` ajustados.
+
 ## 🐛 Otros
 
 - Pequeños ajustes de copy en landing, FAQ y comparativa.
