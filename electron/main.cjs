@@ -6,13 +6,20 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1400,
     height: 900,
+    show: false, // Mostrar solo cuando esté listo para evitar el flash blanco y acelerar la percepción de carga
+    backgroundColor: '#1a1a2e',
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      backgroundThrottling: false, // Mantiene rendimiento aunque la ventana pierda foco
+      spellcheck: false,
       preload: path.join(__dirname, 'preload.cjs')
     }
   });
+
+  // Mostrar la ventana cuando el contenido esté listo (arranque visiblemente más rápido)
+  win.once('ready-to-show', () => win.show());
 
   // Oculta el menú nativo (File/Edit/View/...) por defecto, pero permite mostrarlo luego
   win.setMenuBarVisibility(false);
