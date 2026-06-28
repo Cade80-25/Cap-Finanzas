@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, HashRouter, Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import Layout from "./components/Layout";
 import LandingPage from "./pages/LandingPage";
 import { ThemeProvider } from "next-themes";
@@ -12,6 +12,7 @@ import { usePurchaseIssueNotifications } from "./hooks/usePurchaseIssueNotificat
 import { useTrialExpiryReminder } from "./hooks/useTrialExpiryReminder";
 import { WalletProvider } from "./contexts/WalletContext";
 import { DemoModeBanner } from "./components/DemoModeBanner";
+import { prefetchHotModules } from "./lib/prefetch-hot-modules";
 
 // Code-split: páginas cargadas bajo demanda para acelerar la primera carga
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -51,6 +52,10 @@ function NotificationProvider({ children }: { children: React.ReactNode }) {
   useNotificationGenerator();
   usePurchaseIssueNotifications();
   useTrialExpiryReminder();
+  useEffect(() => {
+    // Precalienta las rutas más usadas en idle para reducir TTI percibido.
+    prefetchHotModules();
+  }, []);
   return <>{children}</>;
 }
 
