@@ -24,6 +24,7 @@ import { FloatingAddAccount } from "@/components/FloatingAddAccount";
 import { FirstVisitTooltip } from "@/components/FirstVisitTooltip";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { prefetchHandlers } from "@/lib/route-prefetch";
 
 type NavItem = {
   name: string;
@@ -124,6 +125,7 @@ export default function Layout() {
                     <Link
                       key={item.name}
                       to={item.href}
+                      {...prefetchHandlers(item.href)}
                       className={cn(
                         "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                         isActive

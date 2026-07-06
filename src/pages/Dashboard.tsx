@@ -10,6 +10,7 @@ import { ContextualHelp, EmptyStateHelp } from "@/components/ContextualHelp";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { WeeklySummaryCard } from "@/components/WeeklySummaryCard";
+import { prefetchHandlers } from "@/lib/route-prefetch";
 
 const exploreCards = [
   {
@@ -216,6 +217,7 @@ export default function Dashboard() {
               key={card.href}
               className="cursor-pointer group hover:shadow-medium transition-all duration-300 hover:-translate-y-0.5 border-border/60"
               onClick={() => navigate(card.href)}
+              {...prefetchHandlers(card.href)}
             >
               <CardContent className="p-4 flex flex-col items-center text-center gap-2">
                 <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
