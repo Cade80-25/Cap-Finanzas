@@ -77,7 +77,7 @@ export function ProfilePhotoUpload({
 
       const { error: uploadError } = await supabase.storage
         .from("profile-photos")
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, { upsert: false });
 
       if (uploadError) throw uploadError;
 
