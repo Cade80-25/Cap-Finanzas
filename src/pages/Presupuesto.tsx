@@ -32,6 +32,28 @@ import { toast } from "sonner";
 import { useAccountingData } from "@/hooks/useAccountingData";
 import { useBudgets, type BudgetItem } from "@/hooks/useBudgets";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+} from "recharts";
+
+const CHART_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--success))",
+  "hsl(var(--warning))",
+  "hsl(var(--destructive))",
+  "hsl(var(--accent))",
+  "hsl(var(--secondary))",
+];
 
 export default function Presupuesto() {
   const [open, setOpen] = useState(false);
