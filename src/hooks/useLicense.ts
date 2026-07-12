@@ -255,16 +255,14 @@ export function useLicense() {
     };
   }, []);
 
-  const pricing = { full: 10 };
+  const pricing = { full: 0 };
 
   const referralAccountBonus = Math.min(
     parseInt(localStorage.getItem("cap-finanzas-referral-count") || "0", 10),
     5,
   );
-  const accountSlots =
-    status === "trial" ? 3 : Math.min(5 + referralAccountBonus, 10);
-  const maxProfiles =
-    status === "active" ? ACTIVE_MAX_PROFILES : TRIAL_MAX_PROFILES;
+  const accountSlots = Math.min(5 + referralAccountBonus, 10);
+  const maxProfiles = ACTIVE_MAX_PROFILES;
 
   return {
     mode: licenseData.mode,
