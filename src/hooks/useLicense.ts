@@ -119,12 +119,8 @@ export function useLicense() {
     };
   }, [licenseData.trialStartDate]);
 
-  // Status: active requires a non-expired signed token
-  const status: LicenseStatus = useMemo(() => {
-    if (isTokenValid(token, installationId)) return "active";
-    if (trialInfo.isExpired) return "expired";
-    return "trial";
-  }, [token, installationId, trialInfo.isExpired]);
+  // App is fully free — everyone gets full access.
+  const status: LicenseStatus = "active";
 
   const isModeAvailable = useCallback(
     (_mode: LicenseMode): boolean =>
