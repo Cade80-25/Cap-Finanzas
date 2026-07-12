@@ -299,6 +299,63 @@ export default function Presupuesto() {
         </Card>
       </div>
 
+      {presupuestosConGastos.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Distribución del Presupuesto</CardTitle>
+              <CardDescription>Cómo se reparte tu límite mensual por categoría</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart>
+                  <Pie
+                    data={presupuestosConGastos.map((p) => ({ name: p.categoria, value: p.presupuesto }))}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={90}
+                    label={(entry) => entry.name}
+                  >
+                    {presupuestosConGastos.map((_, i) => (
+                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: number) => formatCurrency(Number(value))}
+                    contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Presupuestado vs Gastado</CardTitle>
+              <CardDescription>Compara tu límite con lo que ya llevas gastado</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={presupuestosConGastos.map((p) => ({ name: p.categoria, Presupuestado: p.presupuesto, Gastado: p.gastado }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                  <Tooltip
+                    formatter={(value: number) => formatCurrency(Number(value))}
+                    contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+                  />
+                  <Legend />
+                  <Bar dataKey="Presupuestado" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Gastado" fill="hsl(var(--destructive))" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <Card data-tutorial="presupuesto-lista">
         <CardHeader>
           <CardTitle>Presupuesto por Categoría</CardTitle>
