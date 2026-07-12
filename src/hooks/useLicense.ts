@@ -120,7 +120,7 @@ export function useLicense() {
   }, [licenseData.trialStartDate]);
 
   // App is fully free — everyone gets full access.
-  const status: LicenseStatus = "active";
+  const status = "active" as LicenseStatus;
 
   const isModeAvailable = useCallback(
     (_mode: LicenseMode): boolean =>
