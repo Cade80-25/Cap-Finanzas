@@ -148,7 +148,7 @@ export function ProfilePhotoUpload({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp"
         className="hidden"
         onChange={handleFileChange}
       />
