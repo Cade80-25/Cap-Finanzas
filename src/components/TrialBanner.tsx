@@ -8,12 +8,15 @@ import { ActivationDialog } from "./ActivationDialog";
 import { cn } from "@/lib/utils";
 
 export function TrialBanner() {
+  // App is fully free — no trial banner needed.
+  return null;
+  // eslint-disable-next-line no-unreachable
   const { status, trialInfo } = useLicense();
   const [dismissed, setDismissed] = useState(false);
   const [purchaseOpen, setPurchaseOpen] = useState(false);
   const [activationOpen, setActivationOpen] = useState(false);
 
-  if (status !== "trial" || dismissed) {
+  if (dismissed) {
     return null;
   }
 
