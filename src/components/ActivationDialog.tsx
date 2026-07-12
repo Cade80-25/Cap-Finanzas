@@ -117,7 +117,7 @@ export function ActivationDialog({ open, onOpenChange, onSuccess }: ActivationDi
 
         <div className="mt-4 text-center">
           <p className="text-xs text-muted-foreground">
-            ¿No tienes un código? Adquiere tu licencia por $10 USD y recibirás el código por correo.
+            Cap Finanzas ahora es completamente gratis. Ya no necesitas código para acceder.
           </p>
         </div>
       </DialogContent>

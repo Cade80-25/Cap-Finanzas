@@ -35,13 +35,26 @@ export function ProfilePhotoUpload({
     if (!file) return;
 
     const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const allowedExts = ["jpg", "jpeg", "png", "gif", "webp"];
+    const ext = (file.name.split(".").pop() || "").toLowerCase();
+
+    // Reject early by extension to avoid touching the network with bad files.
+    if (!allowedExts.includes(ext)) {
+      toast.error("Extensión no permitida. Solo JPG, PNG, GIF o WEBP");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    // MIME sniff from the browser — blocks files renamed to look like images.
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Solo se permiten imágenes JPG, PNG, GIF o WEBP");
+      toast.error("Tipo de archivo inválido. Solo se permiten imágenes JPG, PNG, GIF o WEBP");
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
       toast.error("La imagen no debe superar 5MB");
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
@@ -135,7 +148,7 @@ export function ProfilePhotoUpload({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/gif,image/webp,.jpg,.jpeg,.png,.gif,.webp"
         className="hidden"
         onChange={handleFileChange}
       />

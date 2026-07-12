@@ -119,12 +119,8 @@ export function useLicense() {
     };
   }, [licenseData.trialStartDate]);
 
-  // Status: active requires a non-expired signed token
-  const status: LicenseStatus = useMemo(() => {
-    if (isTokenValid(token, installationId)) return "active";
-    if (trialInfo.isExpired) return "expired";
-    return "trial";
-  }, [token, installationId, trialInfo.isExpired]);
+  // App is fully free — everyone gets full access.
+  const status = "active" as LicenseStatus;
 
   const isModeAvailable = useCallback(
     (_mode: LicenseMode): boolean =>
@@ -259,16 +255,14 @@ export function useLicense() {
     };
   }, []);
 
-  const pricing = { full: 10 };
+  const pricing = { full: 0 };
 
   const referralAccountBonus = Math.min(
     parseInt(localStorage.getItem("cap-finanzas-referral-count") || "0", 10),
     5,
   );
-  const accountSlots =
-    status === "trial" ? 3 : Math.min(5 + referralAccountBonus, 10);
-  const maxProfiles =
-    status === "active" ? ACTIVE_MAX_PROFILES : TRIAL_MAX_PROFILES;
+  const accountSlots = Math.min(5 + referralAccountBonus, 10);
+  const maxProfiles = ACTIVE_MAX_PROFILES;
 
   return {
     mode: licenseData.mode,
