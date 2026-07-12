@@ -114,12 +114,12 @@ const faqs = [
     answer: "La prueba de 30 días incluye acceso completo a todas las funciones: ambos modos, Tutor Educativo, Chat Financiero y Bolsas en Vivo.",
   },
   {
-    question: "¿Cómo recibo mi código de licencia?",
-    answer: "Después de completar tu pago de $10 USD por PayPal, recibirás tu código automáticamente por correo. También puedes recuperarlo desde la app.",
+    question: "¿Necesito una licencia o código?",
+    answer: "No. Cap Finanzas es 100% gratis. No necesitas registrarte, pagar, ni introducir códigos.",
   },
   {
     question: "¿Hay pagos mensuales o anuales?",
-    answer: "No. Es un pago único de $10 USD de por vida. Sin suscripciones ni costos ocultos.",
+    answer: "No. Es completamente gratis, sin suscripciones ni costos ocultos.",
   },
   {
     question: "¿Qué incluye la licencia?",
@@ -210,7 +210,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background">
       <SeoHead
         title="Cap Finanzas — Contabilidad personal offline y privada"
-        description="Software de finanzas personales y contabilidad 100% offline. Gastos, libros contables y tutor IA. Pago único $10 USD. Prueba gratis 30 días."
+        description="Software de finanzas personales y contabilidad 100% offline y totalmente gratis. Gastos, libros contables y tutor IA sin costo ni suscripciones."
         path="/landing"
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
@@ -381,9 +381,9 @@ export default function LandingPage() {
                 <CardTitle className="text-2xl">Cap Finanzas</CardTitle>
                 <CardDescription>Finanzas personales + Contabilidad profesional</CardDescription>
                 <div className="text-5xl font-bold mt-4 text-primary">
-                  $10 <span className="text-lg font-normal text-muted-foreground">USD</span>
+                  Gratis
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">Pago único · Para siempre</p>
+                <p className="text-sm text-muted-foreground mt-1">Sin costo · Para siempre</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-2">
@@ -395,7 +395,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <Button className="w-full" size="lg" onClick={() => setPurchaseOpen(true)}>
-                  Comprar por $10 USD <ArrowRight className="h-4 w-4 ml-1" />
+                  Empezar gratis <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </CardContent>
             </Card>
