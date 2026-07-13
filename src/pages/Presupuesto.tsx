@@ -433,6 +433,7 @@ export default function Presupuesto() {
               {presupuestosConGastos.map((item) => {
                 const porcentaje = item.presupuesto > 0 ? (item.gastado / item.presupuesto) * 100 : 0;
                 const excedido = item.gastado > item.presupuesto;
+                const cerca = !excedido && porcentaje >= 80;
                 const cuentaLabel = ACCOUNT_CATEGORIES[item.cuentaAsociada]?.label || item.cuentaAsociada;
                 const isEditing = editingId === item.id;
 
@@ -485,6 +486,12 @@ export default function Presupuesto() {
                               <Badge variant="destructive" className="text-xs">
                                 <AlertCircle className="h-3 w-3 mr-1" />
                                 Excedido
+                              </Badge>
+                            )}
+                            {cerca && (
+                              <Badge className="text-xs bg-warning text-warning-foreground hover:bg-warning">
+                                <AlertCircle className="h-3 w-3 mr-1" />
+                                Cerca del límite
                               </Badge>
                             )}
                           </div>
