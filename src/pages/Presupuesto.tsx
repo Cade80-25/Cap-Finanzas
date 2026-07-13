@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Target, TrendingUp, AlertCircle, CheckCircle, Plus, Trash2, Pencil, Save } from "lucide-react";
 import {
   Card,
@@ -63,28 +63,75 @@ export default function Presupuesto() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<{ categoria: string; presupuesto: string }>({ categoria: "", presupuesto: "" });
 
-  const { estadoResultados, ACCOUNT_CATEGORIES } = useAccountingData();
+  const { transactions, ACCOUNT_CATEGORIES } = useAccountingData();
   const { budgets: presupuestoData, setBudgets: setPresupuestoData } = useBudgets();
   const { formatCurrency } = useNumberFormat();
 
-  // Calcular gastos reales por cada presupuesto
-  const presupuestosConGastos = presupuestoData.map((item) => {
-    const gastoReal = estadoResultados.gastos.find((g) => {
-      const categoria = Object.entries(ACCOUNT_CATEGORIES).find(
-        ([key, val]) => val.label === g.name
-      );
-      return categoria?.[0] === item.cuentaAsociada;
+  // Mes seleccionado (YYYY-MM). Default: mes actual.
+  const currentMonth = new Date().toISOString().substring(0, 7);
+  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
+
+  // Meses disponibles: mes actual + todos los meses con transacciones
+  const availableMonths = useMemo(() => {
+    const set = new Set<string>([currentMonth]);
+    transactions.forEach((tx) => {
+      if (typeof tx.date === "string" && tx.date.length >= 7) {
+        set.add(tx.date.substring(0, 7));
+      }
     });
-    
-    return {
-      ...item,
-      gastado: gastoReal?.value || 0,
-    };
-  });
+    return Array.from(set).sort((a, b) => b.localeCompare(a));
+  }, [transactions, currentMonth]);
+
+  const monthLabel = (ym: string) => {
+    const [y, m] = ym.split("-");
+    const names = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    const idx = Math.max(0, Math.min(11, Number(m) - 1));
+    return `${names[idx]} ${y}`;
+  };
+
+  // Gasto por cuenta para el mes seleccionado
+  const gastosPorCuentaMes = useMemo(() => {
+    const map: Record<string, number> = {};
+    transactions.forEach((tx) => {
+      if (!tx.date?.startsWith(selectedMonth)) return;
+      const cat = ACCOUNT_CATEGORIES[tx.account];
+      if (cat?.type !== "gasto") return;
+      map[tx.account] = (map[tx.account] || 0) + (tx.debit - tx.credit);
+    });
+    return map;
+  }, [transactions, selectedMonth, ACCOUNT_CATEGORIES]);
+
+  const presupuestosConGastos = presupuestoData.map((item) => ({
+    ...item,
+    gastado: Math.max(0, gastosPorCuentaMes[item.cuentaAsociada] || 0),
+  }));
 
   const totalPresupuesto = presupuestosConGastos.reduce((acc, item) => acc + item.presupuesto, 0);
   const totalGastado = presupuestosConGastos.reduce((acc, item) => acc + item.gastado, 0);
   const porcentajeGlobal = totalPresupuesto > 0 ? (totalGastado / totalPresupuesto) * 100 : 0;
+
+  // Alertas 80% / 100% — se dispara una vez por (mes, id, umbral)
+  const alertedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    presupuestosConGastos.forEach((item) => {
+      if (item.presupuesto <= 0) return;
+      const pct = (item.gastado / item.presupuesto) * 100;
+      const keyOver = `${selectedMonth}:${item.id}:100`;
+      const keyWarn = `${selectedMonth}:${item.id}:80`;
+      if (pct >= 100 && !alertedRef.current.has(keyOver)) {
+        alertedRef.current.add(keyOver);
+        toast.error(`"${item.categoria}" superó el 100% del presupuesto`, {
+          description: `Gastado ${formatCurrency(item.gastado)} de ${formatCurrency(item.presupuesto)} en ${monthLabel(selectedMonth)}`,
+        });
+      } else if (pct >= 80 && pct < 100 && !alertedRef.current.has(keyWarn)) {
+        alertedRef.current.add(keyWarn);
+        toast.warning(`"${item.categoria}" alcanzó el ${pct.toFixed(0)}% del presupuesto`, {
+          description: `Gastado ${formatCurrency(item.gastado)} de ${formatCurrency(item.presupuesto)} en ${monthLabel(selectedMonth)}`,
+        });
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMonth, JSON.stringify(presupuestosConGastos.map((p) => [p.id, p.gastado, p.presupuesto]))]);
 
   // Cuentas de tipo gasto disponibles
   const cuentasGasto = Object.entries(ACCOUNT_CATEGORIES)
