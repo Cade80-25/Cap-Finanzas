@@ -220,7 +220,7 @@ export default function Presupuesto() {
             Presupuesto
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
-            Administra límites de gastos vinculados al Libro Diario
+            Consumo de {monthLabel(selectedMonth)} vinculado al Libro Diario
           </p>
         </div>
 
