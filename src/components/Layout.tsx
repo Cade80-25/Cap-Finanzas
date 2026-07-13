@@ -17,7 +17,6 @@ import { WelcomeDialog } from "@/components/WelcomeDialog";
 import { InteractiveAppTour } from "@/components/InteractiveAppTour";
 import { LicenseGate } from "@/components/LicenseGate";
 import { TrialBanner } from "@/components/TrialBanner";
-import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { useModeFeatures, FeatureKey } from "@/hooks/useModeFeatures";
 import { Badge } from "@/components/ui/badge";
 import { FloatingAddAccount } from "@/components/FloatingAddAccount";
@@ -76,7 +75,6 @@ export default function Layout() {
         <WelcomeDialog />
         <TutorialOverlay />
         <InteractiveAppTour active={tourActive} onClose={() => setTourActive(false)} />
-        <PaymentTestModeBanner />
         <TrialBanner />
 
         <MenuBar 
