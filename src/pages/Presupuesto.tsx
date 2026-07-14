@@ -703,16 +703,39 @@ export default function Presupuesto() {
               Transacciones que alimentan los gráficos y el consumo del mes.
             </CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportCSV}
-            disabled={gastosDetalladosFiltrados.length === 0}
-            className="shrink-0"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Exportar CSV
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Columns3 className="h-4 w-4 mr-2" />
+                  Columnas
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Columnas visibles</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {(Object.keys(COLUMN_LABELS) as ColumnKey[]).map((key) => (
+                  <DropdownMenuCheckboxItem
+                    key={key}
+                    checked={cols[key]}
+                    onCheckedChange={() => toggleColumn(key)}
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    {COLUMN_LABELS[key]}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCSV}
+              disabled={gastosDetalladosFiltrados.length === 0}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Exportar CSV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {gastosDetalladosMes.length > 0 ? (
