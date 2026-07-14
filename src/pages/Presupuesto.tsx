@@ -771,64 +771,82 @@ export default function Presupuesto() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
-                        <th className="py-2 pr-3 font-medium">
-                          <button
-                            type="button"
-                            onClick={() => toggleSort("date")}
-                            className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                          >
-                            Fecha
-                            <ArrowUpDown className="h-3 w-3" />
-                            {sortBy === "date" && (
-                              <span className="text-[10px]">{sortDir === "asc" ? "↑" : "↓"}</span>
-                            )}
-                          </button>
-                        </th>
-                        <th className="py-2 pr-3 font-medium">Descripción</th>
-                        <th className="py-2 pr-3 font-medium">Cuenta</th>
-                        <th className="py-2 pr-3 font-medium">Presupuesto</th>
-                        <th className="py-2 pl-3 font-medium text-right">
-                          <button
-                            type="button"
-                            onClick={() => toggleSort("monto")}
-                            className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-                          >
-                            Monto
-                            <ArrowUpDown className="h-3 w-3" />
-                            {sortBy === "monto" && (
-                              <span className="text-[10px]">{sortDir === "asc" ? "↑" : "↓"}</span>
-                            )}
-                          </button>
-                        </th>
+                        {cols.date && (
+                          <th className="py-2 pr-3 font-medium">
+                            <button
+                              type="button"
+                              onClick={() => toggleSort("date")}
+                              className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                            >
+                              Fecha
+                              <ArrowUpDown className="h-3 w-3" />
+                              {sortBy === "date" && (
+                                <span className="text-[10px]">{sortDir === "asc" ? "↑" : "↓"}</span>
+                              )}
+                            </button>
+                          </th>
+                        )}
+                        {cols.description && <th className="py-2 pr-3 font-medium">Descripción</th>}
+                        {cols.cuenta && <th className="py-2 pr-3 font-medium">Cuenta</th>}
+                        {cols.presupuesto && <th className="py-2 pr-3 font-medium">Presupuesto</th>}
+                        {cols.monto && (
+                          <th className="py-2 pl-3 font-medium text-right">
+                            <button
+                              type="button"
+                              onClick={() => toggleSort("monto")}
+                              className="inline-flex items-center gap-1 hover:text-foreground transition-colors ml-auto"
+                            >
+                              Monto
+                              <ArrowUpDown className="h-3 w-3" />
+                              {sortBy === "monto" && (
+                                <span className="text-[10px]">{sortDir === "asc" ? "↑" : "↓"}</span>
+                              )}
+                            </button>
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
                       {gastosDetalladosFiltrados.map((g) => (
                         <tr key={g.id} className="border-b border-border/50 last:border-0">
-                          <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{g.date}</td>
-                          <td className="py-2 pr-3">{g.description || "—"}</td>
-                          <td className="py-2 pr-3">{g.cuentaLabel}</td>
-                          <td className="py-2 pr-3">
-                            {g.presupuesto ? (
-                              <Badge variant="secondary" className="text-xs">{g.presupuesto}</Badge>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">Sin asignar</span>
-                            )}
-                          </td>
-                          <td className="py-2 pl-3 text-right font-medium text-destructive">
-                            {formatCurrency(g.monto)}
-                          </td>
+                          {cols.date && (
+                            <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{g.date}</td>
+                          )}
+                          {cols.description && <td className="py-2 pr-3">{g.description || "—"}</td>}
+                          {cols.cuenta && <td className="py-2 pr-3">{g.cuentaLabel}</td>}
+                          {cols.presupuesto && (
+                            <td className="py-2 pr-3">
+                              {g.presupuesto ? (
+                                <Badge variant="secondary" className="text-xs">{g.presupuesto}</Badge>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">Sin asignar</span>
+                              )}
+                            </td>
+                          )}
+                          {cols.monto && (
+                            <td className="py-2 pl-3 text-right font-medium text-destructive">
+                              {formatCurrency(g.monto)}
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
                     <tfoot>
                       <tr className="font-semibold">
-                        <td colSpan={4} className="py-2 pr-3 text-right">
-                          Total ({gastosDetalladosFiltrados.length})
-                        </td>
-                        <td className="py-2 pl-3 text-right text-destructive">
-                          {formatCurrency(gastosDetalladosFiltrados.reduce((s, g) => s + g.monto, 0))}
-                        </td>
+                        {cols.monto ? (
+                          <>
+                            <td colSpan={Math.max(1, visibleCount - 1)} className="py-2 pr-3 text-right">
+                              Total ({gastosDetalladosFiltrados.length})
+                            </td>
+                            <td className="py-2 pl-3 text-right text-destructive">
+                              {formatCurrency(gastosDetalladosFiltrados.reduce((s, g) => s + g.monto, 0))}
+                            </td>
+                          </>
+                        ) : (
+                          <td colSpan={visibleCount} className="py-2 pr-3 text-right">
+                            Total ({gastosDetalladosFiltrados.length})
+                          </td>
+                        )}
                       </tr>
                     </tfoot>
                   </table>
