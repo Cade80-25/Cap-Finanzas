@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Target, TrendingUp, AlertCircle, CheckCircle, Plus, Trash2, Pencil, Save, Download, ArrowUpDown, Search } from "lucide-react";
+import { Target, TrendingUp, AlertCircle, CheckCircle, Plus, Trash2, Pencil, Save, Download, ArrowUpDown, Search, Columns3 } from "lucide-react";
 import { exportToCSV } from "@/lib/export-transactions";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Card,
   CardContent,
