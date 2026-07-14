@@ -657,54 +657,126 @@ export default function Presupuesto() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Detalle de Gastos de {monthLabel(selectedMonth)}</CardTitle>
-          <CardDescription>
-            Transacciones que alimentan los gráficos y el consumo del mes.
-          </CardDescription>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div>
+            <CardTitle>Detalle de Gastos de {monthLabel(selectedMonth)}</CardTitle>
+            <CardDescription>
+              Transacciones que alimentan los gráficos y el consumo del mes.
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCSV}
+            disabled={gastosDetalladosFiltrados.length === 0}
+            className="shrink-0"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
         </CardHeader>
         <CardContent>
           {gastosDetalladosMes.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
-                    <th className="py-2 pr-3 font-medium">Fecha</th>
-                    <th className="py-2 pr-3 font-medium">Descripción</th>
-                    <th className="py-2 pr-3 font-medium">Cuenta</th>
-                    <th className="py-2 pr-3 font-medium">Presupuesto</th>
-                    <th className="py-2 pl-3 font-medium text-right">Monto</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {gastosDetalladosMes.map((g) => (
-                    <tr key={g.id} className="border-b border-border/50 last:border-0">
-                      <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{g.date}</td>
-                      <td className="py-2 pr-3">{g.description || "—"}</td>
-                      <td className="py-2 pr-3">{g.cuentaLabel}</td>
-                      <td className="py-2 pr-3">
-                        {g.presupuesto ? (
-                          <Badge variant="secondary" className="text-xs">{g.presupuesto}</Badge>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Sin asignar</span>
-                        )}
-                      </td>
-                      <td className="py-2 pl-3 text-right font-medium text-destructive">
-                        {formatCurrency(g.monto)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="font-semibold">
-                    <td colSpan={4} className="py-2 pr-3 text-right">Total</td>
-                    <td className="py-2 pl-3 text-right text-destructive">
-                      {formatCurrency(gastosDetalladosMes.reduce((s, g) => s + g.monto, 0))}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+            <>
+              <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar por cuenta, categoría o descripción…"
+                    className="pl-8"
+                  />
+                </div>
+                <Select value={filtroPresupuesto} onValueChange={setFiltroPresupuesto}>
+                  <SelectTrigger className="w-full sm:w-[220px]">
+                    <SelectValue placeholder="Filtrar por presupuesto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">Todos los presupuestos</SelectItem>
+                    <SelectItem value="__unassigned__">Sin asignar</SelectItem>
+                    {presupuestoData.map((b) => (
+                      <SelectItem key={b.id} value={b.categoria}>
+                        {b.categoria}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {gastosDetalladosFiltrados.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
+                        <th className="py-2 pr-3 font-medium">
+                          <button
+                            type="button"
+                            onClick={() => toggleSort("date")}
+                            className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                          >
+                            Fecha
+                            <ArrowUpDown className="h-3 w-3" />
+                            {sortBy === "date" && (
+                              <span className="text-[10px]">{sortDir === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </button>
+                        </th>
+                        <th className="py-2 pr-3 font-medium">Descripción</th>
+                        <th className="py-2 pr-3 font-medium">Cuenta</th>
+                        <th className="py-2 pr-3 font-medium">Presupuesto</th>
+                        <th className="py-2 pl-3 font-medium text-right">
+                          <button
+                            type="button"
+                            onClick={() => toggleSort("monto")}
+                            className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                          >
+                            Monto
+                            <ArrowUpDown className="h-3 w-3" />
+                            {sortBy === "monto" && (
+                              <span className="text-[10px]">{sortDir === "asc" ? "↑" : "↓"}</span>
+                            )}
+                          </button>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {gastosDetalladosFiltrados.map((g) => (
+                        <tr key={g.id} className="border-b border-border/50 last:border-0">
+                          <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{g.date}</td>
+                          <td className="py-2 pr-3">{g.description || "—"}</td>
+                          <td className="py-2 pr-3">{g.cuentaLabel}</td>
+                          <td className="py-2 pr-3">
+                            {g.presupuesto ? (
+                              <Badge variant="secondary" className="text-xs">{g.presupuesto}</Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Sin asignar</span>
+                            )}
+                          </td>
+                          <td className="py-2 pl-3 text-right font-medium text-destructive">
+                            {formatCurrency(g.monto)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="font-semibold">
+                        <td colSpan={4} className="py-2 pr-3 text-right">
+                          Total ({gastosDetalladosFiltrados.length})
+                        </td>
+                        <td className="py-2 pl-3 text-right text-destructive">
+                          {formatCurrency(gastosDetalladosFiltrados.reduce((s, g) => s + g.monto, 0))}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[120px] text-muted-foreground text-sm">
+                  <p>No hay resultados con los filtros aplicados</p>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex flex-col items-center justify-center h-[160px] text-muted-foreground">
               <TrendingUp className="h-10 w-10 mb-3 opacity-50" />
