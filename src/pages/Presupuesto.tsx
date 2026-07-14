@@ -134,6 +134,63 @@ export default function Presupuesto() {
       .sort((a, b) => b.date.localeCompare(a.date));
   }, [transactions, selectedMonth, ACCOUNT_CATEGORIES, presupuestoData]);
 
+  // Filtros y ordenamiento de la tabla de detalle
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filtroPresupuesto, setFiltroPresupuesto] = useState<string>("__all__");
+  const [sortBy, setSortBy] = useState<"date" | "monto">("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  const gastosDetalladosFiltrados = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const filtered = gastosDetalladosMes.filter((g) => {
+      if (filtroPresupuesto === "__unassigned__") {
+        if (g.presupuesto) return false;
+      } else if (filtroPresupuesto !== "__all__") {
+        if (g.presupuesto !== filtroPresupuesto) return false;
+      }
+      if (!q) return true;
+      return (
+        g.cuentaLabel.toLowerCase().includes(q) ||
+        (g.presupuesto || "").toLowerCase().includes(q) ||
+        (g.description || "").toLowerCase().includes(q)
+      );
+    });
+    const sorted = [...filtered].sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === "date") cmp = a.date.localeCompare(b.date);
+      else cmp = a.monto - b.monto;
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return sorted;
+  }, [gastosDetalladosMes, searchQuery, filtroPresupuesto, sortBy, sortDir]);
+
+  const toggleSort = (col: "date" | "monto") => {
+    if (sortBy === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(col);
+      setSortDir(col === "date" ? "desc" : "desc");
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (gastosDetalladosFiltrados.length === 0) {
+      toast.error("No hay gastos para exportar");
+      return;
+    }
+    exportToCSV(
+      gastosDetalladosFiltrados.map((g) => ({
+        fecha: g.date,
+        descripcion: g.description || "",
+        categoria: g.presupuesto || g.cuentaLabel,
+        tipo: "Gasto",
+        monto: g.monto,
+      })),
+      `detalle-presupuesto-${selectedMonth}.csv`
+    );
+    toast.success("Detalle exportado a CSV");
+  };
+
   const presupuestosConGastos = presupuestoData.map((item) => ({
     ...item,
     gastado: Math.max(0, gastosPorCuentaMes[item.cuentaAsociada] || 0),
