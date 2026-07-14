@@ -68,9 +68,12 @@ export default function Presupuesto() {
   const { budgets: presupuestoData, setBudgets: setPresupuestoData } = useBudgets();
   const { formatCurrency } = useNumberFormat();
 
-  // Mes seleccionado (YYYY-MM). Default: mes actual.
+  // Mes seleccionado (YYYY-MM). Persistido en localStorage. Default: mes actual.
   const currentMonth = new Date().toISOString().substring(0, 7);
-  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
+  const [selectedMonth, setSelectedMonth] = useLocalStorage<string>(
+    "cap-finanzas-presupuesto-mes",
+    currentMonth
+  );
 
   // Meses disponibles: mes actual + todos los meses con transacciones
   const availableMonths = useMemo(() => {
