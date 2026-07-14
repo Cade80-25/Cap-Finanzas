@@ -31,6 +31,7 @@ import {
 import { toast } from "sonner";
 import { useAccountingData } from "@/hooks/useAccountingData";
 import { useBudgets, type BudgetItem } from "@/hooks/useBudgets";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
 import {
   PieChart,
@@ -67,9 +68,12 @@ export default function Presupuesto() {
   const { budgets: presupuestoData, setBudgets: setPresupuestoData } = useBudgets();
   const { formatCurrency } = useNumberFormat();
 
-  // Mes seleccionado (YYYY-MM). Default: mes actual.
+  // Mes seleccionado (YYYY-MM). Persistido en localStorage. Default: mes actual.
   const currentMonth = new Date().toISOString().substring(0, 7);
-  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
+  const [selectedMonth, setSelectedMonth] = useLocalStorage<string>(
+    "cap-finanzas-presupuesto-mes",
+    currentMonth
+  );
 
   // Meses disponibles: mes actual + todos los meses con transacciones
   const availableMonths = useMemo(() => {
@@ -100,6 +104,34 @@ export default function Presupuesto() {
     });
     return map;
   }, [transactions, selectedMonth, ACCOUNT_CATEGORIES]);
+
+  // Gastos detallados del mes seleccionado (para tabla de detalle)
+  const gastosDetalladosMes = useMemo(() => {
+    // Mapa cuenta -> nombre de presupuesto (si existe)
+    const cuentaAPresupuesto: Record<string, string> = {};
+    presupuestoData.forEach((b) => {
+      cuentaAPresupuesto[b.cuentaAsociada] = b.categoria;
+    });
+    return transactions
+      .filter((tx) => {
+        if (!tx.date?.startsWith(selectedMonth)) return false;
+        const cat = ACCOUNT_CATEGORIES[tx.account];
+        if (cat?.type !== "gasto") return false;
+        return tx.debit - tx.credit > 0;
+      })
+      .map((tx) => {
+        const cat = ACCOUNT_CATEGORIES[tx.account];
+        return {
+          id: `${tx.date}-${tx.account}-${tx.description}-${tx.debit}-${tx.credit}-${Math.random()}`,
+          date: tx.date,
+          description: tx.description,
+          cuentaLabel: cat?.label || tx.account,
+          presupuesto: cuentaAPresupuesto[tx.account] || null,
+          monto: tx.debit - tx.credit,
+        };
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [transactions, selectedMonth, ACCOUNT_CATEGORIES, presupuestoData]);
 
   const presupuestosConGastos = presupuestoData.map((item) => ({
     ...item,
@@ -561,6 +593,64 @@ export default function Presupuesto() {
               <Target className="h-12 w-12 mb-4 opacity-50" />
               <p>No hay presupuestos configurados</p>
               <p className="text-sm">Crea un presupuesto vinculado al Libro Diario</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Detalle de Gastos de {monthLabel(selectedMonth)}</CardTitle>
+          <CardDescription>
+            Transacciones que alimentan los gráficos y el consumo del mes.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {gastosDetalladosMes.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
+                    <th className="py-2 pr-3 font-medium">Fecha</th>
+                    <th className="py-2 pr-3 font-medium">Descripción</th>
+                    <th className="py-2 pr-3 font-medium">Cuenta</th>
+                    <th className="py-2 pr-3 font-medium">Presupuesto</th>
+                    <th className="py-2 pl-3 font-medium text-right">Monto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gastosDetalladosMes.map((g) => (
+                    <tr key={g.id} className="border-b border-border/50 last:border-0">
+                      <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{g.date}</td>
+                      <td className="py-2 pr-3">{g.description || "—"}</td>
+                      <td className="py-2 pr-3">{g.cuentaLabel}</td>
+                      <td className="py-2 pr-3">
+                        {g.presupuesto ? (
+                          <Badge variant="secondary" className="text-xs">{g.presupuesto}</Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Sin asignar</span>
+                        )}
+                      </td>
+                      <td className="py-2 pl-3 text-right font-medium text-destructive">
+                        {formatCurrency(g.monto)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="font-semibold">
+                    <td colSpan={4} className="py-2 pr-3 text-right">Total</td>
+                    <td className="py-2 pl-3 text-right text-destructive">
+                      {formatCurrency(gastosDetalladosMes.reduce((s, g) => s + g.monto, 0))}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-[160px] text-muted-foreground">
+              <TrendingUp className="h-10 w-10 mb-3 opacity-50" />
+              <p>No hay gastos registrados en {monthLabel(selectedMonth)}</p>
             </div>
           )}
         </CardContent>
