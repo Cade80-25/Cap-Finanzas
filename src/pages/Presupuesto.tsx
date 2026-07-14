@@ -148,6 +148,37 @@ export default function Presupuesto() {
   const [sortBy, setSortBy] = useState<"date" | "monto">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
+  // Columnas visibles de la tabla de detalle. Persistidas en localStorage.
+  type ColumnKey = "date" | "description" | "cuenta" | "presupuesto" | "monto";
+  const COLUMN_LABELS: Record<ColumnKey, string> = {
+    date: "Fecha",
+    description: "Descripción",
+    cuenta: "Cuenta",
+    presupuesto: "Presupuesto",
+    monto: "Monto",
+  };
+  const DEFAULT_VISIBLE: Record<ColumnKey, boolean> = {
+    date: true,
+    description: true,
+    cuenta: true,
+    presupuesto: true,
+    monto: true,
+  };
+  const [visibleColumns, setVisibleColumns] = useLocalStorage<Record<ColumnKey, boolean>>(
+    "cap-finanzas-presupuesto-columnas",
+    DEFAULT_VISIBLE
+  );
+  const toggleColumn = (key: ColumnKey) => {
+    setVisibleColumns((prev) => {
+      const next = { ...DEFAULT_VISIBLE, ...prev, [key]: !prev?.[key] };
+      // Impide ocultar todas las columnas
+      if (!Object.values(next).some(Boolean)) return prev;
+      return next;
+    });
+  };
+  const cols = { ...DEFAULT_VISIBLE, ...visibleColumns };
+  const visibleCount = Object.values(cols).filter(Boolean).length;
+
   const gastosDetalladosFiltrados = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     const filtered = gastosDetalladosMes.filter((g) => {
