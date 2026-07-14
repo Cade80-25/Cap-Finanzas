@@ -105,6 +105,34 @@ export default function Presupuesto() {
     return map;
   }, [transactions, selectedMonth, ACCOUNT_CATEGORIES]);
 
+  // Gastos detallados del mes seleccionado (para tabla de detalle)
+  const gastosDetalladosMes = useMemo(() => {
+    // Mapa cuenta -> nombre de presupuesto (si existe)
+    const cuentaAPresupuesto: Record<string, string> = {};
+    presupuestoData.forEach((b) => {
+      cuentaAPresupuesto[b.cuentaAsociada] = b.categoria;
+    });
+    return transactions
+      .filter((tx) => {
+        if (!tx.date?.startsWith(selectedMonth)) return false;
+        const cat = ACCOUNT_CATEGORIES[tx.account];
+        if (cat?.type !== "gasto") return false;
+        return tx.debit - tx.credit > 0;
+      })
+      .map((tx) => {
+        const cat = ACCOUNT_CATEGORIES[tx.account];
+        return {
+          id: `${tx.date}-${tx.account}-${tx.description}-${tx.debit}-${tx.credit}-${Math.random()}`,
+          date: tx.date,
+          description: tx.description,
+          cuentaLabel: cat?.label || tx.account,
+          presupuesto: cuentaAPresupuesto[tx.account] || null,
+          monto: tx.debit - tx.credit,
+        };
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [transactions, selectedMonth, ACCOUNT_CATEGORIES, presupuestoData]);
+
   const presupuestosConGastos = presupuestoData.map((item) => ({
     ...item,
     gastado: Math.max(0, gastosPorCuentaMes[item.cuentaAsociada] || 0),
