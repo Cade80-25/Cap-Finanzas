@@ -31,6 +31,7 @@ import {
 import { toast } from "sonner";
 import { useAccountingData } from "@/hooks/useAccountingData";
 import { useBudgets, type BudgetItem } from "@/hooks/useBudgets";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
 import {
   PieChart,
