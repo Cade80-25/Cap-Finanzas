@@ -148,7 +148,7 @@ export default function Presupuesto() {
   const [sortBy, setSortBy] = useState<"date" | "monto">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
-  // Columnas visibles de la tabla de detalle. Persistidas en localStorage.
+  // Columnas de la tabla de detalle. Orden + visibilidad persistidos POR MES.
   type ColumnKey = "date" | "description" | "cuenta" | "presupuesto" | "monto";
   const COLUMN_LABELS: Record<ColumnKey, string> = {
     date: "Fecha",
@@ -157,6 +157,7 @@ export default function Presupuesto() {
     presupuesto: "Presupuesto",
     monto: "Monto",
   };
+  const DEFAULT_ORDER: ColumnKey[] = ["date", "description", "cuenta", "presupuesto", "monto"];
   const DEFAULT_VISIBLE: Record<ColumnKey, boolean> = {
     date: true,
     description: true,
@@ -164,20 +165,103 @@ export default function Presupuesto() {
     presupuesto: true,
     monto: true,
   };
-  const [visibleColumns, setVisibleColumns] = useLocalStorage<Record<ColumnKey, boolean>>(
-    "cap-finanzas-presupuesto-columnas",
-    DEFAULT_VISIBLE
+  type ColumnConfig = { order: ColumnKey[]; visible: Record<ColumnKey, boolean> };
+  const DEFAULT_CONFIG: ColumnConfig = { order: DEFAULT_ORDER, visible: DEFAULT_VISIBLE };
+
+  const normalizeConfig = (cfg?: Partial<ColumnConfig> | null): ColumnConfig => {
+    const visible = { ...DEFAULT_VISIBLE, ...(cfg?.visible || {}) };
+    const rawOrder = Array.isArray(cfg?.order) ? cfg!.order : DEFAULT_ORDER;
+    const seen = new Set<ColumnKey>();
+    const order: ColumnKey[] = [];
+    rawOrder.forEach((k) => {
+      if ((DEFAULT_ORDER as string[]).includes(k) && !seen.has(k)) {
+        seen.add(k);
+        order.push(k);
+      }
+    });
+    DEFAULT_ORDER.forEach((k) => {
+      if (!seen.has(k)) order.push(k);
+    });
+    return { order, visible };
+  };
+
+  // Migración desde la clave antigua (visibilidad global sin orden)
+  const [columnsByMonth, setColumnsByMonth] = useLocalStorage<Record<string, ColumnConfig>>(
+    "cap-finanzas-presupuesto-columnas-por-mes",
+    (() => {
+      try {
+        const legacy = localStorage.getItem("cap-finanzas-presupuesto-columnas");
+        if (legacy) {
+          const parsed = JSON.parse(legacy) as Record<ColumnKey, boolean>;
+          return { __default__: normalizeConfig({ order: DEFAULT_ORDER, visible: parsed }) };
+        }
+      } catch {}
+      return {};
+    })()
   );
-  const toggleColumn = (key: ColumnKey) => {
-    setVisibleColumns((prev) => {
-      const next = { ...DEFAULT_VISIBLE, ...prev, [key]: !prev?.[key] };
+
+  const currentConfig = useMemo(
+    () => normalizeConfig(columnsByMonth[selectedMonth] || columnsByMonth["__default__"]),
+    [columnsByMonth, selectedMonth]
+  );
+  const cols = currentConfig.visible;
+  const orderedColumns = currentConfig.order;
+  const visibleCount = orderedColumns.filter((k) => cols[k]).length;
+
+  const updateCurrentConfig = (patch: (cfg: ColumnConfig) => ColumnConfig) => {
+    setColumnsByMonth((prev) => {
+      const base = normalizeConfig(prev[selectedMonth] || prev["__default__"]);
+      const next = normalizeConfig(patch(base));
       // Impide ocultar todas las columnas
-      if (!Object.values(next).some(Boolean)) return prev;
-      return next;
+      if (!Object.values(next.visible).some(Boolean)) return prev;
+      return { ...prev, [selectedMonth]: next };
     });
   };
-  const cols = { ...DEFAULT_VISIBLE, ...visibleColumns };
-  const visibleCount = Object.values(cols).filter(Boolean).length;
+
+  const toggleColumn = (key: ColumnKey) => {
+    updateCurrentConfig((cfg) => ({
+      ...cfg,
+      visible: { ...cfg.visible, [key]: !cfg.visible[key] },
+    }));
+  };
+
+  // Drag & drop de columnas
+  const [dragCol, setDragCol] = useState<ColumnKey | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<ColumnKey | null>(null);
+  const handleColDrop = (target: ColumnKey) => {
+    if (!dragCol || dragCol === target) {
+      setDragCol(null);
+      setDragOverCol(null);
+      return;
+    }
+    updateCurrentConfig((cfg) => {
+      const order = [...cfg.order];
+      const from = order.indexOf(dragCol);
+      const to = order.indexOf(target);
+      if (from < 0 || to < 0) return cfg;
+      order.splice(from, 1);
+      order.splice(to, 0, dragCol);
+      return { ...cfg, order };
+    });
+    setDragCol(null);
+    setDragOverCol(null);
+  };
+
+  const applyConfigToAllMonths = () => {
+    setColumnsByMonth((prev) => {
+      const next: Record<string, ColumnConfig> = { __default__: currentConfig };
+      availableMonths.forEach((m) => {
+        next[m] = currentConfig;
+      });
+      // Preservar meses guardados que no estén en availableMonths
+      Object.keys(prev).forEach((k) => {
+        if (!(k in next)) next[k] = currentConfig;
+      });
+      return next;
+    });
+    toast.success("Configuración de columnas aplicada a todos los meses");
+  };
+
 
   const gastosDetalladosFiltrados = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
