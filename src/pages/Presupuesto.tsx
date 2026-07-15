@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Target, TrendingUp, AlertCircle, CheckCircle, Plus, Trash2, Pencil, Save, Download, ArrowUpDown, Search, Columns3, GripVertical, CopyCheck } from "lucide-react";
+import { Target, TrendingUp, AlertCircle, CheckCircle, Plus, Trash2, Pencil, Save, Download, ArrowUpDown, Search, Columns3, GripVertical, CopyCheck, RotateCcw, ChevronsRight } from "lucide-react";
 import { exportToCSV } from "@/lib/export-transactions";
 import {
   DropdownMenu,
@@ -261,6 +261,33 @@ export default function Presupuesto() {
     });
     toast.success("Configuración de columnas aplicada a todos los meses");
   };
+
+  const applyConfigToFollowingMonths = () => {
+    // Meses posteriores (cronológicamente) al mes seleccionado
+    const following = availableMonths.filter((m) => m > selectedMonth);
+    if (following.length === 0) {
+      toast.info("No hay meses posteriores al seleccionado");
+      return;
+    }
+    setColumnsByMonth((prev) => {
+      const next = { ...prev };
+      following.forEach((m) => {
+        next[m] = currentConfig;
+      });
+      return next;
+    });
+    toast.success(`Configuración copiada a ${following.length} mes(es) posterior(es)`);
+  };
+
+  const resetCurrentMonthConfig = () => {
+    setColumnsByMonth((prev) => {
+      const next = { ...prev };
+      delete next[selectedMonth];
+      return next;
+    });
+    toast.success(`Columnas restablecidas para ${monthLabel(selectedMonth)}`);
+  };
+
 
 
   const gastosDetalladosFiltrados = useMemo(() => {
@@ -815,11 +842,28 @@ export default function Presupuesto() {
                 <DropdownMenuSeparator />
                 <button
                   type="button"
+                  onClick={applyConfigToFollowingMonths}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                  Copiar a meses posteriores
+                </button>
+                <button
+                  type="button"
                   onClick={applyConfigToAllMonths}
                   className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   <CopyCheck className="h-4 w-4" />
                   Aplicar a todos los meses
+                </button>
+                <DropdownMenuSeparator />
+                <button
+                  type="button"
+                  onClick={resetCurrentMonthConfig}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors text-destructive"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Restablecer este mes
                 </button>
               </DropdownMenuContent>
             </DropdownMenu>
