@@ -795,10 +795,10 @@ export default function Presupuesto() {
                   Columnas
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-64">
                 <DropdownMenuLabel>Columnas visibles</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {(Object.keys(COLUMN_LABELS) as ColumnKey[]).map((key) => (
+                {orderedColumns.map((key) => (
                   <DropdownMenuCheckboxItem
                     key={key}
                     checked={cols[key]}
@@ -808,6 +808,19 @@ export default function Presupuesto() {
                     {COLUMN_LABELS[key]}
                   </DropdownMenuCheckboxItem>
                 ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                  Arrastra los encabezados para reordenar
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <button
+                  type="button"
+                  onClick={applyConfigToAllMonths}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <CopyCheck className="h-4 w-4" />
+                  Aplicar a todos los meses
+                </button>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button
