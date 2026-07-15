@@ -842,11 +842,28 @@ export default function Presupuesto() {
                 <DropdownMenuSeparator />
                 <button
                   type="button"
+                  onClick={applyConfigToFollowingMonths}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                  Copiar a meses posteriores
+                </button>
+                <button
+                  type="button"
                   onClick={applyConfigToAllMonths}
                   className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   <CopyCheck className="h-4 w-4" />
                   Aplicar a todos los meses
+                </button>
+                <DropdownMenuSeparator />
+                <button
+                  type="button"
+                  onClick={resetCurrentMonthConfig}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors text-destructive"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Restablecer este mes
                 </button>
               </DropdownMenuContent>
             </DropdownMenu>
