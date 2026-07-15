@@ -262,6 +262,33 @@ export default function Presupuesto() {
     toast.success("Configuración de columnas aplicada a todos los meses");
   };
 
+  const applyConfigToFollowingMonths = () => {
+    // Meses posteriores (cronológicamente) al mes seleccionado
+    const following = availableMonths.filter((m) => m > selectedMonth);
+    if (following.length === 0) {
+      toast.info("No hay meses posteriores al seleccionado");
+      return;
+    }
+    setColumnsByMonth((prev) => {
+      const next = { ...prev };
+      following.forEach((m) => {
+        next[m] = currentConfig;
+      });
+      return next;
+    });
+    toast.success(`Configuración copiada a ${following.length} mes(es) posterior(es)`);
+  };
+
+  const resetCurrentMonthConfig = () => {
+    setColumnsByMonth((prev) => {
+      const next = { ...prev };
+      delete next[selectedMonth];
+      return next;
+    });
+    toast.success(`Columnas restablecidas para ${monthLabel(selectedMonth)}`);
+  };
+
+
 
   const gastosDetalladosFiltrados = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
