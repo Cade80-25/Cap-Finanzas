@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Target, TrendingUp, AlertCircle, CheckCircle, Plus, Trash2, Pencil, Save, Download, ArrowUpDown, Search, Columns3 } from "lucide-react";
+import { Target, TrendingUp, AlertCircle, CheckCircle, Plus, Trash2, Pencil, Save, Download, ArrowUpDown, Search, Columns3, GripVertical, CopyCheck } from "lucide-react";
 import { exportToCSV } from "@/lib/export-transactions";
 import {
   DropdownMenu,
@@ -148,7 +148,7 @@ export default function Presupuesto() {
   const [sortBy, setSortBy] = useState<"date" | "monto">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
-  // Columnas visibles de la tabla de detalle. Persistidas en localStorage.
+  // Columnas de la tabla de detalle. Orden + visibilidad persistidos POR MES.
   type ColumnKey = "date" | "description" | "cuenta" | "presupuesto" | "monto";
   const COLUMN_LABELS: Record<ColumnKey, string> = {
     date: "Fecha",
@@ -157,6 +157,7 @@ export default function Presupuesto() {
     presupuesto: "Presupuesto",
     monto: "Monto",
   };
+  const DEFAULT_ORDER: ColumnKey[] = ["date", "description", "cuenta", "presupuesto", "monto"];
   const DEFAULT_VISIBLE: Record<ColumnKey, boolean> = {
     date: true,
     description: true,
@@ -164,20 +165,103 @@ export default function Presupuesto() {
     presupuesto: true,
     monto: true,
   };
-  const [visibleColumns, setVisibleColumns] = useLocalStorage<Record<ColumnKey, boolean>>(
-    "cap-finanzas-presupuesto-columnas",
-    DEFAULT_VISIBLE
+  type ColumnConfig = { order: ColumnKey[]; visible: Record<ColumnKey, boolean> };
+  const DEFAULT_CONFIG: ColumnConfig = { order: DEFAULT_ORDER, visible: DEFAULT_VISIBLE };
+
+  const normalizeConfig = (cfg?: Partial<ColumnConfig> | null): ColumnConfig => {
+    const visible = { ...DEFAULT_VISIBLE, ...(cfg?.visible || {}) };
+    const rawOrder = Array.isArray(cfg?.order) ? cfg!.order : DEFAULT_ORDER;
+    const seen = new Set<ColumnKey>();
+    const order: ColumnKey[] = [];
+    rawOrder.forEach((k) => {
+      if ((DEFAULT_ORDER as string[]).includes(k) && !seen.has(k)) {
+        seen.add(k);
+        order.push(k);
+      }
+    });
+    DEFAULT_ORDER.forEach((k) => {
+      if (!seen.has(k)) order.push(k);
+    });
+    return { order, visible };
+  };
+
+  // Migración desde la clave antigua (visibilidad global sin orden)
+  const [columnsByMonth, setColumnsByMonth] = useLocalStorage<Record<string, ColumnConfig>>(
+    "cap-finanzas-presupuesto-columnas-por-mes",
+    (() => {
+      try {
+        const legacy = localStorage.getItem("cap-finanzas-presupuesto-columnas");
+        if (legacy) {
+          const parsed = JSON.parse(legacy) as Record<ColumnKey, boolean>;
+          return { __default__: normalizeConfig({ order: DEFAULT_ORDER, visible: parsed }) };
+        }
+      } catch {}
+      return {};
+    })()
   );
-  const toggleColumn = (key: ColumnKey) => {
-    setVisibleColumns((prev) => {
-      const next = { ...DEFAULT_VISIBLE, ...prev, [key]: !prev?.[key] };
+
+  const currentConfig = useMemo(
+    () => normalizeConfig(columnsByMonth[selectedMonth] || columnsByMonth["__default__"]),
+    [columnsByMonth, selectedMonth]
+  );
+  const cols = currentConfig.visible;
+  const orderedColumns = currentConfig.order;
+  const visibleCount = orderedColumns.filter((k) => cols[k]).length;
+
+  const updateCurrentConfig = (patch: (cfg: ColumnConfig) => ColumnConfig) => {
+    setColumnsByMonth((prev) => {
+      const base = normalizeConfig(prev[selectedMonth] || prev["__default__"]);
+      const next = normalizeConfig(patch(base));
       // Impide ocultar todas las columnas
-      if (!Object.values(next).some(Boolean)) return prev;
-      return next;
+      if (!Object.values(next.visible).some(Boolean)) return prev;
+      return { ...prev, [selectedMonth]: next };
     });
   };
-  const cols = { ...DEFAULT_VISIBLE, ...visibleColumns };
-  const visibleCount = Object.values(cols).filter(Boolean).length;
+
+  const toggleColumn = (key: ColumnKey) => {
+    updateCurrentConfig((cfg) => ({
+      ...cfg,
+      visible: { ...cfg.visible, [key]: !cfg.visible[key] },
+    }));
+  };
+
+  // Drag & drop de columnas
+  const [dragCol, setDragCol] = useState<ColumnKey | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<ColumnKey | null>(null);
+  const handleColDrop = (target: ColumnKey) => {
+    if (!dragCol || dragCol === target) {
+      setDragCol(null);
+      setDragOverCol(null);
+      return;
+    }
+    updateCurrentConfig((cfg) => {
+      const order = [...cfg.order];
+      const from = order.indexOf(dragCol);
+      const to = order.indexOf(target);
+      if (from < 0 || to < 0) return cfg;
+      order.splice(from, 1);
+      order.splice(to, 0, dragCol);
+      return { ...cfg, order };
+    });
+    setDragCol(null);
+    setDragOverCol(null);
+  };
+
+  const applyConfigToAllMonths = () => {
+    setColumnsByMonth((prev) => {
+      const next: Record<string, ColumnConfig> = { __default__: currentConfig };
+      availableMonths.forEach((m) => {
+        next[m] = currentConfig;
+      });
+      // Preservar meses guardados que no estén en availableMonths
+      Object.keys(prev).forEach((k) => {
+        if (!(k in next)) next[k] = currentConfig;
+      });
+      return next;
+    });
+    toast.success("Configuración de columnas aplicada a todos los meses");
+  };
+
 
   const gastosDetalladosFiltrados = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -711,10 +795,10 @@ export default function Presupuesto() {
                   Columnas
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-64">
                 <DropdownMenuLabel>Columnas visibles</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {(Object.keys(COLUMN_LABELS) as ColumnKey[]).map((key) => (
+                {orderedColumns.map((key) => (
                   <DropdownMenuCheckboxItem
                     key={key}
                     checked={cols[key]}
@@ -724,6 +808,19 @@ export default function Presupuesto() {
                     {COLUMN_LABELS[key]}
                   </DropdownMenuCheckboxItem>
                 ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                  Arrastra los encabezados para reordenar
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <button
+                  type="button"
+                  onClick={applyConfigToAllMonths}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <CopyCheck className="h-4 w-4" />
+                  Aplicar a todos los meses
+                </button>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button
@@ -771,82 +868,120 @@ export default function Presupuesto() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
-                        {cols.date && (
-                          <th className="py-2 pr-3 font-medium">
-                            <button
-                              type="button"
-                              onClick={() => toggleSort("date")}
-                              className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                        {orderedColumns.filter((k) => cols[k]).map((key) => {
+                          const isSortable = key === "date" || key === "monto";
+                          const isMonto = key === "monto";
+                          const isDragOver = dragOverCol === key && dragCol && dragCol !== key;
+                          return (
+                            <th
+                              key={key}
+                              draggable
+                              onDragStart={(e) => {
+                                setDragCol(key);
+                                e.dataTransfer.effectAllowed = "move";
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                if (dragCol && dragCol !== key) setDragOverCol(key);
+                              }}
+                              onDragLeave={() => {
+                                if (dragOverCol === key) setDragOverCol(null);
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                handleColDrop(key);
+                              }}
+                              onDragEnd={() => {
+                                setDragCol(null);
+                                setDragOverCol(null);
+                              }}
+                              className={`py-2 font-medium select-none cursor-move transition-colors ${isMonto ? "pl-3 text-right" : "pr-3"} ${isDragOver ? "bg-accent/60" : ""} ${dragCol === key ? "opacity-50" : ""}`}
                             >
-                              Fecha
-                              <ArrowUpDown className="h-3 w-3" />
-                              {sortBy === "date" && (
-                                <span className="text-[10px]">{sortDir === "asc" ? "↑" : "↓"}</span>
-                              )}
-                            </button>
-                          </th>
-                        )}
-                        {cols.description && <th className="py-2 pr-3 font-medium">Descripción</th>}
-                        {cols.cuenta && <th className="py-2 pr-3 font-medium">Cuenta</th>}
-                        {cols.presupuesto && <th className="py-2 pr-3 font-medium">Presupuesto</th>}
-                        {cols.monto && (
-                          <th className="py-2 pl-3 font-medium text-right">
-                            <button
-                              type="button"
-                              onClick={() => toggleSort("monto")}
-                              className="inline-flex items-center gap-1 hover:text-foreground transition-colors ml-auto"
-                            >
-                              Monto
-                              <ArrowUpDown className="h-3 w-3" />
-                              {sortBy === "monto" && (
-                                <span className="text-[10px]">{sortDir === "asc" ? "↑" : "↓"}</span>
-                              )}
-                            </button>
-                          </th>
-                        )}
+                              <span className={`inline-flex items-center gap-1 ${isMonto ? "ml-auto" : ""}`}>
+                                <GripVertical className="h-3 w-3 opacity-40" />
+                                {isSortable ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleSort(key as "date" | "monto")}
+                                    className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                                  >
+                                    {COLUMN_LABELS[key]}
+                                    <ArrowUpDown className="h-3 w-3" />
+                                    {sortBy === key && (
+                                      <span className="text-[10px]">{sortDir === "asc" ? "↑" : "↓"}</span>
+                                    )}
+                                  </button>
+                                ) : (
+                                  COLUMN_LABELS[key]
+                                )}
+                              </span>
+                            </th>
+                          );
+                        })}
                       </tr>
                     </thead>
                     <tbody>
                       {gastosDetalladosFiltrados.map((g) => (
                         <tr key={g.id} className="border-b border-border/50 last:border-0">
-                          {cols.date && (
-                            <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{g.date}</td>
-                          )}
-                          {cols.description && <td className="py-2 pr-3">{g.description || "—"}</td>}
-                          {cols.cuenta && <td className="py-2 pr-3">{g.cuentaLabel}</td>}
-                          {cols.presupuesto && (
-                            <td className="py-2 pr-3">
-                              {g.presupuesto ? (
-                                <Badge variant="secondary" className="text-xs">{g.presupuesto}</Badge>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">Sin asignar</span>
-                              )}
-                            </td>
-                          )}
-                          {cols.monto && (
-                            <td className="py-2 pl-3 text-right font-medium text-destructive">
-                              {formatCurrency(g.monto)}
-                            </td>
-                          )}
+                          {orderedColumns.filter((k) => cols[k]).map((key) => {
+                            if (key === "date")
+                              return <td key={key} className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{g.date}</td>;
+                            if (key === "description")
+                              return <td key={key} className="py-2 pr-3">{g.description || "—"}</td>;
+                            if (key === "cuenta")
+                              return <td key={key} className="py-2 pr-3">{g.cuentaLabel}</td>;
+                            if (key === "presupuesto")
+                              return (
+                                <td key={key} className="py-2 pr-3">
+                                  {g.presupuesto ? (
+                                    <Badge variant="secondary" className="text-xs">{g.presupuesto}</Badge>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">Sin asignar</span>
+                                  )}
+                                </td>
+                              );
+                            if (key === "monto")
+                              return (
+                                <td key={key} className="py-2 pl-3 text-right font-medium text-destructive">
+                                  {formatCurrency(g.monto)}
+                                </td>
+                              );
+                            return null;
+                          })}
                         </tr>
                       ))}
                     </tbody>
                     <tfoot>
                       <tr className="font-semibold">
-                        {cols.monto ? (
-                          <>
-                            <td colSpan={Math.max(1, visibleCount - 1)} className="py-2 pr-3 text-right">
-                              Total ({gastosDetalladosFiltrados.length})
-                            </td>
-                            <td className="py-2 pl-3 text-right text-destructive">
-                              {formatCurrency(gastosDetalladosFiltrados.reduce((s, g) => s + g.monto, 0))}
-                            </td>
-                          </>
-                        ) : (
-                          <td colSpan={visibleCount} className="py-2 pr-3 text-right">
-                            Total ({gastosDetalladosFiltrados.length})
-                          </td>
-                        )}
+                        {(() => {
+                          const visibleKeys = orderedColumns.filter((k) => cols[k]);
+                          const montoIdx = visibleKeys.indexOf("monto");
+                          if (montoIdx === -1) {
+                            return (
+                              <td colSpan={visibleCount} className="py-2 pr-3 text-right">
+                                Total ({gastosDetalladosFiltrados.length})
+                              </td>
+                            );
+                          }
+                          const totalStr = formatCurrency(gastosDetalladosFiltrados.reduce((s, g) => s + g.monto, 0));
+                          return visibleKeys.map((k, i) => {
+                            if (k === "monto")
+                              return (
+                                <td key={k} className="py-2 pl-3 text-right text-destructive">{totalStr}</td>
+                              );
+                            // First non-monto cell hosts the label with colSpan spanning up to (but not including) monto
+                            if (i === 0 || (montoIdx > 0 && i === 0)) {
+                              return (
+                                <td key={k} colSpan={montoIdx} className="py-2 pr-3 text-right">
+                                  Total ({gastosDetalladosFiltrados.length})
+                                </td>
+                              );
+                            }
+                            // Cells between first and monto are covered by colSpan above
+                            if (i < montoIdx) return null;
+                            return <td key={k} />;
+                          });
+                        })()}
                       </tr>
                     </tfoot>
                   </table>
