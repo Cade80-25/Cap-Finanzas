@@ -305,6 +305,7 @@ export default function Presupuesto() {
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
   const [rangeFrom, setRangeFrom] = useState<string>(selectedMonth);
   const [rangeTo, setRangeTo] = useState<string>(selectedMonth);
+  const [missingBehavior, setMissingBehavior] = useState<"exclude" | "include">("exclude");
 
   const followingMonthsCount = useMemo(
     () => availableMonths.filter((m) => m > selectedMonth).length,
@@ -314,32 +315,66 @@ export default function Presupuesto() {
   const openRangeDialog = () => {
     setRangeFrom(selectedMonth);
     setRangeTo(selectedMonth);
+    setMissingBehavior("exclude");
     setRangeDialogOpen(true);
   };
 
   const rangeInvalid = rangeFrom > rangeTo;
+
+  // Enumera todos los meses YYYY-MM entre from y to inclusive
+  const enumerateMonths = (from: string, to: string): string[] => {
+    if (!from || !to || from > to) return [];
+    const result: string[] = [];
+    const [fy, fm] = from.split("-").map(Number);
+    const [ty, tm] = to.split("-").map(Number);
+    let y = fy;
+    let m = fm;
+    while (y < ty || (y === ty && m <= tm)) {
+      result.push(`${y}-${String(m).padStart(2, "0")}`);
+      m += 1;
+      if (m > 12) { m = 1; y += 1; }
+    }
+    return result;
+  };
+
+  const rangeAllMonths = useMemo(
+    () => (rangeInvalid ? [] : enumerateMonths(rangeFrom, rangeTo)),
+    [rangeFrom, rangeTo, rangeInvalid]
+  );
+  const availableMonthsSet = useMemo(() => new Set(availableMonths), [availableMonths]);
+  const rangeExistingMonths = useMemo(
+    () => rangeAllMonths.filter((m) => availableMonthsSet.has(m)),
+    [rangeAllMonths, availableMonthsSet]
+  );
+  const rangeMissingMonths = useMemo(
+    () => rangeAllMonths.filter((m) => !availableMonthsSet.has(m)),
+    [rangeAllMonths, availableMonthsSet]
+  );
 
   const applyConfigToRange = () => {
     if (rangeInvalid) {
       toast.error("El mes 'Desde' debe ser menor o igual que 'Hasta'");
       return;
     }
-    const monthsInRange = availableMonths.filter((m) => m >= rangeFrom && m <= rangeTo);
-    if (monthsInRange.length === 0) {
+    const monthsToApply =
+      missingBehavior === "include" && rangeMissingMonths.length > 0
+        ? rangeAllMonths
+        : rangeExistingMonths;
+    if (monthsToApply.length === 0) {
       toast.info("No hay meses disponibles en el rango seleccionado");
       return;
     }
     const snapshot = columnsByMonth;
     setColumnsByMonth((prev) => {
       const next = { ...prev };
-      monthsInRange.forEach((m) => {
+      monthsToApply.forEach((m) => {
         next[m] = currentConfig;
       });
       return next;
     });
     setRangeDialogOpen(false);
     toast.success(
-      `Configuración aplicada a ${monthsInRange.length} mes(es) (${monthLabel(rangeFrom)} — ${monthLabel(rangeTo)})`,
+      `Configuración aplicada a ${monthsToApply.length} mes(es) (${monthLabel(rangeFrom)} — ${monthLabel(rangeTo)})`,
       {
         duration: 8000,
         action: {
