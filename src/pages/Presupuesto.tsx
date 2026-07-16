@@ -289,6 +289,46 @@ export default function Presupuesto() {
     toast.success(`Configuración copiada a ${following.length} mes(es) posterior(es)`);
   };
 
+  // Confirmaciones y rango
+  const [confirmFollowingOpen, setConfirmFollowingOpen] = useState(false);
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
+  const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
+  const [rangeFrom, setRangeFrom] = useState<string>(selectedMonth);
+  const [rangeTo, setRangeTo] = useState<string>(selectedMonth);
+
+  const followingMonthsCount = useMemo(
+    () => availableMonths.filter((m) => m > selectedMonth).length,
+    [availableMonths, selectedMonth]
+  );
+
+  const openRangeDialog = () => {
+    setRangeFrom(selectedMonth);
+    setRangeTo(selectedMonth);
+    setRangeDialogOpen(true);
+  };
+
+  const applyConfigToRange = () => {
+    const [from, to] = rangeFrom <= rangeTo ? [rangeFrom, rangeTo] : [rangeTo, rangeFrom];
+    const monthsInRange = availableMonths.filter((m) => m >= from && m <= to);
+    if (monthsInRange.length === 0) {
+      toast.info("No hay meses disponibles en el rango seleccionado");
+      return;
+    }
+    setColumnsByMonth((prev) => {
+      const next = { ...prev };
+      monthsInRange.forEach((m) => {
+        next[m] = currentConfig;
+      });
+      return next;
+    });
+    setRangeDialogOpen(false);
+    toast.success(
+      `Configuración aplicada a ${monthsInRange.length} mes(es) (${monthLabel(from)} — ${monthLabel(to)})`
+    );
+  };
+
+
+
   const resetCurrentMonthConfig = () => {
     setColumnsByMonth((prev) => {
       const next = { ...prev };
