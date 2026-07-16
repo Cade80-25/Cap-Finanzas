@@ -340,12 +340,25 @@ export default function Presupuesto() {
 
 
   const resetCurrentMonthConfig = () => {
+    const snapshot = columnsByMonth;
+    const hadConfig = selectedMonth in columnsByMonth;
     setColumnsByMonth((prev) => {
       const next = { ...prev };
       delete next[selectedMonth];
       return next;
     });
-    toast.success(`Columnas restablecidas para ${monthLabel(selectedMonth)}`);
+    toast.success(`Columnas restablecidas para ${monthLabel(selectedMonth)}`, {
+      duration: 8000,
+      action: hadConfig
+        ? {
+            label: "Deshacer",
+            onClick: () => {
+              setColumnsByMonth(snapshot);
+              toast.info("Cambios revertidos");
+            },
+          }
+        : undefined,
+    });
   };
 
 
