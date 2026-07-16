@@ -1218,9 +1218,14 @@ export default function Presupuesto() {
               </Select>
             </div>
           </div>
+          {rangeInvalid && (
+            <p className="text-sm text-destructive" role="alert">
+              El mes "Desde" debe ser menor o igual que el mes "Hasta".
+            </p>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setRangeDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={applyConfigToRange}>Aplicar</Button>
+            <Button onClick={applyConfigToRange} disabled={rangeInvalid}>Aplicar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
