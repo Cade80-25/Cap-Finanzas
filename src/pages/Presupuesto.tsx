@@ -279,6 +279,7 @@ export default function Presupuesto() {
       toast.info("No hay meses posteriores al seleccionado");
       return;
     }
+    const snapshot = columnsByMonth;
     setColumnsByMonth((prev) => {
       const next = { ...prev };
       following.forEach((m) => {
@@ -286,7 +287,16 @@ export default function Presupuesto() {
       });
       return next;
     });
-    toast.success(`Configuración copiada a ${following.length} mes(es) posterior(es)`);
+    toast.success(`Configuración copiada a ${following.length} mes(es) posterior(es)`, {
+      duration: 8000,
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          setColumnsByMonth(snapshot);
+          toast.info("Cambios revertidos");
+        },
+      },
+    });
   };
 
   // Confirmaciones y rango
