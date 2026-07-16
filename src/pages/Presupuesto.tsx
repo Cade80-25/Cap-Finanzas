@@ -279,6 +279,7 @@ export default function Presupuesto() {
       toast.info("No hay meses posteriores al seleccionado");
       return;
     }
+    const snapshot = columnsByMonth;
     setColumnsByMonth((prev) => {
       const next = { ...prev };
       following.forEach((m) => {
@@ -286,7 +287,16 @@ export default function Presupuesto() {
       });
       return next;
     });
-    toast.success(`Configuración copiada a ${following.length} mes(es) posterior(es)`);
+    toast.success(`Configuración copiada a ${following.length} mes(es) posterior(es)`, {
+      duration: 8000,
+      action: {
+        label: "Deshacer",
+        onClick: () => {
+          setColumnsByMonth(snapshot);
+          toast.info("Cambios revertidos");
+        },
+      },
+    });
   };
 
   // Confirmaciones y rango
@@ -307,13 +317,19 @@ export default function Presupuesto() {
     setRangeDialogOpen(true);
   };
 
+  const rangeInvalid = rangeFrom > rangeTo;
+
   const applyConfigToRange = () => {
-    const [from, to] = rangeFrom <= rangeTo ? [rangeFrom, rangeTo] : [rangeTo, rangeFrom];
-    const monthsInRange = availableMonths.filter((m) => m >= from && m <= to);
+    if (rangeInvalid) {
+      toast.error("El mes 'Desde' debe ser menor o igual que 'Hasta'");
+      return;
+    }
+    const monthsInRange = availableMonths.filter((m) => m >= rangeFrom && m <= rangeTo);
     if (monthsInRange.length === 0) {
       toast.info("No hay meses disponibles en el rango seleccionado");
       return;
     }
+    const snapshot = columnsByMonth;
     setColumnsByMonth((prev) => {
       const next = { ...prev };
       monthsInRange.forEach((m) => {
@@ -323,19 +339,42 @@ export default function Presupuesto() {
     });
     setRangeDialogOpen(false);
     toast.success(
-      `Configuración aplicada a ${monthsInRange.length} mes(es) (${monthLabel(from)} — ${monthLabel(to)})`
+      `Configuración aplicada a ${monthsInRange.length} mes(es) (${monthLabel(rangeFrom)} — ${monthLabel(rangeTo)})`,
+      {
+        duration: 8000,
+        action: {
+          label: "Deshacer",
+          onClick: () => {
+            setColumnsByMonth(snapshot);
+            toast.info("Cambios revertidos");
+          },
+        },
+      }
     );
   };
 
 
 
   const resetCurrentMonthConfig = () => {
+    const snapshot = columnsByMonth;
+    const hadConfig = selectedMonth in columnsByMonth;
     setColumnsByMonth((prev) => {
       const next = { ...prev };
       delete next[selectedMonth];
       return next;
     });
-    toast.success(`Columnas restablecidas para ${monthLabel(selectedMonth)}`);
+    toast.success(`Columnas restablecidas para ${monthLabel(selectedMonth)}`, {
+      duration: 8000,
+      action: hadConfig
+        ? {
+            label: "Deshacer",
+            onClick: () => {
+              setColumnsByMonth(snapshot);
+              toast.info("Cambios revertidos");
+            },
+          }
+        : undefined,
+    });
   };
 
 
@@ -1179,9 +1218,14 @@ export default function Presupuesto() {
               </Select>
             </div>
           </div>
+          {rangeInvalid && (
+            <p className="text-sm text-destructive" role="alert">
+              El mes "Desde" debe ser menor o igual que el mes "Hasta".
+            </p>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setRangeDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={applyConfigToRange}>Aplicar</Button>
+            <Button onClick={applyConfigToRange} disabled={rangeInvalid}>Aplicar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
