@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Target, TrendingUp, AlertCircle, CheckCircle, Plus, Trash2, Pencil, Save, Download, ArrowUpDown, Search, Columns3, GripVertical, CopyCheck, RotateCcw, ChevronsRight } from "lucide-react";
+import { Target, TrendingUp, AlertCircle, CheckCircle, Plus, Trash2, Pencil, Save, Download, ArrowUpDown, Search, Columns3, GripVertical, CopyCheck, RotateCcw, ChevronsRight, CalendarRange } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { exportToCSV } from "@/lib/export-transactions";
 import {
   DropdownMenu,
@@ -278,6 +288,46 @@ export default function Presupuesto() {
     });
     toast.success(`Configuración copiada a ${following.length} mes(es) posterior(es)`);
   };
+
+  // Confirmaciones y rango
+  const [confirmFollowingOpen, setConfirmFollowingOpen] = useState(false);
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
+  const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
+  const [rangeFrom, setRangeFrom] = useState<string>(selectedMonth);
+  const [rangeTo, setRangeTo] = useState<string>(selectedMonth);
+
+  const followingMonthsCount = useMemo(
+    () => availableMonths.filter((m) => m > selectedMonth).length,
+    [availableMonths, selectedMonth]
+  );
+
+  const openRangeDialog = () => {
+    setRangeFrom(selectedMonth);
+    setRangeTo(selectedMonth);
+    setRangeDialogOpen(true);
+  };
+
+  const applyConfigToRange = () => {
+    const [from, to] = rangeFrom <= rangeTo ? [rangeFrom, rangeTo] : [rangeTo, rangeFrom];
+    const monthsInRange = availableMonths.filter((m) => m >= from && m <= to);
+    if (monthsInRange.length === 0) {
+      toast.info("No hay meses disponibles en el rango seleccionado");
+      return;
+    }
+    setColumnsByMonth((prev) => {
+      const next = { ...prev };
+      monthsInRange.forEach((m) => {
+        next[m] = currentConfig;
+      });
+      return next;
+    });
+    setRangeDialogOpen(false);
+    toast.success(
+      `Configuración aplicada a ${monthsInRange.length} mes(es) (${monthLabel(from)} — ${monthLabel(to)})`
+    );
+  };
+
+
 
   const resetCurrentMonthConfig = () => {
     setColumnsByMonth((prev) => {
@@ -842,11 +892,19 @@ export default function Presupuesto() {
                 <DropdownMenuSeparator />
                 <button
                   type="button"
-                  onClick={applyConfigToFollowingMonths}
+                  onClick={() => setConfirmFollowingOpen(true)}
                   className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   <ChevronsRight className="h-4 w-4" />
                   Copiar a meses posteriores
+                </button>
+                <button
+                  type="button"
+                  onClick={openRangeDialog}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <CalendarRange className="h-4 w-4" />
+                  Aplicar a un rango de meses…
                 </button>
                 <button
                   type="button"
@@ -859,7 +917,7 @@ export default function Presupuesto() {
                 <DropdownMenuSeparator />
                 <button
                   type="button"
-                  onClick={resetCurrentMonthConfig}
+                  onClick={() => setConfirmResetOpen(true)}
                   className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors text-destructive"
                 >
                   <RotateCcw className="h-4 w-4" />
@@ -1044,6 +1102,89 @@ export default function Presupuesto() {
           )}
         </CardContent>
       </Card>
+      <AlertDialog open={confirmFollowingOpen} onOpenChange={setConfirmFollowingOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Copiar a meses posteriores</AlertDialogTitle>
+            <AlertDialogDescription>
+              {followingMonthsCount === 0
+                ? `No hay meses posteriores a ${monthLabel(selectedMonth)}.`
+                : `Se aplicará la configuración de columnas de ${monthLabel(selectedMonth)} a ${followingMonthsCount} mes(es) posterior(es). Esta acción sobrescribirá la configuración existente en esos meses.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={followingMonthsCount === 0}
+              onClick={() => {
+                applyConfigToFollowingMonths();
+              }}
+            >
+              Copiar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restablecer columnas de este mes</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se restablecerán el orden y la visibilidad de las columnas de {monthLabel(selectedMonth)} a los valores predeterminados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => resetCurrentMonthConfig()}>
+              Restablecer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={rangeDialogOpen} onOpenChange={setRangeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Aplicar a un rango de meses</DialogTitle>
+            <DialogDescription>
+              Selecciona el rango de meses al que se aplicará la configuración actual de columnas.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
+            <div className="space-y-2">
+              <Label>Desde</Label>
+              <Select value={rangeFrom} onValueChange={setRangeFrom}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableMonths.slice().sort((a, b) => a.localeCompare(b)).map((m) => (
+                    <SelectItem key={m} value={m}>{monthLabel(m)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Hasta</Label>
+              <Select value={rangeTo} onValueChange={setRangeTo}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableMonths.slice().sort((a, b) => a.localeCompare(b)).map((m) => (
+                    <SelectItem key={m} value={m}>{monthLabel(m)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRangeDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={applyConfigToRange}>Aplicar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
