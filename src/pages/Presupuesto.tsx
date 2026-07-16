@@ -317,13 +317,19 @@ export default function Presupuesto() {
     setRangeDialogOpen(true);
   };
 
+  const rangeInvalid = rangeFrom > rangeTo;
+
   const applyConfigToRange = () => {
-    const [from, to] = rangeFrom <= rangeTo ? [rangeFrom, rangeTo] : [rangeTo, rangeFrom];
-    const monthsInRange = availableMonths.filter((m) => m >= from && m <= to);
+    if (rangeInvalid) {
+      toast.error("El mes 'Desde' debe ser menor o igual que 'Hasta'");
+      return;
+    }
+    const monthsInRange = availableMonths.filter((m) => m >= rangeFrom && m <= rangeTo);
     if (monthsInRange.length === 0) {
       toast.info("No hay meses disponibles en el rango seleccionado");
       return;
     }
+    const snapshot = columnsByMonth;
     setColumnsByMonth((prev) => {
       const next = { ...prev };
       monthsInRange.forEach((m) => {
@@ -333,7 +339,17 @@ export default function Presupuesto() {
     });
     setRangeDialogOpen(false);
     toast.success(
-      `Configuración aplicada a ${monthsInRange.length} mes(es) (${monthLabel(from)} — ${monthLabel(to)})`
+      `Configuración aplicada a ${monthsInRange.length} mes(es) (${monthLabel(rangeFrom)} — ${monthLabel(rangeTo)})`,
+      {
+        duration: 8000,
+        action: {
+          label: "Deshacer",
+          onClick: () => {
+            setColumnsByMonth(snapshot);
+            toast.info("Cambios revertidos");
+          },
+        },
+      }
     );
   };
 
