@@ -1219,50 +1219,99 @@ export default function Presupuesto() {
       </AlertDialog>
 
       <Dialog open={rangeDialogOpen} onOpenChange={setRangeDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Aplicar a un rango de meses</DialogTitle>
-            <DialogDescription>
-              Selecciona el rango de meses al que se aplicará la configuración actual de columnas.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
-            <div className="space-y-2">
-              <Label>Desde</Label>
-              <Select value={rangeFrom} onValueChange={setRangeFrom}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableMonths.slice().sort((a, b) => a.localeCompare(b)).map((m) => (
-                    <SelectItem key={m} value={m}>{monthLabel(m)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <DialogContent
+          onOpenAutoFocus={(e) => {
+            // Radix ya autofocusea; dejamos su comportamiento por defecto para foco accesible
+            void e;
+          }}
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              applyConfigToRange();
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>Aplicar a un rango de meses</DialogTitle>
+              <DialogDescription>
+                Selecciona el rango de meses al que se aplicará la configuración actual de columnas. Presiona Enter para aplicar o Escape para cancelar.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="range-from">Desde</Label>
+                <Select value={rangeFrom} onValueChange={setRangeFrom}>
+                  <SelectTrigger id="range-from" aria-invalid={rangeInvalid} aria-describedby={rangeInvalid ? "range-error" : undefined}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableMonths.slice().sort((a, b) => a.localeCompare(b)).map((m) => (
+                      <SelectItem key={m} value={m}>{monthLabel(m)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="range-to">Hasta</Label>
+                <Select value={rangeTo} onValueChange={setRangeTo}>
+                  <SelectTrigger id="range-to" aria-invalid={rangeInvalid} aria-describedby={rangeInvalid ? "range-error" : undefined}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableMonths.slice().sort((a, b) => a.localeCompare(b)).map((m) => (
+                      <SelectItem key={m} value={m}>{monthLabel(m)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Hasta</Label>
-              <Select value={rangeTo} onValueChange={setRangeTo}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableMonths.slice().sort((a, b) => a.localeCompare(b)).map((m) => (
-                    <SelectItem key={m} value={m}>{monthLabel(m)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          {rangeInvalid && (
-            <p className="text-sm text-destructive" role="alert">
-              El mes "Desde" debe ser menor o igual que el mes "Hasta".
-            </p>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRangeDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={applyConfigToRange} disabled={rangeInvalid}>Aplicar</Button>
-          </DialogFooter>
+            {rangeInvalid && (
+              <p id="range-error" className="text-sm text-destructive" role="alert">
+                El mes "Desde" debe ser menor o igual que el mes "Hasta".
+              </p>
+            )}
+            {!rangeInvalid && rangeMissingMonths.length > 0 && (
+              <div className="mt-2 space-y-3 rounded-md border border-border p-3">
+                <div className="text-sm">
+                  <p className="font-medium">Hay {rangeMissingMonths.length} mes(es) sin datos en el rango:</p>
+                  <p className="text-muted-foreground mt-1">
+                    {rangeMissingMonths.slice(0, 6).map(monthLabel).join(", ")}
+                    {rangeMissingMonths.length > 6 ? `, +${rangeMissingMonths.length - 6} más` : ""}
+                  </p>
+                </div>
+                <RadioGroup
+                  value={missingBehavior}
+                  onValueChange={(v) => setMissingBehavior(v as "exclude" | "include")}
+                  aria-label="Cómo tratar los meses sin datos"
+                >
+                  <div className="flex items-start gap-2">
+                    <RadioGroupItem value="exclude" id="missing-exclude" className="mt-1" />
+                    <Label htmlFor="missing-exclude" className="font-normal cursor-pointer">
+                      Excluirlos (aplicar solo a {rangeExistingMonths.length} mes(es) con datos)
+                    </Label>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <RadioGroupItem value="include" id="missing-include" className="mt-1" />
+                    <Label htmlFor="missing-include" className="font-normal cursor-pointer">
+                      Crearlos (guardar configuración para los {rangeAllMonths.length} meses del rango)
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            )}
+            <DialogFooter className="mt-4">
+              <Button type="button" variant="outline" onClick={() => setRangeDialogOpen(false)}>Cancelar</Button>
+              <Button
+                type="submit"
+                disabled={
+                  rangeInvalid ||
+                  (missingBehavior === "exclude" && rangeExistingMonths.length === 0)
+                }
+              >
+                Aplicar
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
