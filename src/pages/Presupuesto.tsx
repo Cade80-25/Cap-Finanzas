@@ -330,6 +330,13 @@ export default function Presupuesto() {
 
   const rangeInvalid = rangeFrom > rangeTo;
 
+  // Persistir el último rango y elección de crear/omitir mientras el diálogo está abierto
+  useEffect(() => {
+    if (!rangeDialogOpen) return;
+    setLastRangePrefs({ from: rangeFrom, to: rangeTo, missingBehavior });
+  }, [rangeDialogOpen, rangeFrom, rangeTo, missingBehavior, setLastRangePrefs]);
+
+
   // Enumera todos los meses YYYY-MM entre from y to inclusive
   const enumerateMonths = (from: string, to: string): string[] => {
     if (!from || !to || from > to) return [];
