@@ -1270,33 +1270,65 @@ export default function Presupuesto() {
                 El mes "Desde" debe ser menor o igual que el mes "Hasta".
               </p>
             )}
-            {!rangeInvalid && rangeMissingMonths.length > 0 && (
+            {!rangeInvalid && rangeAllMonths.length > 0 && (
               <div className="mt-2 space-y-3 rounded-md border border-border p-3">
                 <div className="text-sm">
-                  <p className="font-medium">Hay {rangeMissingMonths.length} mes(es) sin datos en el rango:</p>
-                  <p className="text-muted-foreground mt-1">
-                    {rangeMissingMonths.slice(0, 6).map(monthLabel).join(", ")}
-                    {rangeMissingMonths.length > 6 ? `, +${rangeMissingMonths.length - 6} más` : ""}
+                  <p className="font-medium">
+                    Vista previa: {(missingBehavior === "include" ? rangeAllMonths.length : rangeExistingMonths.length)} mes(es) se {rangeExistingMonths.length > 0 ? "modificarán" : "crearán"}
                   </p>
+                  {rangeExistingMonths.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">A modificar ({rangeExistingMonths.length})</p>
+                      <p className="text-muted-foreground mt-0.5">
+                        {rangeExistingMonths.slice(0, 6).map(monthLabel).join(", ")}
+                        {rangeExistingMonths.length > 6 ? `, +${rangeExistingMonths.length - 6} más` : ""}
+                      </p>
+                    </div>
+                  )}
+                  {rangeMissingMonths.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        {missingBehavior === "include" ? `A crear (${rangeMissingMonths.length})` : `Se omitirán (${rangeMissingMonths.length} sin datos)`}
+                      </p>
+                      <p className="text-muted-foreground mt-0.5">
+                        {rangeMissingMonths.slice(0, 6).map(monthLabel).join(", ")}
+                        {rangeMissingMonths.length > 6 ? `, +${rangeMissingMonths.length - 6} más` : ""}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <RadioGroup
-                  value={missingBehavior}
-                  onValueChange={(v) => setMissingBehavior(v as "exclude" | "include")}
-                  aria-label="Cómo tratar los meses sin datos"
-                >
-                  <div className="flex items-start gap-2">
-                    <RadioGroupItem value="exclude" id="missing-exclude" className="mt-1" />
-                    <Label htmlFor="missing-exclude" className="font-normal cursor-pointer">
-                      Excluirlos (aplicar solo a {rangeExistingMonths.length} mes(es) con datos)
-                    </Label>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <RadioGroupItem value="include" id="missing-include" className="mt-1" />
-                    <Label htmlFor="missing-include" className="font-normal cursor-pointer">
-                      Crearlos (guardar configuración para los {rangeAllMonths.length} meses del rango)
-                    </Label>
-                  </div>
-                </RadioGroup>
+                {rangeMissingMonths.length > 0 && (
+                  <>
+                    {missingBehavior === "exclude" ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setMissingBehavior("include")}
+                      >
+                        Crear {rangeMissingMonths.length} mes(es) faltante(s)
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setMissingBehavior("exclude")}
+                      >
+                        No crear meses faltantes
+                      </Button>
+                    )}
+                    <RadioGroup
+                      value={missingBehavior}
+                      onValueChange={(v) => setMissingBehavior(v as "exclude" | "include")}
+                      aria-label="Cómo tratar los meses sin datos"
+                      className="sr-only"
+                    >
+                      <RadioGroupItem value="exclude" id="missing-exclude" />
+                      <RadioGroupItem value="include" id="missing-include" />
+                    </RadioGroup>
+                  </>
+                )}
               </div>
             )}
             <DialogFooter className="mt-4">
