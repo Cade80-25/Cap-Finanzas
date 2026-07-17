@@ -304,6 +304,7 @@ export default function Presupuesto() {
   const [confirmFollowingOpen, setConfirmFollowingOpen] = useState(false);
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
+  const [confirmRangeOpen, setConfirmRangeOpen] = useState(false);
   const [rangeFrom, setRangeFrom] = useState<string>(selectedMonth);
   const [rangeTo, setRangeTo] = useState<string>(selectedMonth);
   const [missingBehavior, setMissingBehavior] = useState<"exclude" | "include">("exclude");
@@ -351,6 +352,50 @@ export default function Presupuesto() {
     () => rangeAllMonths.filter((m) => !availableMonthsSet.has(m)),
     [rangeAllMonths, availableMonthsSet]
   );
+
+  type MonthChange =
+    | { month: string; kind: "create"; visibleCols: ColumnKey[] }
+    | { month: string; kind: "modify"; toShow: ColumnKey[]; toHide: ColumnKey[]; reorder: boolean }
+    | { month: string; kind: "unchanged" };
+
+  const rangeMonthChanges = useMemo<MonthChange[]>(() => {
+    if (rangeInvalid) return [];
+    const months =
+      missingBehavior === "include" && rangeMissingMonths.length > 0
+        ? rangeAllMonths
+        : rangeExistingMonths;
+    return months.map<MonthChange>((m) => {
+      const stored = columnsByMonth[m];
+      if (!stored) {
+        return {
+          month: m,
+          kind: "create",
+          visibleCols: currentConfig.order.filter((k) => currentConfig.visible[k]),
+        };
+      }
+      const norm = normalizeConfig(stored);
+      const toShow: ColumnKey[] = [];
+      const toHide: ColumnKey[] = [];
+      DEFAULT_ORDER.forEach((k) => {
+        if (norm.visible[k] !== currentConfig.visible[k]) {
+          if (currentConfig.visible[k]) toShow.push(k);
+          else toHide.push(k);
+        }
+      });
+      const reorder = norm.order.join(",") !== currentConfig.order.join(",");
+      if (toShow.length === 0 && toHide.length === 0 && !reorder) {
+        return { month: m, kind: "unchanged" };
+      }
+      return { month: m, kind: "modify", toShow, toHide, reorder };
+    });
+  }, [rangeInvalid, missingBehavior, rangeMissingMonths, rangeAllMonths, rangeExistingMonths, columnsByMonth, currentConfig]);
+
+  const rangeCounts = useMemo(() => {
+    const c = { create: 0, modify: 0, unchanged: 0 };
+    rangeMonthChanges.forEach((ch) => { c[ch.kind] += 1; });
+    return c;
+  }, [rangeMonthChanges]);
+
 
   const applyConfigToRange = () => {
     if (rangeInvalid) {
@@ -1228,7 +1273,9 @@ export default function Presupuesto() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              applyConfigToRange();
+              if (rangeInvalid) return;
+              if (rangeMonthChanges.length === 0) return;
+              setConfirmRangeOpen(true);
             }}
           >
             <DialogHeader>
@@ -1331,21 +1378,90 @@ export default function Presupuesto() {
                 )}
               </div>
             )}
+            {!rangeInvalid && rangeMonthChanges.length > 0 && (
+              <div className="mt-2 rounded-md border border-border p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+                  Cambios por mes ({rangeCounts.modify} a modificar, {rangeCounts.create} a crear{rangeCounts.unchanged > 0 ? `, ${rangeCounts.unchanged} sin cambios` : ""})
+                </p>
+                <ul className="max-h-48 overflow-y-auto space-y-1.5 text-sm">
+                  {rangeMonthChanges.slice(0, 24).map((ch) => (
+                    <li key={ch.month} className="flex flex-wrap items-baseline gap-x-2">
+                      <span className="font-medium min-w-[7rem]">{monthLabel(ch.month)}</span>
+                      {ch.kind === "create" && (
+                        <span className="text-muted-foreground">
+                          Se creará con: {ch.visibleCols.map((k) => COLUMN_LABELS[k]).join(", ") || "sin columnas visibles"}
+                        </span>
+                      )}
+                      {ch.kind === "unchanged" && (
+                        <span className="text-muted-foreground">Sin cambios</span>
+                      )}
+                      {ch.kind === "modify" && (
+                        <span className="text-muted-foreground">
+                          {ch.toShow.length > 0 && <>Mostrar: {ch.toShow.map((k) => COLUMN_LABELS[k]).join(", ")}</>}
+                          {ch.toShow.length > 0 && (ch.toHide.length > 0 || ch.reorder) && " · "}
+                          {ch.toHide.length > 0 && <>Ocultar: {ch.toHide.map((k) => COLUMN_LABELS[k]).join(", ")}</>}
+                          {ch.toHide.length > 0 && ch.reorder && " · "}
+                          {ch.reorder && <>Reordenar columnas</>}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                  {rangeMonthChanges.length > 24 && (
+                    <li className="text-xs text-muted-foreground">+{rangeMonthChanges.length - 24} mes(es) más…</li>
+                  )}
+                </ul>
+              </div>
+            )}
             <DialogFooter className="mt-4">
               <Button type="button" variant="outline" onClick={() => setRangeDialogOpen(false)}>Cancelar</Button>
               <Button
                 type="submit"
                 disabled={
                   rangeInvalid ||
+                  rangeMonthChanges.length === 0 ||
                   (missingBehavior === "exclude" && rangeExistingMonths.length === 0)
                 }
               >
-                Aplicar
+                Revisar y aplicar
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={confirmRangeOpen} onOpenChange={setConfirmRangeOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar aplicación al rango</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <p>
+                  Rango: <span className="font-medium text-foreground">{monthLabel(rangeFrom)} — {monthLabel(rangeTo)}</span>
+                </p>
+                <ul className="list-disc pl-5 space-y-0.5">
+                  <li><span className="font-medium text-foreground">{rangeCounts.modify}</span> mes(es) se modificarán</li>
+                  <li><span className="font-medium text-foreground">{rangeCounts.create}</span> mes(es) se crearán</li>
+                  {rangeCounts.unchanged > 0 && (
+                    <li><span className="font-medium text-foreground">{rangeCounts.unchanged}</span> mes(es) sin cambios (se sobrescribirán con la misma configuración)</li>
+                  )}
+                </ul>
+                <p className="text-muted-foreground">Podrás deshacer esta acción durante unos segundos.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmRangeOpen(false);
+                applyConfigToRange();
+              }}
+            >
+              Confirmar y aplicar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
