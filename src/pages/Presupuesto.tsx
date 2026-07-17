@@ -305,6 +305,11 @@ export default function Presupuesto() {
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
   const [confirmRangeOpen, setConfirmRangeOpen] = useState(false);
+  const [lastRangePrefs, setLastRangePrefs] = useLocalStorage<{
+    from: string;
+    to: string;
+    missingBehavior: "exclude" | "include";
+  } | null>("cap-finanzas-presupuesto-ultimo-rango", null);
   const [rangeFrom, setRangeFrom] = useState<string>(selectedMonth);
   const [rangeTo, setRangeTo] = useState<string>(selectedMonth);
   const [missingBehavior, setMissingBehavior] = useState<"exclude" | "include">("exclude");
@@ -315,13 +320,22 @@ export default function Presupuesto() {
   );
 
   const openRangeDialog = () => {
-    setRangeFrom(selectedMonth);
-    setRangeTo(selectedMonth);
-    setMissingBehavior("exclude");
+    const savedFrom = lastRangePrefs?.from;
+    const savedTo = lastRangePrefs?.to;
+    setRangeFrom(savedFrom || selectedMonth);
+    setRangeTo(savedTo || selectedMonth);
+    setMissingBehavior(lastRangePrefs?.missingBehavior || "exclude");
     setRangeDialogOpen(true);
   };
 
   const rangeInvalid = rangeFrom > rangeTo;
+
+  // Persistir el último rango y elección de crear/omitir mientras el diálogo está abierto
+  useEffect(() => {
+    if (!rangeDialogOpen) return;
+    setLastRangePrefs({ from: rangeFrom, to: rangeTo, missingBehavior });
+  }, [rangeDialogOpen, rangeFrom, rangeTo, missingBehavior, setLastRangePrefs]);
+
 
   // Enumera todos los meses YYYY-MM entre from y to inclusive
   const enumerateMonths = (from: string, to: string): string[] => {
