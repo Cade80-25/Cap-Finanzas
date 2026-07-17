@@ -1273,7 +1273,9 @@ export default function Presupuesto() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              applyConfigToRange();
+              if (rangeInvalid) return;
+              if (rangeMonthChanges.length === 0) return;
+              setConfirmRangeOpen(true);
             }}
           >
             <DialogHeader>
