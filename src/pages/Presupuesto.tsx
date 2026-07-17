@@ -304,6 +304,7 @@ export default function Presupuesto() {
   const [confirmFollowingOpen, setConfirmFollowingOpen] = useState(false);
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
+  const [confirmRangeOpen, setConfirmRangeOpen] = useState(false);
   const [rangeFrom, setRangeFrom] = useState<string>(selectedMonth);
   const [rangeTo, setRangeTo] = useState<string>(selectedMonth);
   const [missingBehavior, setMissingBehavior] = useState<"exclude" | "include">("exclude");
