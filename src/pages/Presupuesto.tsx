@@ -353,6 +353,50 @@ export default function Presupuesto() {
     [rangeAllMonths, availableMonthsSet]
   );
 
+  type MonthChange =
+    | { month: string; kind: "create"; visibleCols: ColumnKey[] }
+    | { month: string; kind: "modify"; toShow: ColumnKey[]; toHide: ColumnKey[]; reorder: boolean }
+    | { month: string; kind: "unchanged" };
+
+  const rangeMonthChanges = useMemo<MonthChange[]>(() => {
+    if (rangeInvalid) return [];
+    const months =
+      missingBehavior === "include" && rangeMissingMonths.length > 0
+        ? rangeAllMonths
+        : rangeExistingMonths;
+    return months.map<MonthChange>((m) => {
+      const stored = columnsByMonth[m];
+      if (!stored) {
+        return {
+          month: m,
+          kind: "create",
+          visibleCols: currentConfig.order.filter((k) => currentConfig.visible[k]),
+        };
+      }
+      const norm = normalizeConfig(stored);
+      const toShow: ColumnKey[] = [];
+      const toHide: ColumnKey[] = [];
+      DEFAULT_ORDER.forEach((k) => {
+        if (norm.visible[k] !== currentConfig.visible[k]) {
+          if (currentConfig.visible[k]) toShow.push(k);
+          else toHide.push(k);
+        }
+      });
+      const reorder = norm.order.join(",") !== currentConfig.order.join(",");
+      if (toShow.length === 0 && toHide.length === 0 && !reorder) {
+        return { month: m, kind: "unchanged" };
+      }
+      return { month: m, kind: "modify", toShow, toHide, reorder };
+    });
+  }, [rangeInvalid, missingBehavior, rangeMissingMonths, rangeAllMonths, rangeExistingMonths, columnsByMonth, currentConfig]);
+
+  const rangeCounts = useMemo(() => {
+    const c = { create: 0, modify: 0, unchanged: 0 };
+    rangeMonthChanges.forEach((ch) => { c[ch.kind] += 1; });
+    return c;
+  }, [rangeMonthChanges]);
+
+
   const applyConfigToRange = () => {
     if (rangeInvalid) {
       toast.error("El mes 'Desde' debe ser menor o igual que 'Hasta'");
