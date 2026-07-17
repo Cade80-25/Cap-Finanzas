@@ -1378,21 +1378,90 @@ export default function Presupuesto() {
                 )}
               </div>
             )}
+            {!rangeInvalid && rangeMonthChanges.length > 0 && (
+              <div className="mt-2 rounded-md border border-border p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+                  Cambios por mes ({rangeCounts.modify} a modificar, {rangeCounts.create} a crear{rangeCounts.unchanged > 0 ? `, ${rangeCounts.unchanged} sin cambios` : ""})
+                </p>
+                <ul className="max-h-48 overflow-y-auto space-y-1.5 text-sm">
+                  {rangeMonthChanges.slice(0, 24).map((ch) => (
+                    <li key={ch.month} className="flex flex-wrap items-baseline gap-x-2">
+                      <span className="font-medium min-w-[7rem]">{monthLabel(ch.month)}</span>
+                      {ch.kind === "create" && (
+                        <span className="text-muted-foreground">
+                          Se creará con: {ch.visibleCols.map((k) => COLUMN_LABELS[k]).join(", ") || "sin columnas visibles"}
+                        </span>
+                      )}
+                      {ch.kind === "unchanged" && (
+                        <span className="text-muted-foreground">Sin cambios</span>
+                      )}
+                      {ch.kind === "modify" && (
+                        <span className="text-muted-foreground">
+                          {ch.toShow.length > 0 && <>Mostrar: {ch.toShow.map((k) => COLUMN_LABELS[k]).join(", ")}</>}
+                          {ch.toShow.length > 0 && (ch.toHide.length > 0 || ch.reorder) && " · "}
+                          {ch.toHide.length > 0 && <>Ocultar: {ch.toHide.map((k) => COLUMN_LABELS[k]).join(", ")}</>}
+                          {ch.toHide.length > 0 && ch.reorder && " · "}
+                          {ch.reorder && <>Reordenar columnas</>}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                  {rangeMonthChanges.length > 24 && (
+                    <li className="text-xs text-muted-foreground">+{rangeMonthChanges.length - 24} mes(es) más…</li>
+                  )}
+                </ul>
+              </div>
+            )}
             <DialogFooter className="mt-4">
               <Button type="button" variant="outline" onClick={() => setRangeDialogOpen(false)}>Cancelar</Button>
               <Button
                 type="submit"
                 disabled={
                   rangeInvalid ||
+                  rangeMonthChanges.length === 0 ||
                   (missingBehavior === "exclude" && rangeExistingMonths.length === 0)
                 }
               >
-                Aplicar
+                Revisar y aplicar
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={confirmRangeOpen} onOpenChange={setConfirmRangeOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar aplicación al rango</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <p>
+                  Rango: <span className="font-medium text-foreground">{monthLabel(rangeFrom)} — {monthLabel(rangeTo)}</span>
+                </p>
+                <ul className="list-disc pl-5 space-y-0.5">
+                  <li><span className="font-medium text-foreground">{rangeCounts.modify}</span> mes(es) se modificarán</li>
+                  <li><span className="font-medium text-foreground">{rangeCounts.create}</span> mes(es) se crearán</li>
+                  {rangeCounts.unchanged > 0 && (
+                    <li><span className="font-medium text-foreground">{rangeCounts.unchanged}</span> mes(es) sin cambios (se sobrescribirán con la misma configuración)</li>
+                  )}
+                </ul>
+                <p className="text-muted-foreground">Podrás deshacer esta acción durante unos segundos.</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmRangeOpen(false);
+                applyConfigToRange();
+              }}
+            >
+              Confirmar y aplicar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
