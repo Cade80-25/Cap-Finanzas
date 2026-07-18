@@ -487,6 +487,13 @@ export default function Presupuesto() {
       return next;
     });
     setRangeDialogOpen(false);
+    setLastRangeUndo({
+      snapshot,
+      count: monthsToApply.length,
+      fromLabel: monthLabel(rangeFrom),
+      toLabel: monthLabel(rangeTo),
+      appliedAt: Date.now(),
+    });
     toast.success(
       `Configuración aplicada a ${monthsToApply.length} mes(es) (${monthLabel(rangeFrom)} — ${monthLabel(rangeTo)})`,
       {
@@ -495,11 +502,19 @@ export default function Presupuesto() {
           label: "Deshacer",
           onClick: () => {
             setColumnsByMonth(snapshot);
+            setLastRangeUndo(null);
             toast.info("Cambios revertidos");
           },
         },
       }
     );
+  };
+
+  const undoLastRangeChange = () => {
+    if (!lastRangeUndo) return;
+    setColumnsByMonth(lastRangeUndo.snapshot);
+    setLastRangeUndo(null);
+    toast.info("Cambios revertidos");
   };
 
 
