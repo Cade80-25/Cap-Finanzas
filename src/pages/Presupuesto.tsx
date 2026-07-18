@@ -1073,6 +1073,14 @@ export default function Presupuesto() {
                 </button>
                 <button
                   type="button"
+                  onClick={resetRangePrefs}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors text-muted-foreground"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Restablecer preferencias de rango
+                </button>
+                <button
+                  type="button"
                   onClick={applyConfigToAllMonths}
                   className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
