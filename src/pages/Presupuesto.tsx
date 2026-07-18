@@ -322,10 +322,41 @@ export default function Presupuesto() {
   const openRangeDialog = () => {
     const savedFrom = lastRangePrefs?.from;
     const savedTo = lastRangePrefs?.to;
-    setRangeFrom(savedFrom || selectedMonth);
-    setRangeTo(savedTo || selectedMonth);
-    setMissingBehavior(lastRangePrefs?.missingBehavior || "exclude");
+    const availableSet = new Set(availableMonths);
+
+    // Validar meses guardados: deben existir en los datos actuales
+    let restoredFrom = savedFrom && availableSet.has(savedFrom) ? savedFrom : selectedMonth;
+    let restoredTo = savedTo && availableSet.has(savedTo) ? savedTo : selectedMonth;
+
+    // Asegurar orden cronológico
+    if (restoredFrom > restoredTo) {
+      restoredFrom = selectedMonth;
+      restoredTo = selectedMonth;
+    }
+
+    setRangeFrom(restoredFrom);
+    setRangeTo(restoredTo);
+
+    // Si el rango restaurado incluye meses sin datos, ajustar automáticamente
+    // la opción de crear/omitir para reflejar la situación real.
+    const monthsInRange = enumerateMonths(restoredFrom, restoredTo);
+    const hasMissing = monthsInRange.some((m) => !availableSet.has(m));
+    const savedBehavior = lastRangePrefs?.missingBehavior;
+    if (hasMissing) {
+      setMissingBehavior("include");
+    } else {
+      setMissingBehavior(savedBehavior === "include" ? "include" : "exclude");
+    }
+
     setRangeDialogOpen(true);
+  };
+
+  const resetRangePrefs = () => {
+    setLastRangePrefs(null);
+    setRangeFrom(selectedMonth);
+    setRangeTo(selectedMonth);
+    setMissingBehavior("exclude");
+    toast.info("Preferencias de rango restablecidas a los valores predeterminados");
   };
 
   const rangeInvalid = rangeFrom > rangeTo;
@@ -1039,6 +1070,14 @@ export default function Presupuesto() {
                 >
                   <CalendarRange className="h-4 w-4" />
                   Aplicar a un rango de meses…
+                </button>
+                <button
+                  type="button"
+                  onClick={resetRangePrefs}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground transition-colors text-muted-foreground"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Restablecer preferencias de rango
                 </button>
                 <button
                   type="button"
