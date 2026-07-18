@@ -1067,7 +1067,18 @@ export default function Presupuesto() {
               Transacciones que alimentan los gráficos y el consumo del mes.
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            {lastRangeUndo && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={undoLastRangeChange}
+                title={`Aplicado a ${lastRangeUndo.count} mes(es): ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}`}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Deshacer rango ({lastRangeUndo.count})
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
