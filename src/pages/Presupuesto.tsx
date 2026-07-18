@@ -1386,6 +1386,29 @@ export default function Presupuesto() {
                 Selecciona el rango de meses al que se aplicará la configuración actual de columnas. Presiona Enter para aplicar o Escape para cancelar.
               </DialogDescription>
             </DialogHeader>
+            {rangeAutoAdjustNotice.length > 0 && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm"
+              >
+                <p className="font-medium text-amber-700 dark:text-amber-300">
+                  El rango guardado se ajustó automáticamente
+                </p>
+                <ul className="mt-1 list-disc pl-5 space-y-0.5 text-muted-foreground">
+                  {rangeAutoAdjustNotice.map((n, i) => (
+                    <li key={i}>{n}</li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  className="mt-2 text-xs underline text-muted-foreground hover:text-foreground"
+                  onClick={() => setRangeAutoAdjustNotice([])}
+                >
+                  Ocultar aviso
+                </button>
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
               <div className="space-y-2">
                 <Label htmlFor="range-from">Desde</Label>
