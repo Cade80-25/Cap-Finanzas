@@ -313,6 +313,14 @@ export default function Presupuesto() {
   const [rangeFrom, setRangeFrom] = useState<string>(selectedMonth);
   const [rangeTo, setRangeTo] = useState<string>(selectedMonth);
   const [missingBehavior, setMissingBehavior] = useState<"exclude" | "include">("exclude");
+  const [rangeAutoAdjustNotice, setRangeAutoAdjustNotice] = useState<string[]>([]);
+  const [lastRangeUndo, setLastRangeUndo] = useState<{
+    snapshot: Record<string, ColumnConfig>;
+    count: number;
+    fromLabel: string;
+    toLabel: string;
+    appliedAt: number;
+  } | null>(null);
 
   const followingMonthsCount = useMemo(
     () => availableMonths.filter((m) => m > selectedMonth).length,
@@ -322,14 +330,24 @@ export default function Presupuesto() {
   const openRangeDialog = () => {
     const savedFrom = lastRangePrefs?.from;
     const savedTo = lastRangePrefs?.to;
+    const savedBehavior = lastRangePrefs?.missingBehavior;
     const availableSet = new Set(availableMonths);
+    const notices: string[] = [];
 
     // Validar meses guardados: deben existir en los datos actuales
     let restoredFrom = savedFrom && availableSet.has(savedFrom) ? savedFrom : selectedMonth;
     let restoredTo = savedTo && availableSet.has(savedTo) ? savedTo : selectedMonth;
 
+    if (savedFrom && !availableSet.has(savedFrom)) {
+      notices.push(`"Desde" ${monthLabel(savedFrom)} ya no existe en los datos; se ajustó a ${monthLabel(restoredFrom)}.`);
+    }
+    if (savedTo && !availableSet.has(savedTo)) {
+      notices.push(`"Hasta" ${monthLabel(savedTo)} ya no existe en los datos; se ajustó a ${monthLabel(restoredTo)}.`);
+    }
+
     // Asegurar orden cronológico
     if (restoredFrom > restoredTo) {
+      notices.push(`El rango guardado estaba invertido; se restableció a ${monthLabel(selectedMonth)}.`);
       restoredFrom = selectedMonth;
       restoredTo = selectedMonth;
     }
@@ -341,12 +359,17 @@ export default function Presupuesto() {
     // la opción de crear/omitir para reflejar la situación real.
     const monthsInRange = enumerateMonths(restoredFrom, restoredTo);
     const hasMissing = monthsInRange.some((m) => !availableSet.has(m));
-    const savedBehavior = lastRangePrefs?.missingBehavior;
+    let nextBehavior: "exclude" | "include";
     if (hasMissing) {
-      setMissingBehavior("include");
+      nextBehavior = "include";
+      if (savedBehavior === "exclude") {
+        notices.push(`El rango incluye meses sin datos; se cambió "Omitir" a "Crear" automáticamente.`);
+      }
     } else {
-      setMissingBehavior(savedBehavior === "include" ? "include" : "exclude");
+      nextBehavior = savedBehavior === "include" ? "include" : "exclude";
     }
+    setMissingBehavior(nextBehavior);
+    setRangeAutoAdjustNotice(notices);
 
     setRangeDialogOpen(true);
   };
