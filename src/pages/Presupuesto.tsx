@@ -1089,10 +1089,10 @@ export default function Presupuesto() {
                 variant="secondary"
                 size="sm"
                 onClick={undoLastRangeChange}
-                title={`Aplicado a ${lastRangeUndo.count} mes(es): ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}`}
+                title={`Último: ${lastRangeUndo.count} mes(es), ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}. Historial: ${rangeUndoHistory.length} paso(s).`}
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
-                Deshacer rango ({lastRangeUndo.count})
+                Deshacer rango ({rangeUndoHistory.length})
               </Button>
             )}
             <DropdownMenu>
