@@ -548,6 +548,21 @@ export default function Presupuesto() {
     setRangeUndoHistory([]);
   };
 
+  const revertToRangeStep = (appliedAt: number) => {
+    setRangeUndoHistory((prev) => {
+      const idx = prev.findIndex((e) => e.appliedAt === appliedAt);
+      if (idx === -1) return prev;
+      setColumnsByMonth(prev[idx].snapshot);
+      const removed = prev.length - idx;
+      toast.info(
+        removed === 1
+          ? "Cambio revertido"
+          : `Revertido a ese punto. Se eliminaron ${removed} paso(s) del historial.`
+      );
+      return prev.slice(0, idx);
+    });
+  };
+
 
 
 
