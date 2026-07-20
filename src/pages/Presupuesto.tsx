@@ -314,13 +314,16 @@ export default function Presupuesto() {
   const [rangeTo, setRangeTo] = useState<string>(selectedMonth);
   const [missingBehavior, setMissingBehavior] = useState<"exclude" | "include">("exclude");
   const [rangeAutoAdjustNotice, setRangeAutoAdjustNotice] = useState<string[]>([]);
-  const [lastRangeUndo, setLastRangeUndo] = useState<{
+  type RangeUndoEntry = {
     snapshot: Record<string, ColumnConfig>;
     count: number;
     fromLabel: string;
     toLabel: string;
     appliedAt: number;
-  } | null>(null);
+  };
+  const RANGE_UNDO_MAX = 10;
+  const [rangeUndoHistory, setRangeUndoHistory] = useState<RangeUndoEntry[]>([]);
+  const lastRangeUndo = rangeUndoHistory.length > 0 ? rangeUndoHistory[rangeUndoHistory.length - 1] : null;
 
   const followingMonthsCount = useMemo(
     () => availableMonths.filter((m) => m > selectedMonth).length,
@@ -487,13 +490,14 @@ export default function Presupuesto() {
       return next;
     });
     setRangeDialogOpen(false);
-    setLastRangeUndo({
+    const entry: RangeUndoEntry = {
       snapshot,
       count: monthsToApply.length,
       fromLabel: monthLabel(rangeFrom),
       toLabel: monthLabel(rangeTo),
       appliedAt: Date.now(),
-    });
+    };
+    setRangeUndoHistory((prev) => [...prev, entry].slice(-RANGE_UNDO_MAX));
     toast.success(
       `Configuración aplicada a ${monthsToApply.length} mes(es) (${monthLabel(rangeFrom)} — ${monthLabel(rangeTo)})`,
       {
@@ -502,7 +506,7 @@ export default function Presupuesto() {
           label: "Deshacer",
           onClick: () => {
             setColumnsByMonth(snapshot);
-            setLastRangeUndo(null);
+            setRangeUndoHistory((prev) => prev.filter((e) => e.appliedAt !== entry.appliedAt));
             toast.info("Cambios revertidos");
           },
         },
@@ -511,11 +515,23 @@ export default function Presupuesto() {
   };
 
   const undoLastRangeChange = () => {
-    if (!lastRangeUndo) return;
-    setColumnsByMonth(lastRangeUndo.snapshot);
-    setLastRangeUndo(null);
-    toast.info("Cambios revertidos");
+    setRangeUndoHistory((prev) => {
+      if (prev.length === 0) return prev;
+      const top = prev[prev.length - 1];
+      setColumnsByMonth(top.snapshot);
+      toast.info(
+        prev.length > 1
+          ? `Cambio revertido. ${prev.length - 1} paso(s) restante(s) en el historial.`
+          : "Cambios revertidos"
+      );
+      return prev.slice(0, -1);
+    });
   };
+
+  const clearRangeUndoHistory = () => {
+    setRangeUndoHistory([]);
+  };
+
 
 
 
@@ -1073,10 +1089,10 @@ export default function Presupuesto() {
                 variant="secondary"
                 size="sm"
                 onClick={undoLastRangeChange}
-                title={`Aplicado a ${lastRangeUndo.count} mes(es): ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}`}
+                title={`Último: ${lastRangeUndo.count} mes(es), ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}. Historial: ${rangeUndoHistory.length} paso(s).`}
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
-                Deshacer rango ({lastRangeUndo.count})
+                Deshacer rango ({rangeUndoHistory.length})
               </Button>
             )}
             <DropdownMenu>
@@ -1571,6 +1587,14 @@ export default function Presupuesto() {
                   )}
                 </ul>
                 <p className="text-muted-foreground">Podrás deshacer esta acción durante unos segundos.</p>
+                {rangeUndoHistory.length > 0 && (
+                  <div
+                    role="status"
+                    className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-300"
+                  >
+                    Tienes {rangeUndoHistory.length} paso(s) en el historial de deshacer. Al aplicar se agregará uno nuevo (se conserva el anterior; el historial guarda hasta {RANGE_UNDO_MAX} pasos).
+                  </div>
+                )}
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
