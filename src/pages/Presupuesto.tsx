@@ -497,11 +497,20 @@ export default function Presupuesto() {
       return next;
     });
     setRangeDialogOpen(false);
+    const createdMonths =
+      missingBehavior === "include" ? rangeMissingMonths.slice() : [];
+    const modifiedMonths = rangeExistingMonths.slice();
     const entry: RangeUndoEntry = {
       snapshot,
       count: monthsToApply.length,
       fromLabel: monthLabel(rangeFrom),
       toLabel: monthLabel(rangeTo),
+      fromMonth: rangeFrom,
+      toMonth: rangeTo,
+      missingBehavior,
+      modifiedMonths,
+      createdMonths,
+      unchangedCount: rangeCounts.unchanged,
       appliedAt: Date.now(),
     };
     setRangeUndoHistory((prev) => [...prev, entry].slice(-RANGE_UNDO_MAX));
