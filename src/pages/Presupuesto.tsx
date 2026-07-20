@@ -490,13 +490,14 @@ export default function Presupuesto() {
       return next;
     });
     setRangeDialogOpen(false);
-    setLastRangeUndo({
+    const entry: RangeUndoEntry = {
       snapshot,
       count: monthsToApply.length,
       fromLabel: monthLabel(rangeFrom),
       toLabel: monthLabel(rangeTo),
       appliedAt: Date.now(),
-    });
+    };
+    setRangeUndoHistory((prev) => [...prev, entry].slice(-RANGE_UNDO_MAX));
     toast.success(
       `Configuración aplicada a ${monthsToApply.length} mes(es) (${monthLabel(rangeFrom)} — ${monthLabel(rangeTo)})`,
       {
@@ -505,7 +506,7 @@ export default function Presupuesto() {
           label: "Deshacer",
           onClick: () => {
             setColumnsByMonth(snapshot);
-            setLastRangeUndo(null);
+            setRangeUndoHistory((prev) => prev.filter((e) => e.appliedAt !== entry.appliedAt));
             toast.info("Cambios revertidos");
           },
         },
@@ -514,11 +515,23 @@ export default function Presupuesto() {
   };
 
   const undoLastRangeChange = () => {
-    if (!lastRangeUndo) return;
-    setColumnsByMonth(lastRangeUndo.snapshot);
-    setLastRangeUndo(null);
-    toast.info("Cambios revertidos");
+    setRangeUndoHistory((prev) => {
+      if (prev.length === 0) return prev;
+      const top = prev[prev.length - 1];
+      setColumnsByMonth(top.snapshot);
+      toast.info(
+        prev.length > 1
+          ? `Cambio revertido. ${prev.length - 1} paso(s) restante(s) en el historial.`
+          : "Cambios revertidos"
+      );
+      return prev.slice(0, -1);
+    });
   };
+
+  const clearRangeUndoHistory = () => {
+    setRangeUndoHistory([]);
+  };
+
 
 
 
