@@ -1677,6 +1677,98 @@ export default function Presupuesto() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Historial de cambios de rango</DialogTitle>
+            <DialogDescription>
+              Revisa cada paso antes de deshacer. Puedes revertir al estado anterior a cualquier paso.
+            </DialogDescription>
+          </DialogHeader>
+          {rangeUndoHistory.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">No hay pasos en el historial.</p>
+          ) : (
+            <ul className="max-h-[420px] overflow-y-auto space-y-2">
+              {rangeUndoHistory
+                .slice()
+                .reverse()
+                .map((e, i) => {
+                  const stepNum = rangeUndoHistory.length - i;
+                  const when = new Date(e.appliedAt).toLocaleString();
+                  return (
+                    <li
+                      key={e.appliedAt}
+                      className="rounded-md border border-border p-3 text-sm space-y-1.5"
+                    >
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <div className="font-medium">
+                          Paso {stepNum} · {e.fromLabel} — {e.toLabel}
+                        </div>
+                        <div className="text-xs text-muted-foreground">{when}</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Meses aplicados: <span className="font-medium text-foreground">{e.count}</span>
+                        {" · "}Modificados: <span className="font-medium text-foreground">{e.modifiedMonths.length}</span>
+                        {" · "}Creados: <span className="font-medium text-foreground">{e.createdMonths.length}</span>
+                        {" · "}Faltantes:{" "}
+                        <span className="font-medium text-foreground">
+                          {e.missingBehavior === "include" ? "crear" : "omitir"}
+                        </span>
+                        {e.unchangedCount > 0 && <> · Sin cambios: {e.unchangedCount}</>}
+                      </div>
+                      {e.modifiedMonths.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          <span className="uppercase tracking-wide">Modificados:</span>{" "}
+                          {e.modifiedMonths.slice(0, 6).map(monthLabel).join(", ")}
+                          {e.modifiedMonths.length > 6 ? `, +${e.modifiedMonths.length - 6} más` : ""}
+                        </p>
+                      )}
+                      {e.createdMonths.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          <span className="uppercase tracking-wide">Creados:</span>{" "}
+                          {e.createdMonths.slice(0, 6).map(monthLabel).join(", ")}
+                          {e.createdMonths.length > 6 ? `, +${e.createdMonths.length - 6} más` : ""}
+                        </p>
+                      )}
+                      <div className="pt-1">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => {
+                            revertToRangeStep(e.appliedAt);
+                            if (rangeUndoHistory.length - i <= 1) setHistoryDialogOpen(false);
+                          }}
+                        >
+                          <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                          Revertir a antes de este paso
+                        </Button>
+                      </div>
+                    </li>
+                  );
+                })}
+            </ul>
+          )}
+          <DialogFooter className="mt-2 flex-col sm:flex-row gap-2">
+            {rangeUndoHistory.length > 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  clearRangeUndoHistory();
+                  toast.info("Historial de deshacer limpiado");
+                  setHistoryDialogOpen(false);
+                }}
+              >
+                Limpiar historial
+              </Button>
+            )}
+            <Button type="button" variant="outline" onClick={() => setHistoryDialogOpen(false)}>
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
