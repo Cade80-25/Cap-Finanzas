@@ -1116,15 +1116,25 @@ export default function Presupuesto() {
           </div>
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             {lastRangeUndo && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={undoLastRangeChange}
-                title={`Último: ${lastRangeUndo.count} mes(es), ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}. Historial: ${rangeUndoHistory.length} paso(s).`}
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Deshacer rango ({rangeUndoHistory.length})
-              </Button>
+              <>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={undoLastRangeChange}
+                  title={`Último: ${lastRangeUndo.count} mes(es), ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}. Historial: ${rangeUndoHistory.length} paso(s).`}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Deshacer rango ({rangeUndoHistory.length})
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setHistoryDialogOpen(true)}
+                  title="Ver historial de cambios de rango"
+                >
+                  Historial
+                </Button>
+              </>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
