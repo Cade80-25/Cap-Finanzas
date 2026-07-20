@@ -1503,28 +1503,53 @@ export default function Presupuesto() {
               <div className="mt-2 space-y-3 rounded-md border border-border p-3">
                 <div className="text-sm">
                   <p className="font-medium">
-                    Vista previa: {(missingBehavior === "include" ? rangeAllMonths.length : rangeExistingMonths.length)} mes(es) se {rangeExistingMonths.length > 0 ? "modificarán" : "crearán"}
+                    Vista previa · Total a aplicar:{" "}
+                    {missingBehavior === "include"
+                      ? rangeAllMonths.length
+                      : rangeExistingMonths.length}{" "}
+                    mes(es)
                   </p>
-                  {rangeExistingMonths.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">A modificar ({rangeExistingMonths.length})</p>
-                      <p className="text-muted-foreground mt-0.5">
-                        {rangeExistingMonths.slice(0, 6).map(monthLabel).join(", ")}
-                        {rangeExistingMonths.length > 6 ? `, +${rangeExistingMonths.length - 6} más` : ""}
-                      </p>
-                    </div>
-                  )}
-                  {rangeMissingMonths.length > 0 && (
-                    <div className="mt-2">
+                  <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                    <div className="rounded-md bg-muted/40 p-2">
                       <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                        {missingBehavior === "include" ? `A crear (${rangeMissingMonths.length})` : `Se omitirán (${rangeMissingMonths.length} sin datos)`}
+                        A modificar ({rangeExistingMonths.length})
                       </p>
-                      <p className="text-muted-foreground mt-0.5">
-                        {rangeMissingMonths.slice(0, 6).map(monthLabel).join(", ")}
-                        {rangeMissingMonths.length > 6 ? `, +${rangeMissingMonths.length - 6} más` : ""}
+                      <p className="text-muted-foreground mt-0.5 text-xs">
+                        {rangeExistingMonths.length === 0
+                          ? "—"
+                          : rangeExistingMonths.slice(0, 6).map(monthLabel).join(", ") +
+                            (rangeExistingMonths.length > 6
+                              ? `, +${rangeExistingMonths.length - 6} más`
+                              : "")}
                       </p>
                     </div>
-                  )}
+                    <div className="rounded-md bg-muted/40 p-2">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        A crear ({missingBehavior === "include" ? rangeMissingMonths.length : 0})
+                      </p>
+                      <p className="text-muted-foreground mt-0.5 text-xs">
+                        {missingBehavior === "include" && rangeMissingMonths.length > 0
+                          ? rangeMissingMonths.slice(0, 6).map(monthLabel).join(", ") +
+                            (rangeMissingMonths.length > 6
+                              ? `, +${rangeMissingMonths.length - 6} más`
+                              : "")
+                          : "—"}
+                      </p>
+                    </div>
+                    <div className="rounded-md bg-muted/40 p-2">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Se omitirán ({missingBehavior === "exclude" ? rangeMissingMonths.length : 0})
+                      </p>
+                      <p className="text-muted-foreground mt-0.5 text-xs">
+                        {missingBehavior === "exclude" && rangeMissingMonths.length > 0
+                          ? rangeMissingMonths.slice(0, 6).map(monthLabel).join(", ") +
+                            (rangeMissingMonths.length > 6
+                              ? `, +${rangeMissingMonths.length - 6} más`
+                              : "")
+                          : "—"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 {rangeMissingMonths.length > 0 && (
                   <>
