@@ -314,13 +314,16 @@ export default function Presupuesto() {
   const [rangeTo, setRangeTo] = useState<string>(selectedMonth);
   const [missingBehavior, setMissingBehavior] = useState<"exclude" | "include">("exclude");
   const [rangeAutoAdjustNotice, setRangeAutoAdjustNotice] = useState<string[]>([]);
-  const [lastRangeUndo, setLastRangeUndo] = useState<{
+  type RangeUndoEntry = {
     snapshot: Record<string, ColumnConfig>;
     count: number;
     fromLabel: string;
     toLabel: string;
     appliedAt: number;
-  } | null>(null);
+  };
+  const RANGE_UNDO_MAX = 10;
+  const [rangeUndoHistory, setRangeUndoHistory] = useState<RangeUndoEntry[]>([]);
+  const lastRangeUndo = rangeUndoHistory.length > 0 ? rangeUndoHistory[rangeUndoHistory.length - 1] : null;
 
   const followingMonthsCount = useMemo(
     () => availableMonths.filter((m) => m > selectedMonth).length,
