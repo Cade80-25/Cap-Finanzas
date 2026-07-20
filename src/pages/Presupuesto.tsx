@@ -319,10 +319,17 @@ export default function Presupuesto() {
     count: number;
     fromLabel: string;
     toLabel: string;
+    fromMonth: string;
+    toMonth: string;
+    missingBehavior: "exclude" | "include";
+    modifiedMonths: string[];
+    createdMonths: string[];
+    unchangedCount: number;
     appliedAt: number;
   };
   const RANGE_UNDO_MAX = 10;
   const [rangeUndoHistory, setRangeUndoHistory] = useState<RangeUndoEntry[]>([]);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const lastRangeUndo = rangeUndoHistory.length > 0 ? rangeUndoHistory[rangeUndoHistory.length - 1] : null;
 
   const followingMonthsCount = useMemo(
