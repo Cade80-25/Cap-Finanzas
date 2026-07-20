@@ -319,10 +319,17 @@ export default function Presupuesto() {
     count: number;
     fromLabel: string;
     toLabel: string;
+    fromMonth: string;
+    toMonth: string;
+    missingBehavior: "exclude" | "include";
+    modifiedMonths: string[];
+    createdMonths: string[];
+    unchangedCount: number;
     appliedAt: number;
   };
   const RANGE_UNDO_MAX = 10;
   const [rangeUndoHistory, setRangeUndoHistory] = useState<RangeUndoEntry[]>([]);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const lastRangeUndo = rangeUndoHistory.length > 0 ? rangeUndoHistory[rangeUndoHistory.length - 1] : null;
 
   const followingMonthsCount = useMemo(
@@ -490,11 +497,20 @@ export default function Presupuesto() {
       return next;
     });
     setRangeDialogOpen(false);
+    const createdMonths =
+      missingBehavior === "include" ? rangeMissingMonths.slice() : [];
+    const modifiedMonths = rangeExistingMonths.slice();
     const entry: RangeUndoEntry = {
       snapshot,
       count: monthsToApply.length,
       fromLabel: monthLabel(rangeFrom),
       toLabel: monthLabel(rangeTo),
+      fromMonth: rangeFrom,
+      toMonth: rangeTo,
+      missingBehavior,
+      modifiedMonths,
+      createdMonths,
+      unchangedCount: rangeCounts.unchanged,
       appliedAt: Date.now(),
     };
     setRangeUndoHistory((prev) => [...prev, entry].slice(-RANGE_UNDO_MAX));
@@ -530,6 +546,21 @@ export default function Presupuesto() {
 
   const clearRangeUndoHistory = () => {
     setRangeUndoHistory([]);
+  };
+
+  const revertToRangeStep = (appliedAt: number) => {
+    setRangeUndoHistory((prev) => {
+      const idx = prev.findIndex((e) => e.appliedAt === appliedAt);
+      if (idx === -1) return prev;
+      setColumnsByMonth(prev[idx].snapshot);
+      const removed = prev.length - idx;
+      toast.info(
+        removed === 1
+          ? "Cambio revertido"
+          : `Revertido a ese punto. Se eliminaron ${removed} paso(s) del historial.`
+      );
+      return prev.slice(0, idx);
+    });
   };
 
 
@@ -1085,15 +1116,25 @@ export default function Presupuesto() {
           </div>
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             {lastRangeUndo && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={undoLastRangeChange}
-                title={`Último: ${lastRangeUndo.count} mes(es), ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}. Historial: ${rangeUndoHistory.length} paso(s).`}
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Deshacer rango ({rangeUndoHistory.length})
-              </Button>
+              <>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={undoLastRangeChange}
+                  title={`Último: ${lastRangeUndo.count} mes(es), ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}. Historial: ${rangeUndoHistory.length} paso(s).`}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Deshacer rango ({rangeUndoHistory.length})
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setHistoryDialogOpen(true)}
+                  title="Ver historial de cambios de rango"
+                >
+                  Historial
+                </Button>
+              </>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -1462,28 +1503,53 @@ export default function Presupuesto() {
               <div className="mt-2 space-y-3 rounded-md border border-border p-3">
                 <div className="text-sm">
                   <p className="font-medium">
-                    Vista previa: {(missingBehavior === "include" ? rangeAllMonths.length : rangeExistingMonths.length)} mes(es) se {rangeExistingMonths.length > 0 ? "modificarán" : "crearán"}
+                    Vista previa · Total a aplicar:{" "}
+                    {missingBehavior === "include"
+                      ? rangeAllMonths.length
+                      : rangeExistingMonths.length}{" "}
+                    mes(es)
                   </p>
-                  {rangeExistingMonths.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">A modificar ({rangeExistingMonths.length})</p>
-                      <p className="text-muted-foreground mt-0.5">
-                        {rangeExistingMonths.slice(0, 6).map(monthLabel).join(", ")}
-                        {rangeExistingMonths.length > 6 ? `, +${rangeExistingMonths.length - 6} más` : ""}
-                      </p>
-                    </div>
-                  )}
-                  {rangeMissingMonths.length > 0 && (
-                    <div className="mt-2">
+                  <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                    <div className="rounded-md bg-muted/40 p-2">
                       <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                        {missingBehavior === "include" ? `A crear (${rangeMissingMonths.length})` : `Se omitirán (${rangeMissingMonths.length} sin datos)`}
+                        A modificar ({rangeExistingMonths.length})
                       </p>
-                      <p className="text-muted-foreground mt-0.5">
-                        {rangeMissingMonths.slice(0, 6).map(monthLabel).join(", ")}
-                        {rangeMissingMonths.length > 6 ? `, +${rangeMissingMonths.length - 6} más` : ""}
+                      <p className="text-muted-foreground mt-0.5 text-xs">
+                        {rangeExistingMonths.length === 0
+                          ? "—"
+                          : rangeExistingMonths.slice(0, 6).map(monthLabel).join(", ") +
+                            (rangeExistingMonths.length > 6
+                              ? `, +${rangeExistingMonths.length - 6} más`
+                              : "")}
                       </p>
                     </div>
-                  )}
+                    <div className="rounded-md bg-muted/40 p-2">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        A crear ({missingBehavior === "include" ? rangeMissingMonths.length : 0})
+                      </p>
+                      <p className="text-muted-foreground mt-0.5 text-xs">
+                        {missingBehavior === "include" && rangeMissingMonths.length > 0
+                          ? rangeMissingMonths.slice(0, 6).map(monthLabel).join(", ") +
+                            (rangeMissingMonths.length > 6
+                              ? `, +${rangeMissingMonths.length - 6} más`
+                              : "")
+                          : "—"}
+                      </p>
+                    </div>
+                    <div className="rounded-md bg-muted/40 p-2">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Se omitirán ({missingBehavior === "exclude" ? rangeMissingMonths.length : 0})
+                      </p>
+                      <p className="text-muted-foreground mt-0.5 text-xs">
+                        {missingBehavior === "exclude" && rangeMissingMonths.length > 0
+                          ? rangeMissingMonths.slice(0, 6).map(monthLabel).join(", ") +
+                            (rangeMissingMonths.length > 6
+                              ? `, +${rangeMissingMonths.length - 6} más`
+                              : "")
+                          : "—"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 {rangeMissingMonths.length > 0 && (
                   <>
@@ -1611,6 +1677,98 @@ export default function Presupuesto() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Historial de cambios de rango</DialogTitle>
+            <DialogDescription>
+              Revisa cada paso antes de deshacer. Puedes revertir al estado anterior a cualquier paso.
+            </DialogDescription>
+          </DialogHeader>
+          {rangeUndoHistory.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">No hay pasos en el historial.</p>
+          ) : (
+            <ul className="max-h-[420px] overflow-y-auto space-y-2">
+              {rangeUndoHistory
+                .slice()
+                .reverse()
+                .map((e, i) => {
+                  const stepNum = rangeUndoHistory.length - i;
+                  const when = new Date(e.appliedAt).toLocaleString();
+                  return (
+                    <li
+                      key={e.appliedAt}
+                      className="rounded-md border border-border p-3 text-sm space-y-1.5"
+                    >
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <div className="font-medium">
+                          Paso {stepNum} · {e.fromLabel} — {e.toLabel}
+                        </div>
+                        <div className="text-xs text-muted-foreground">{when}</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Meses aplicados: <span className="font-medium text-foreground">{e.count}</span>
+                        {" · "}Modificados: <span className="font-medium text-foreground">{e.modifiedMonths.length}</span>
+                        {" · "}Creados: <span className="font-medium text-foreground">{e.createdMonths.length}</span>
+                        {" · "}Faltantes:{" "}
+                        <span className="font-medium text-foreground">
+                          {e.missingBehavior === "include" ? "crear" : "omitir"}
+                        </span>
+                        {e.unchangedCount > 0 && <> · Sin cambios: {e.unchangedCount}</>}
+                      </div>
+                      {e.modifiedMonths.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          <span className="uppercase tracking-wide">Modificados:</span>{" "}
+                          {e.modifiedMonths.slice(0, 6).map(monthLabel).join(", ")}
+                          {e.modifiedMonths.length > 6 ? `, +${e.modifiedMonths.length - 6} más` : ""}
+                        </p>
+                      )}
+                      {e.createdMonths.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          <span className="uppercase tracking-wide">Creados:</span>{" "}
+                          {e.createdMonths.slice(0, 6).map(monthLabel).join(", ")}
+                          {e.createdMonths.length > 6 ? `, +${e.createdMonths.length - 6} más` : ""}
+                        </p>
+                      )}
+                      <div className="pt-1">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => {
+                            revertToRangeStep(e.appliedAt);
+                            if (rangeUndoHistory.length - i <= 1) setHistoryDialogOpen(false);
+                          }}
+                        >
+                          <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                          Revertir a antes de este paso
+                        </Button>
+                      </div>
+                    </li>
+                  );
+                })}
+            </ul>
+          )}
+          <DialogFooter className="mt-2 flex-col sm:flex-row gap-2">
+            {rangeUndoHistory.length > 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  clearRangeUndoHistory();
+                  toast.info("Historial de deshacer limpiado");
+                  setHistoryDialogOpen(false);
+                }}
+              >
+                Limpiar historial
+              </Button>
+            )}
+            <Button type="button" variant="outline" onClick={() => setHistoryDialogOpen(false)}>
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
