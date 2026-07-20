@@ -1587,6 +1587,14 @@ export default function Presupuesto() {
                   )}
                 </ul>
                 <p className="text-muted-foreground">Podrás deshacer esta acción durante unos segundos.</p>
+                {rangeUndoHistory.length > 0 && (
+                  <div
+                    role="status"
+                    className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-300"
+                  >
+                    Tienes {rangeUndoHistory.length} paso(s) en el historial de deshacer. Al aplicar se agregará uno nuevo (se conserva el anterior; el historial guarda hasta {RANGE_UNDO_MAX} pasos).
+                  </div>
+                )}
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
