@@ -1614,7 +1614,15 @@ export default function Presupuesto() {
                           variant="link"
                           size="sm"
                           className="h-auto p-0 mt-1 text-xs"
-                          onClick={() => openMonthList("A crear", rangeMissingMonths)}
+                          onClick={() =>
+                            openMonthList(
+                              "A crear",
+                              "created",
+                              rangeExistingMonths,
+                              missingBehavior === "include" ? rangeMissingMonths : [],
+                              missingBehavior === "exclude" ? rangeMissingMonths : []
+                            )
+                          }
                           aria-label={`Ver lista completa de ${rangeMissingMonths.length} meses a crear`}
                         >
                           Ver lista completa ({rangeMissingMonths.length})
