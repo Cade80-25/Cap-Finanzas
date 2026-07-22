@@ -1647,7 +1647,15 @@ export default function Presupuesto() {
                           variant="link"
                           size="sm"
                           className="h-auto p-0 mt-1 text-xs"
-                          onClick={() => openMonthList("Se omitirán", rangeMissingMonths)}
+                          onClick={() =>
+                            openMonthList(
+                              "Se omitirán",
+                              "omitted",
+                              rangeExistingMonths,
+                              [],
+                              rangeMissingMonths
+                            )
+                          }
                           aria-label={`Ver lista completa de ${rangeMissingMonths.length} meses omitidos`}
                         >
                           Ver lista completa ({rangeMissingMonths.length})
