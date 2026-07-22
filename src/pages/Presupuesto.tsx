@@ -330,6 +330,16 @@ export default function Presupuesto() {
   const RANGE_UNDO_MAX = 10;
   const [rangeUndoHistory, setRangeUndoHistory] = useState<RangeUndoEntry[]>([]);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [monthListDialog, setMonthListDialog] = useState<{
+    open: boolean;
+    title: string;
+    months: string[];
+  }>({ open: false, title: "", months: [] });
+  const [monthListSearch, setMonthListSearch] = useState("");
+  const openMonthList = (title: string, months: string[]) => {
+    setMonthListSearch("");
+    setMonthListDialog({ open: true, title, months });
+  };
   const lastRangeUndo = rangeUndoHistory.length > 0 ? rangeUndoHistory[rangeUndoHistory.length - 1] : null;
 
   const followingMonthsCount = useMemo(
