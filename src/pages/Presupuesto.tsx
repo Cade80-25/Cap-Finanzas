@@ -1564,6 +1564,18 @@ export default function Presupuesto() {
                               ? `, +${rangeExistingMonths.length - 6} más`
                               : "")}
                       </p>
+                      {rangeExistingMonths.length > 6 && (
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 mt-1 text-xs"
+                          onClick={() => openMonthList("A modificar", rangeExistingMonths)}
+                          aria-label={`Ver lista completa de ${rangeExistingMonths.length} meses a modificar`}
+                        >
+                          Ver lista completa ({rangeExistingMonths.length})
+                        </Button>
+                      )}
                     </div>
                     <div className="rounded-md bg-muted/40 p-2">
                       <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -1577,6 +1589,18 @@ export default function Presupuesto() {
                               : "")
                           : "—"}
                       </p>
+                      {missingBehavior === "include" && rangeMissingMonths.length > 6 && (
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 mt-1 text-xs"
+                          onClick={() => openMonthList("A crear", rangeMissingMonths)}
+                          aria-label={`Ver lista completa de ${rangeMissingMonths.length} meses a crear`}
+                        >
+                          Ver lista completa ({rangeMissingMonths.length})
+                        </Button>
+                      )}
                     </div>
                     <div className="rounded-md bg-muted/40 p-2">
                       <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -1590,6 +1614,18 @@ export default function Presupuesto() {
                               : "")
                           : "—"}
                       </p>
+                      {missingBehavior === "exclude" && rangeMissingMonths.length > 6 && (
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 mt-1 text-xs"
+                          onClick={() => openMonthList("Se omitirán", rangeMissingMonths)}
+                          aria-label={`Ver lista completa de ${rangeMissingMonths.length} meses omitidos`}
+                        >
+                          Ver lista completa ({rangeMissingMonths.length})
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
