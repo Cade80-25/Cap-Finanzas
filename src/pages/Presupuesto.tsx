@@ -1874,7 +1874,13 @@ export default function Presupuesto() {
                               size="sm"
                               className="h-auto p-0 ml-2 text-xs align-baseline"
                               onClick={() =>
-                                openMonthList(`Paso ${stepNum} · Creados`, e.createdMonths)
+                                openMonthList(
+                                  `Paso ${stepNum} · Creados`,
+                                  "created",
+                                  e.modifiedMonths,
+                                  e.createdMonths,
+                                  []
+                                )
                               }
                               aria-label={`Ver lista completa de ${e.createdMonths.length} meses creados en el paso ${stepNum}`}
                             >
