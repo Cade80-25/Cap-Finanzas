@@ -1581,7 +1581,15 @@ export default function Presupuesto() {
                           variant="link"
                           size="sm"
                           className="h-auto p-0 mt-1 text-xs"
-                          onClick={() => openMonthList("A modificar", rangeExistingMonths)}
+                          onClick={() =>
+                            openMonthList(
+                              "A modificar",
+                              "modified",
+                              rangeExistingMonths,
+                              missingBehavior === "include" ? rangeMissingMonths : [],
+                              missingBehavior === "exclude" ? rangeMissingMonths : []
+                            )
+                          }
                           aria-label={`Ver lista completa de ${rangeExistingMonths.length} meses a modificar`}
                         >
                           Ver lista completa ({rangeExistingMonths.length})
