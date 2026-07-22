@@ -48,6 +48,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 import { useAccountingData } from "@/hooks/useAccountingData";
 import { useBudgets, type BudgetItem } from "@/hooks/useBudgets";
@@ -333,12 +334,22 @@ export default function Presupuesto() {
   const [monthListDialog, setMonthListDialog] = useState<{
     open: boolean;
     title: string;
-    months: string[];
-  }>({ open: false, title: "", months: [] });
+    modified: string[];
+    created: string[];
+    omitted: string[];
+  }>({ open: false, title: "", modified: [], created: [], omitted: [] });
+  const [monthListFilter, setMonthListFilter] = useState<"modified" | "created" | "omitted">("modified");
   const [monthListSearch, setMonthListSearch] = useState("");
-  const openMonthList = (title: string, months: string[]) => {
+  const openMonthList = (
+    title: string,
+    filter: "modified" | "created" | "omitted",
+    modified: string[],
+    created: string[],
+    omitted: string[]
+  ) => {
     setMonthListSearch("");
-    setMonthListDialog({ open: true, title, months });
+    setMonthListFilter(filter);
+    setMonthListDialog({ open: true, title, modified, created, omitted });
   };
   const lastRangeUndo = rangeUndoHistory.length > 0 ? rangeUndoHistory[rangeUndoHistory.length - 1] : null;
 
@@ -1570,7 +1581,15 @@ export default function Presupuesto() {
                           variant="link"
                           size="sm"
                           className="h-auto p-0 mt-1 text-xs"
-                          onClick={() => openMonthList("A modificar", rangeExistingMonths)}
+                          onClick={() =>
+                            openMonthList(
+                              "A modificar",
+                              "modified",
+                              rangeExistingMonths,
+                              missingBehavior === "include" ? rangeMissingMonths : [],
+                              missingBehavior === "exclude" ? rangeMissingMonths : []
+                            )
+                          }
                           aria-label={`Ver lista completa de ${rangeExistingMonths.length} meses a modificar`}
                         >
                           Ver lista completa ({rangeExistingMonths.length})
@@ -1595,7 +1614,15 @@ export default function Presupuesto() {
                           variant="link"
                           size="sm"
                           className="h-auto p-0 mt-1 text-xs"
-                          onClick={() => openMonthList("A crear", rangeMissingMonths)}
+                          onClick={() =>
+                            openMonthList(
+                              "A crear",
+                              "created",
+                              rangeExistingMonths,
+                              rangeMissingMonths,
+                              []
+                            )
+                          }
                           aria-label={`Ver lista completa de ${rangeMissingMonths.length} meses a crear`}
                         >
                           Ver lista completa ({rangeMissingMonths.length})
@@ -1620,7 +1647,15 @@ export default function Presupuesto() {
                           variant="link"
                           size="sm"
                           className="h-auto p-0 mt-1 text-xs"
-                          onClick={() => openMonthList("Se omitirán", rangeMissingMonths)}
+                          onClick={() =>
+                            openMonthList(
+                              "Se omitirán",
+                              "omitted",
+                              rangeExistingMonths,
+                              [],
+                              rangeMissingMonths
+                            )
+                          }
                           aria-label={`Ver lista completa de ${rangeMissingMonths.length} meses omitidos`}
                         >
                           Ver lista completa ({rangeMissingMonths.length})
@@ -1812,7 +1847,13 @@ export default function Presupuesto() {
                               size="sm"
                               className="h-auto p-0 ml-2 text-xs align-baseline"
                               onClick={() =>
-                                openMonthList(`Paso ${stepNum} · Modificados`, e.modifiedMonths)
+                                openMonthList(
+                                  `Paso ${stepNum} · Modificados`,
+                                  "modified",
+                                  e.modifiedMonths,
+                                  e.createdMonths,
+                                  []
+                                )
                               }
                               aria-label={`Ver lista completa de ${e.modifiedMonths.length} meses modificados en el paso ${stepNum}`}
                             >
@@ -1833,7 +1874,13 @@ export default function Presupuesto() {
                               size="sm"
                               className="h-auto p-0 ml-2 text-xs align-baseline"
                               onClick={() =>
-                                openMonthList(`Paso ${stepNum} · Creados`, e.createdMonths)
+                                openMonthList(
+                                  `Paso ${stepNum} · Creados`,
+                                  "created",
+                                  e.modifiedMonths,
+                                  e.createdMonths,
+                                  []
+                                )
                               }
                               aria-label={`Ver lista completa de ${e.createdMonths.length} meses creados en el paso ${stepNum}`}
                             >
@@ -1892,11 +1939,29 @@ export default function Presupuesto() {
           <DialogHeader>
             <DialogTitle>{monthListDialog.title}</DialogTitle>
             <DialogDescription>
-              {monthListDialog.months.length} mes(es). Usa la búsqueda para filtrar. Presiona{" "}
+              {monthListDialog.modified.length + monthListDialog.created.length + monthListDialog.omitted.length}{" "}
+              mes(es) en total. Usa los filtros y la búsqueda para explorar. Presiona{" "}
               <kbd className="rounded border px-1 text-[10px] font-mono">Esc</kbd> para cerrar.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
+          <div className="space-y-3">
+            <ToggleGroup
+              type="single"
+              value={monthListFilter}
+              onValueChange={(v) => v && setMonthListFilter(v as "modified" | "created" | "omitted")}
+              aria-label="Filtrar lista de meses"
+              className="w-full justify-start flex-wrap"
+            >
+              <ToggleGroupItem value="modified" aria-label={`A modificar (${monthListDialog.modified.length})`} className="text-xs">
+                A modificar ({monthListDialog.modified.length})
+              </ToggleGroupItem>
+              <ToggleGroupItem value="created" aria-label={`A crear (${monthListDialog.created.length})`} className="text-xs">
+                A crear ({monthListDialog.created.length})
+              </ToggleGroupItem>
+              <ToggleGroupItem value="omitted" aria-label={`Se omitirán (${monthListDialog.omitted.length})`} className="text-xs">
+                Se omitirán ({monthListDialog.omitted.length})
+              </ToggleGroupItem>
+            </ToggleGroup>
             <Label htmlFor="month-list-search" className="sr-only">
               Buscar mes
             </Label>
@@ -1910,13 +1975,26 @@ export default function Presupuesto() {
             />
             {(() => {
               const q = monthListSearch.trim().toLowerCase();
+              const activeList =
+                monthListFilter === "modified"
+                  ? monthListDialog.modified
+                  : monthListFilter === "created"
+                  ? monthListDialog.created
+                  : monthListDialog.omitted;
               const filtered = q
-                ? monthListDialog.months.filter(
+                ? activeList.filter(
                     (m) =>
                       m.toLowerCase().includes(q) ||
                       monthLabel(m).toLowerCase().includes(q)
                   )
-                : monthListDialog.months;
+                : activeList;
+              const activeTotal = activeList.length;
+              const activeLabel =
+                monthListFilter === "modified"
+                  ? "A modificar"
+                  : monthListFilter === "created"
+                  ? "A crear"
+                  : "Se omitirán";
               return (
                 <>
                   <p
@@ -1924,11 +2002,11 @@ export default function Presupuesto() {
                     role="status"
                     aria-live="polite"
                   >
-                    Mostrando {filtered.length} de {monthListDialog.months.length}
+                    Mostrando {filtered.length} de {activeTotal} en {activeLabel}
                   </p>
                   <ul
                     className="max-h-[320px] overflow-y-auto rounded-md border border-border divide-y divide-border"
-                    aria-label={monthListDialog.title}
+                    aria-label={`${monthListDialog.title} · ${activeLabel}`}
                   >
                     {filtered.length === 0 ? (
                       <li className="px-3 py-2 text-sm text-muted-foreground">
