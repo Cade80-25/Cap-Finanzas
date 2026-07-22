@@ -334,12 +334,22 @@ export default function Presupuesto() {
   const [monthListDialog, setMonthListDialog] = useState<{
     open: boolean;
     title: string;
-    months: string[];
-  }>({ open: false, title: "", months: [] });
+    modified: string[];
+    created: string[];
+    omitted: string[];
+  }>({ open: false, title: "", modified: [], created: [], omitted: [] });
+  const [monthListFilter, setMonthListFilter] = useState<"modified" | "created" | "omitted">("modified");
   const [monthListSearch, setMonthListSearch] = useState("");
-  const openMonthList = (title: string, months: string[]) => {
+  const openMonthList = (
+    title: string,
+    filter: "modified" | "created" | "omitted",
+    modified: string[],
+    created: string[],
+    omitted: string[]
+  ) => {
     setMonthListSearch("");
-    setMonthListDialog({ open: true, title, months });
+    setMonthListFilter(filter);
+    setMonthListDialog({ open: true, title, modified, created, omitted });
   };
   const lastRangeUndo = rangeUndoHistory.length > 0 ? rangeUndoHistory[rangeUndoHistory.length - 1] : null;
 
