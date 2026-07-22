@@ -330,6 +330,16 @@ export default function Presupuesto() {
   const RANGE_UNDO_MAX = 10;
   const [rangeUndoHistory, setRangeUndoHistory] = useState<RangeUndoEntry[]>([]);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [monthListDialog, setMonthListDialog] = useState<{
+    open: boolean;
+    title: string;
+    months: string[];
+  }>({ open: false, title: "", months: [] });
+  const [monthListSearch, setMonthListSearch] = useState("");
+  const openMonthList = (title: string, months: string[]) => {
+    setMonthListSearch("");
+    setMonthListDialog({ open: true, title, months });
+  };
   const lastRangeUndo = rangeUndoHistory.length > 0 ? rangeUndoHistory[rangeUndoHistory.length - 1] : null;
 
   const followingMonthsCount = useMemo(
@@ -562,6 +572,31 @@ export default function Presupuesto() {
       return prev.slice(0, idx);
     });
   };
+
+  // Atajo de teclado: Ctrl/Cmd+Z para "Deshacer rango" cuando hay historial
+  // y no se está escribiendo en un input/textarea/contenteditable.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return;
+      if (e.key.toLowerCase() !== "z") return;
+      const t = e.target as HTMLElement | null;
+      const tag = t?.tagName;
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        t?.isContentEditable
+      ) {
+        return;
+      }
+      if (rangeUndoHistory.length === 0) return;
+      e.preventDefault();
+      undoLastRangeChange();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [rangeUndoHistory.length]);
+
 
 
 
@@ -1121,15 +1156,22 @@ export default function Presupuesto() {
                   variant="secondary"
                   size="sm"
                   onClick={undoLastRangeChange}
-                  title={`Último: ${lastRangeUndo.count} mes(es), ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}. Historial: ${rangeUndoHistory.length} paso(s).`}
+                  aria-label={`Deshacer último cambio de rango. Atajo: Ctrl+Z. Historial: ${rangeUndoHistory.length} paso(s).`}
+                  aria-keyshortcuts="Control+Z Meta+Z"
+                  title={`Último: ${lastRangeUndo.count} mes(es), ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}. Historial: ${rangeUndoHistory.length} paso(s). Atajo: Ctrl+Z`}
                 >
-                  <RotateCcw className="h-4 w-4 mr-2" />
+                  <RotateCcw className="h-4 w-4 mr-2" aria-hidden="true" />
                   Deshacer rango ({rangeUndoHistory.length})
+                  <kbd className="ml-2 hidden sm:inline-flex items-center rounded border border-border bg-muted px-1 text-[10px] font-mono text-muted-foreground">
+                    Ctrl+Z
+                  </kbd>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setHistoryDialogOpen(true)}
+                  aria-label="Ver historial de cambios de rango"
+                  aria-haspopup="dialog"
                   title="Ver historial de cambios de rango"
                 >
                   Historial
@@ -1522,6 +1564,18 @@ export default function Presupuesto() {
                               ? `, +${rangeExistingMonths.length - 6} más`
                               : "")}
                       </p>
+                      {rangeExistingMonths.length > 6 && (
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 mt-1 text-xs"
+                          onClick={() => openMonthList("A modificar", rangeExistingMonths)}
+                          aria-label={`Ver lista completa de ${rangeExistingMonths.length} meses a modificar`}
+                        >
+                          Ver lista completa ({rangeExistingMonths.length})
+                        </Button>
+                      )}
                     </div>
                     <div className="rounded-md bg-muted/40 p-2">
                       <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -1535,6 +1589,18 @@ export default function Presupuesto() {
                               : "")
                           : "—"}
                       </p>
+                      {missingBehavior === "include" && rangeMissingMonths.length > 6 && (
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 mt-1 text-xs"
+                          onClick={() => openMonthList("A crear", rangeMissingMonths)}
+                          aria-label={`Ver lista completa de ${rangeMissingMonths.length} meses a crear`}
+                        >
+                          Ver lista completa ({rangeMissingMonths.length})
+                        </Button>
+                      )}
                     </div>
                     <div className="rounded-md bg-muted/40 p-2">
                       <p className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -1548,6 +1614,18 @@ export default function Presupuesto() {
                               : "")
                           : "—"}
                       </p>
+                      {missingBehavior === "exclude" && rangeMissingMonths.length > 6 && (
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 mt-1 text-xs"
+                          onClick={() => openMonthList("Se omitirán", rangeMissingMonths)}
+                          aria-label={`Ver lista completa de ${rangeMissingMonths.length} meses omitidos`}
+                        >
+                          Ver lista completa ({rangeMissingMonths.length})
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1684,12 +1762,17 @@ export default function Presupuesto() {
             <DialogTitle>Historial de cambios de rango</DialogTitle>
             <DialogDescription>
               Revisa cada paso antes de deshacer. Puedes revertir al estado anterior a cualquier paso.
+              Atajos: <kbd className="rounded border px-1 text-[10px] font-mono">Esc</kbd> cerrar ·{" "}
+              <kbd className="rounded border px-1 text-[10px] font-mono">Ctrl+Z</kbd> deshacer último paso.
             </DialogDescription>
           </DialogHeader>
           {rangeUndoHistory.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4">No hay pasos en el historial.</p>
           ) : (
-            <ul className="max-h-[420px] overflow-y-auto space-y-2">
+            <ul
+              className="max-h-[420px] overflow-y-auto space-y-2"
+              aria-label="Pasos del historial de rango"
+            >
               {rangeUndoHistory
                 .slice()
                 .reverse()
@@ -1722,6 +1805,20 @@ export default function Presupuesto() {
                           <span className="uppercase tracking-wide">Modificados:</span>{" "}
                           {e.modifiedMonths.slice(0, 6).map(monthLabel).join(", ")}
                           {e.modifiedMonths.length > 6 ? `, +${e.modifiedMonths.length - 6} más` : ""}
+                          {e.modifiedMonths.length > 6 && (
+                            <Button
+                              type="button"
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0 ml-2 text-xs align-baseline"
+                              onClick={() =>
+                                openMonthList(`Paso ${stepNum} · Modificados`, e.modifiedMonths)
+                              }
+                              aria-label={`Ver lista completa de ${e.modifiedMonths.length} meses modificados en el paso ${stepNum}`}
+                            >
+                              Ver lista completa
+                            </Button>
+                          )}
                         </p>
                       )}
                       {e.createdMonths.length > 0 && (
@@ -1729,6 +1826,20 @@ export default function Presupuesto() {
                           <span className="uppercase tracking-wide">Creados:</span>{" "}
                           {e.createdMonths.slice(0, 6).map(monthLabel).join(", ")}
                           {e.createdMonths.length > 6 ? `, +${e.createdMonths.length - 6} más` : ""}
+                          {e.createdMonths.length > 6 && (
+                            <Button
+                              type="button"
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0 ml-2 text-xs align-baseline"
+                              onClick={() =>
+                                openMonthList(`Paso ${stepNum} · Creados`, e.createdMonths)
+                              }
+                              aria-label={`Ver lista completa de ${e.createdMonths.length} meses creados en el paso ${stepNum}`}
+                            >
+                              Ver lista completa
+                            </Button>
+                          )}
                         </p>
                       )}
                       <div className="pt-1">
@@ -1739,8 +1850,9 @@ export default function Presupuesto() {
                             revertToRangeStep(e.appliedAt);
                             if (rangeUndoHistory.length - i <= 1) setHistoryDialogOpen(false);
                           }}
+                          aria-label={`Revertir a antes del paso ${stepNum}`}
                         >
-                          <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                          <RotateCcw className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
                           Revertir a antes de este paso
                         </Button>
                       </div>
@@ -1764,6 +1876,86 @@ export default function Presupuesto() {
               </Button>
             )}
             <Button type="button" variant="outline" onClick={() => setHistoryDialogOpen(false)}>
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={monthListDialog.open}
+        onOpenChange={(open) =>
+          setMonthListDialog((prev) => ({ ...prev, open }))
+        }
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{monthListDialog.title}</DialogTitle>
+            <DialogDescription>
+              {monthListDialog.months.length} mes(es). Usa la búsqueda para filtrar. Presiona{" "}
+              <kbd className="rounded border px-1 text-[10px] font-mono">Esc</kbd> para cerrar.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="month-list-search" className="sr-only">
+              Buscar mes
+            </Label>
+            <Input
+              id="month-list-search"
+              autoFocus
+              placeholder="Buscar mes (ej. 2024-05 o mayo)"
+              value={monthListSearch}
+              onChange={(ev) => setMonthListSearch(ev.target.value)}
+              aria-label="Buscar mes dentro de la lista"
+            />
+            {(() => {
+              const q = monthListSearch.trim().toLowerCase();
+              const filtered = q
+                ? monthListDialog.months.filter(
+                    (m) =>
+                      m.toLowerCase().includes(q) ||
+                      monthLabel(m).toLowerCase().includes(q)
+                  )
+                : monthListDialog.months;
+              return (
+                <>
+                  <p
+                    className="text-xs text-muted-foreground"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    Mostrando {filtered.length} de {monthListDialog.months.length}
+                  </p>
+                  <ul
+                    className="max-h-[320px] overflow-y-auto rounded-md border border-border divide-y divide-border"
+                    aria-label={monthListDialog.title}
+                  >
+                    {filtered.length === 0 ? (
+                      <li className="px-3 py-2 text-sm text-muted-foreground">
+                        Sin resultados
+                      </li>
+                    ) : (
+                      filtered.map((m) => (
+                        <li
+                          key={m}
+                          className="px-3 py-1.5 text-sm flex items-center justify-between"
+                        >
+                          <span>{monthLabel(m)}</span>
+                          <span className="text-xs text-muted-foreground font-mono">{m}</span>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                </>
+              );
+            })()}
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setMonthListDialog((prev) => ({ ...prev, open: false }))}
+            >
               Cerrar
             </Button>
           </DialogFooter>
