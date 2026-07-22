@@ -1619,8 +1619,8 @@ export default function Presupuesto() {
                               "A crear",
                               "created",
                               rangeExistingMonths,
-                              missingBehavior === "include" ? rangeMissingMonths : [],
-                              missingBehavior === "exclude" ? rangeMissingMonths : []
+                              rangeMissingMonths,
+                              []
                             )
                           }
                           aria-label={`Ver lista completa de ${rangeMissingMonths.length} meses a crear`}
