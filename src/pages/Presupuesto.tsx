@@ -573,6 +573,31 @@ export default function Presupuesto() {
     });
   };
 
+  // Atajo de teclado: Ctrl/Cmd+Z para "Deshacer rango" cuando hay historial
+  // y no se está escribiendo en un input/textarea/contenteditable.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return;
+      if (e.key.toLowerCase() !== "z") return;
+      const t = e.target as HTMLElement | null;
+      const tag = t?.tagName;
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        t?.isContentEditable
+      ) {
+        return;
+      }
+      if (rangeUndoHistory.length === 0) return;
+      e.preventDefault();
+      undoLastRangeChange();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [rangeUndoHistory.length]);
+
+
 
 
 
