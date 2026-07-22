@@ -1156,15 +1156,22 @@ export default function Presupuesto() {
                   variant="secondary"
                   size="sm"
                   onClick={undoLastRangeChange}
-                  title={`Último: ${lastRangeUndo.count} mes(es), ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}. Historial: ${rangeUndoHistory.length} paso(s).`}
+                  aria-label={`Deshacer último cambio de rango. Atajo: Ctrl+Z. Historial: ${rangeUndoHistory.length} paso(s).`}
+                  aria-keyshortcuts="Control+Z Meta+Z"
+                  title={`Último: ${lastRangeUndo.count} mes(es), ${lastRangeUndo.fromLabel} — ${lastRangeUndo.toLabel}. Historial: ${rangeUndoHistory.length} paso(s). Atajo: Ctrl+Z`}
                 >
-                  <RotateCcw className="h-4 w-4 mr-2" />
+                  <RotateCcw className="h-4 w-4 mr-2" aria-hidden="true" />
                   Deshacer rango ({rangeUndoHistory.length})
+                  <kbd className="ml-2 hidden sm:inline-flex items-center rounded border border-border bg-muted px-1 text-[10px] font-mono text-muted-foreground">
+                    Ctrl+Z
+                  </kbd>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setHistoryDialogOpen(true)}
+                  aria-label="Ver historial de cambios de rango"
+                  aria-haspopup="dialog"
                   title="Ver historial de cambios de rango"
                 >
                   Historial
