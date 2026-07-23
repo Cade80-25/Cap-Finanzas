@@ -2075,7 +2075,10 @@ export default function Presupuesto() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setMonthListDialog((prev) => ({ ...prev, open: false }))}
+              onClick={() => {
+                persistMonthListPrefs();
+                setMonthListDialog((prev) => ({ ...prev, open: false }));
+              }}
             >
               Cerrar
             </Button>
