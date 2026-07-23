@@ -331,25 +331,48 @@ export default function Presupuesto() {
   const RANGE_UNDO_MAX = 10;
   const [rangeUndoHistory, setRangeUndoHistory] = useState<RangeUndoEntry[]>([]);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  type MonthListFilter = "modified" | "created" | "omitted";
+  type MonthListSort = "asc" | "desc";
+  type MonthListPrefs = { filter: MonthListFilter; search: string; sort: MonthListSort };
   const [monthListDialog, setMonthListDialog] = useState<{
     open: boolean;
     title: string;
+    rangeKey: string;
     modified: string[];
     created: string[];
     omitted: string[];
-  }>({ open: false, title: "", modified: [], created: [], omitted: [] });
-  const [monthListFilter, setMonthListFilter] = useState<"modified" | "created" | "omitted">("modified");
+  }>({ open: false, title: "", rangeKey: "", modified: [], created: [], omitted: [] });
+  const [monthListFilter, setMonthListFilter] = useState<MonthListFilter>("modified");
   const [monthListSearch, setMonthListSearch] = useState("");
+  const [monthListSort, setMonthListSort] = useState<MonthListSort>("asc");
+  const monthListPrefsRef = useRef<Record<string, MonthListPrefs>>({});
+  const buildRangeKey = (modified: string[], created: string[], omitted: string[]) =>
+    [
+      [...modified].sort().join(","),
+      [...created].sort().join(","),
+      [...omitted].sort().join(","),
+    ].join("|");
   const openMonthList = (
     title: string,
-    filter: "modified" | "created" | "omitted",
+    filter: MonthListFilter,
     modified: string[],
     created: string[],
     omitted: string[]
   ) => {
-    setMonthListSearch("");
-    setMonthListFilter(filter);
-    setMonthListDialog({ open: true, title, modified, created, omitted });
+    const rangeKey = buildRangeKey(modified, created, omitted);
+    const saved = monthListPrefsRef.current[rangeKey];
+    setMonthListFilter(saved?.filter ?? filter);
+    setMonthListSearch(saved?.search ?? "");
+    setMonthListSort(saved?.sort ?? "asc");
+    setMonthListDialog({ open: true, title, rangeKey, modified, created, omitted });
+  };
+  const persistMonthListPrefs = () => {
+    if (!monthListDialog.rangeKey) return;
+    monthListPrefsRef.current[monthListDialog.rangeKey] = {
+      filter: monthListFilter,
+      search: monthListSearch,
+      sort: monthListSort,
+    };
   };
   const lastRangeUndo = rangeUndoHistory.length > 0 ? rangeUndoHistory[rangeUndoHistory.length - 1] : null;
 
@@ -1931,9 +1954,10 @@ export default function Presupuesto() {
 
       <Dialog
         open={monthListDialog.open}
-        onOpenChange={(open) =>
-          setMonthListDialog((prev) => ({ ...prev, open }))
-        }
+        onOpenChange={(open) => {
+          if (!open) persistMonthListPrefs();
+          setMonthListDialog((prev) => ({ ...prev, open }));
+        }}
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -1973,6 +1997,22 @@ export default function Presupuesto() {
               onChange={(ev) => setMonthListSearch(ev.target.value)}
               aria-label="Buscar mes dentro de la lista"
             />
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-muted-foreground">Ordenar por mes</span>
+              <ToggleGroup
+                type="single"
+                value={monthListSort}
+                onValueChange={(v) => v && setMonthListSort(v as MonthListSort)}
+                aria-label="Ordenar lista de meses"
+              >
+                <ToggleGroupItem value="asc" aria-label="Ascendente (más antiguo primero)" className="text-xs">
+                  Asc
+                </ToggleGroupItem>
+                <ToggleGroupItem value="desc" aria-label="Descendente (más reciente primero)" className="text-xs">
+                  Desc
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
             {(() => {
               const q = monthListSearch.trim().toLowerCase();
               const activeList =
@@ -1981,13 +2021,16 @@ export default function Presupuesto() {
                   : monthListFilter === "created"
                   ? monthListDialog.created
                   : monthListDialog.omitted;
-              const filtered = q
+              const searched = q
                 ? activeList.filter(
                     (m) =>
                       m.toLowerCase().includes(q) ||
                       monthLabel(m).toLowerCase().includes(q)
                   )
                 : activeList;
+              const filtered = [...searched].sort((a, b) =>
+                monthListSort === "asc" ? a.localeCompare(b) : b.localeCompare(a)
+              );
               const activeTotal = activeList.length;
               const activeLabel =
                 monthListFilter === "modified"
@@ -2032,7 +2075,10 @@ export default function Presupuesto() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setMonthListDialog((prev) => ({ ...prev, open: false }))}
+              onClick={() => {
+                persistMonthListPrefs();
+                setMonthListDialog((prev) => ({ ...prev, open: false }));
+              }}
             >
               Cerrar
             </Button>
