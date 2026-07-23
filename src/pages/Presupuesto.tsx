@@ -1954,9 +1954,10 @@ export default function Presupuesto() {
 
       <Dialog
         open={monthListDialog.open}
-        onOpenChange={(open) =>
-          setMonthListDialog((prev) => ({ ...prev, open }))
-        }
+        onOpenChange={(open) => {
+          if (!open) persistMonthListPrefs();
+          setMonthListDialog((prev) => ({ ...prev, open }));
+        }}
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
