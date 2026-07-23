@@ -345,6 +345,12 @@ export default function Presupuesto() {
   const [monthListFilter, setMonthListFilter] = useState<MonthListFilter>("modified");
   const [monthListSearch, setMonthListSearch] = useState("");
   const [monthListSort, setMonthListSort] = useState<MonthListSort>("asc");
+  const MONTH_LIST_PAGE_SIZES = [25, 50, 100, 200] as const;
+  const [monthListPageSize, setMonthListPageSize] = useState<number>(25);
+  const [monthListPage, setMonthListPage] = useState(1);
+  useEffect(() => {
+    setMonthListPage(1);
+  }, [monthListFilter, monthListSearch, monthListSort, monthListDialog.rangeKey, monthListPageSize]);
   const monthListPrefsRef = useRef<Record<string, MonthListPrefs>>({});
   const buildRangeKey = (modified: string[], created: string[], omitted: string[]) =>
     [
@@ -2038,25 +2044,49 @@ export default function Presupuesto() {
                   : monthListFilter === "created"
                   ? "A crear"
                   : "Se omitirán";
+              const totalPages = Math.max(1, Math.ceil(filtered.length / monthListPageSize));
+              const currentPage = Math.min(monthListPage, totalPages);
+              const startIdx = (currentPage - 1) * monthListPageSize;
+              const pageItems = filtered.slice(startIdx, startIdx + monthListPageSize);
+              const rangeFrom = filtered.length === 0 ? 0 : startIdx + 1;
+              const rangeTo = startIdx + pageItems.length;
               return (
                 <>
-                  <p
-                    className="text-xs text-muted-foreground"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    Mostrando {filtered.length} de {activeTotal} en {activeLabel}
-                  </p>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <p
+                      className="text-xs text-muted-foreground"
+                      role="status"
+                      aria-live="polite"
+                    >
+                      Mostrando {rangeFrom}–{rangeTo} de {filtered.length} ({activeTotal} en {activeLabel})
+                    </p>
+                    <div className="flex items-center gap-1 text-xs">
+                      <Label htmlFor="month-list-page-size" className="text-xs text-muted-foreground">
+                        Por página
+                      </Label>
+                      <select
+                        id="month-list-page-size"
+                        className="h-7 rounded-md border border-input bg-background px-1 text-xs"
+                        value={monthListPageSize}
+                        onChange={(ev) => setMonthListPageSize(Number(ev.target.value))}
+                        aria-label="Meses por página"
+                      >
+                        {MONTH_LIST_PAGE_SIZES.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                   <ul
                     className="max-h-[320px] overflow-y-auto rounded-md border border-border divide-y divide-border"
-                    aria-label={`${monthListDialog.title} · ${activeLabel}`}
+                    aria-label={`${monthListDialog.title} · ${activeLabel} · página ${currentPage} de ${totalPages}`}
                   >
-                    {filtered.length === 0 ? (
+                    {pageItems.length === 0 ? (
                       <li className="px-3 py-2 text-sm text-muted-foreground">
                         Sin resultados
                       </li>
                     ) : (
-                      filtered.map((m) => (
+                      pageItems.map((m) => (
                         <li
                           key={m}
                           className="px-3 py-1.5 text-sm flex items-center justify-between"
@@ -2067,6 +2097,55 @@ export default function Presupuesto() {
                       ))
                     )}
                   </ul>
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setMonthListPage(1)}
+                        disabled={currentPage === 1}
+                        aria-label="Primera página"
+                      >
+                        « Primera
+                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setMonthListPage((p) => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                          aria-label="Página anterior"
+                        >
+                          ‹ Anterior
+                        </Button>
+                        <span className="text-xs text-muted-foreground px-2" aria-live="polite">
+                          Página {currentPage} de {totalPages}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setMonthListPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                          aria-label="Página siguiente"
+                        >
+                          Siguiente ›
+                        </Button>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setMonthListPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                        aria-label="Última página"
+                      >
+                        Última »
+                      </Button>
+                    </div>
+                  )}
                 </>
               );
             })()}
