@@ -345,6 +345,12 @@ export default function Presupuesto() {
   const [monthListFilter, setMonthListFilter] = useState<MonthListFilter>("modified");
   const [monthListSearch, setMonthListSearch] = useState("");
   const [monthListSort, setMonthListSort] = useState<MonthListSort>("asc");
+  const MONTH_LIST_PAGE_SIZES = [25, 50, 100, 200] as const;
+  const [monthListPageSize, setMonthListPageSize] = useState<number>(25);
+  const [monthListPage, setMonthListPage] = useState(1);
+  useEffect(() => {
+    setMonthListPage(1);
+  }, [monthListFilter, monthListSearch, monthListSort, monthListDialog.rangeKey, monthListPageSize]);
   const monthListPrefsRef = useRef<Record<string, MonthListPrefs>>({});
   const buildRangeKey = (modified: string[], created: string[], omitted: string[]) =>
     [
