@@ -1997,6 +1997,22 @@ export default function Presupuesto() {
               onChange={(ev) => setMonthListSearch(ev.target.value)}
               aria-label="Buscar mes dentro de la lista"
             />
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-muted-foreground">Ordenar por mes</span>
+              <ToggleGroup
+                type="single"
+                value={monthListSort}
+                onValueChange={(v) => v && setMonthListSort(v as MonthListSort)}
+                aria-label="Ordenar lista de meses"
+              >
+                <ToggleGroupItem value="asc" aria-label="Ascendente (más antiguo primero)" className="text-xs">
+                  Asc
+                </ToggleGroupItem>
+                <ToggleGroupItem value="desc" aria-label="Descendente (más reciente primero)" className="text-xs">
+                  Desc
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
             {(() => {
               const q = monthListSearch.trim().toLowerCase();
               const activeList =
@@ -2005,13 +2021,16 @@ export default function Presupuesto() {
                   : monthListFilter === "created"
                   ? monthListDialog.created
                   : monthListDialog.omitted;
-              const filtered = q
+              const searched = q
                 ? activeList.filter(
                     (m) =>
                       m.toLowerCase().includes(q) ||
                       monthLabel(m).toLowerCase().includes(q)
                   )
                 : activeList;
+              const filtered = [...searched].sort((a, b) =>
+                monthListSort === "asc" ? a.localeCompare(b) : b.localeCompare(a)
+              );
               const activeTotal = activeList.length;
               const activeLabel =
                 monthListFilter === "modified"
