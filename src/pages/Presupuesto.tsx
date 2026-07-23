@@ -331,25 +331,48 @@ export default function Presupuesto() {
   const RANGE_UNDO_MAX = 10;
   const [rangeUndoHistory, setRangeUndoHistory] = useState<RangeUndoEntry[]>([]);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  type MonthListFilter = "modified" | "created" | "omitted";
+  type MonthListSort = "asc" | "desc";
+  type MonthListPrefs = { filter: MonthListFilter; search: string; sort: MonthListSort };
   const [monthListDialog, setMonthListDialog] = useState<{
     open: boolean;
     title: string;
+    rangeKey: string;
     modified: string[];
     created: string[];
     omitted: string[];
-  }>({ open: false, title: "", modified: [], created: [], omitted: [] });
-  const [monthListFilter, setMonthListFilter] = useState<"modified" | "created" | "omitted">("modified");
+  }>({ open: false, title: "", rangeKey: "", modified: [], created: [], omitted: [] });
+  const [monthListFilter, setMonthListFilter] = useState<MonthListFilter>("modified");
   const [monthListSearch, setMonthListSearch] = useState("");
+  const [monthListSort, setMonthListSort] = useState<MonthListSort>("asc");
+  const monthListPrefsRef = useRef<Record<string, MonthListPrefs>>({});
+  const buildRangeKey = (modified: string[], created: string[], omitted: string[]) =>
+    [
+      [...modified].sort().join(","),
+      [...created].sort().join(","),
+      [...omitted].sort().join(","),
+    ].join("|");
   const openMonthList = (
     title: string,
-    filter: "modified" | "created" | "omitted",
+    filter: MonthListFilter,
     modified: string[],
     created: string[],
     omitted: string[]
   ) => {
-    setMonthListSearch("");
-    setMonthListFilter(filter);
-    setMonthListDialog({ open: true, title, modified, created, omitted });
+    const rangeKey = buildRangeKey(modified, created, omitted);
+    const saved = monthListPrefsRef.current[rangeKey];
+    setMonthListFilter(saved?.filter ?? filter);
+    setMonthListSearch(saved?.search ?? "");
+    setMonthListSort(saved?.sort ?? "asc");
+    setMonthListDialog({ open: true, title, rangeKey, modified, created, omitted });
+  };
+  const persistMonthListPrefs = () => {
+    if (!monthListDialog.rangeKey) return;
+    monthListPrefsRef.current[monthListDialog.rangeKey] = {
+      filter: monthListFilter,
+      search: monthListSearch,
+      sort: monthListSort,
+    };
   };
   const lastRangeUndo = rangeUndoHistory.length > 0 ? rangeUndoHistory[rangeUndoHistory.length - 1] : null;
 
