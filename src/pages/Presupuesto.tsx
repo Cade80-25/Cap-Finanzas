@@ -333,7 +333,7 @@ export default function Presupuesto() {
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   type MonthListFilter = "modified" | "created" | "omitted";
   type MonthListSort = "asc" | "desc";
-  type MonthListPrefs = { filter: MonthListFilter; search: string; sort: MonthListSort };
+  type MonthListPrefs = { filter: MonthListFilter; search: string; sort: MonthListSort; pageSize: number; page: number };
   const [monthListDialog, setMonthListDialog] = useState<{
     open: boolean;
     title: string;
@@ -348,7 +348,12 @@ export default function Presupuesto() {
   const MONTH_LIST_PAGE_SIZES = [25, 50, 100, 200] as const;
   const [monthListPageSize, setMonthListPageSize] = useState<number>(25);
   const [monthListPage, setMonthListPage] = useState(1);
+  const skipPageResetRef = useRef(false);
   useEffect(() => {
+    if (skipPageResetRef.current) {
+      skipPageResetRef.current = false;
+      return;
+    }
     setMonthListPage(1);
   }, [monthListFilter, monthListSearch, monthListSort, monthListDialog.rangeKey, monthListPageSize]);
   const monthListPrefsRef = useRef<Record<string, MonthListPrefs>>({});
@@ -367,9 +372,12 @@ export default function Presupuesto() {
   ) => {
     const rangeKey = buildRangeKey(modified, created, omitted);
     const saved = monthListPrefsRef.current[rangeKey];
+    skipPageResetRef.current = true;
     setMonthListFilter(saved?.filter ?? filter);
     setMonthListSearch(saved?.search ?? "");
     setMonthListSort(saved?.sort ?? "asc");
+    setMonthListPageSize(saved?.pageSize ?? 25);
+    setMonthListPage(Math.max(1, saved?.page ?? 1));
     setMonthListDialog({ open: true, title, rangeKey, modified, created, omitted });
   };
   const persistMonthListPrefs = () => {
@@ -378,8 +386,11 @@ export default function Presupuesto() {
       filter: monthListFilter,
       search: monthListSearch,
       sort: monthListSort,
+      pageSize: monthListPageSize,
+      page: monthListPage,
     };
   };
+
   const lastRangeUndo = rangeUndoHistory.length > 0 ? rangeUndoHistory[rangeUndoHistory.length - 1] : null;
 
   const followingMonthsCount = useMemo(
