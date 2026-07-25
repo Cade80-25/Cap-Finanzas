@@ -2085,9 +2085,12 @@ export default function Presupuesto() {
                 <>
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <p
-                      className="text-xs text-muted-foreground"
+                      ref={monthListStatusRef}
+                      tabIndex={-1}
+                      className="text-xs text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
                       role="status"
                       aria-live="polite"
+                      aria-atomic="true"
                     >
                       Mostrando {rangeFrom}–{rangeTo} de {filtered.length} ({activeTotal} en {activeLabel})
                     </p>
