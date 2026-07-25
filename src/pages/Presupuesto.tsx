@@ -2144,6 +2144,7 @@ export default function Presupuesto() {
                     </div>
                   )}
                   <ul
+                    id="month-list-results"
                     className={`max-h-[320px] overflow-y-auto rounded-md border border-border divide-y divide-border transition-opacity ${monthListLoading ? "opacity-50" : "opacity-100"}`}
                     aria-busy={monthListLoading}
                     aria-label={`${monthListDialog.title} · ${activeLabel} · página ${currentPage} de ${totalPages}`}
@@ -2165,14 +2166,19 @@ export default function Presupuesto() {
                     )}
                   </ul>
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <nav
+                      className="flex items-center justify-between gap-2 flex-wrap"
+                      aria-label="Paginación de la lista de meses"
+                      aria-controls="month-list-results"
+                    >
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => changeMonthListPage(1, totalPages)}
                         disabled={currentPage === 1 || monthListLoading}
-                        aria-label="Primera página"
+                        aria-disabled={currentPage === 1 || monthListLoading}
+                        aria-label={`Ir a la primera página (página 1 de ${totalPages})`}
                       >
                         « Primera
                       </Button>
@@ -2183,7 +2189,12 @@ export default function Presupuesto() {
                           size="sm"
                           onClick={() => changeMonthListPage(currentPage - 1, totalPages)}
                           disabled={currentPage === 1 || monthListLoading}
-                          aria-label="Página anterior"
+                          aria-disabled={currentPage === 1 || monthListLoading}
+                          aria-label={
+                            currentPage === 1
+                              ? "Página anterior (no disponible, estás en la primera página)"
+                              : `Ir a la página anterior (página ${currentPage - 1} de ${totalPages})`
+                          }
                         >
                           ‹ Anterior
                         </Button>
@@ -2196,7 +2207,12 @@ export default function Presupuesto() {
                           size="sm"
                           onClick={() => changeMonthListPage(currentPage + 1, totalPages)}
                           disabled={currentPage === totalPages || monthListLoading}
-                          aria-label="Página siguiente"
+                          aria-disabled={currentPage === totalPages || monthListLoading}
+                          aria-label={
+                            currentPage === totalPages
+                              ? "Página siguiente (no disponible, estás en la última página)"
+                              : `Ir a la página siguiente (página ${currentPage + 1} de ${totalPages})`
+                          }
                         >
                           Siguiente ›
                         </Button>
@@ -2207,12 +2223,15 @@ export default function Presupuesto() {
                         size="sm"
                         onClick={() => changeMonthListPage(totalPages, totalPages)}
                         disabled={currentPage === totalPages || monthListLoading}
-                        aria-label="Última página"
+                        aria-disabled={currentPage === totalPages || monthListLoading}
+                        aria-label={`Ir a la última página (página ${totalPages} de ${totalPages})`}
                       >
                         Última »
                       </Button>
                       <form
                         className="flex items-center gap-1"
+                        role="group"
+                        aria-label="Ir a una página específica"
                         onSubmit={(ev) => {
                           ev.preventDefault();
                           const n = parseInt(monthListGotoInput, 10);
@@ -2234,18 +2253,30 @@ export default function Presupuesto() {
                           onChange={(ev) => setMonthListGotoInput(ev.target.value)}
                           placeholder={`1–${totalPages}`}
                           className="h-7 w-20 text-xs"
-                          aria-label={`Ir a página específica entre 1 y ${totalPages}`}
+                          aria-label={`Número de página entre 1 y ${totalPages}`}
+                          aria-describedby="month-list-goto-hint"
                         />
+                        <span id="month-list-goto-hint" className="sr-only">
+                          Introduce un número entre 1 y {totalPages} y pulsa Ir o Enter.
+                        </span>
                         <Button
                           type="submit"
                           variant="outline"
                           size="sm"
                           disabled={monthListLoading || !monthListGotoInput}
+                          aria-disabled={monthListLoading || !monthListGotoInput}
+                          aria-label={
+                            !monthListGotoInput
+                              ? "Ir a página (introduce un número primero)"
+                              : monthListLoading
+                              ? "Ir a página (cargando)"
+                              : `Ir a la página ${monthListGotoInput}`
+                          }
                         >
                           Ir
                         </Button>
                       </form>
-                    </div>
+                    </nav>
                   )}
                 </>
               );
