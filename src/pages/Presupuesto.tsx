@@ -351,6 +351,7 @@ export default function Presupuesto() {
   const [monthListLoading, setMonthListLoading] = useState(false);
   const [monthListGotoInput, setMonthListGotoInput] = useState("");
   const monthListLoadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const monthListStatusRef = useRef<HTMLParagraphElement | null>(null);
   const changeMonthListPage = (next: number, totalPages: number) => {
     const clamped = Math.min(Math.max(1, next), totalPages);
     if (clamped === monthListPage) return;
@@ -358,7 +359,10 @@ export default function Presupuesto() {
     if (monthListLoadingTimerRef.current) clearTimeout(monthListLoadingTimerRef.current);
     monthListLoadingTimerRef.current = setTimeout(() => {
       setMonthListPage(clamped);
-      requestAnimationFrame(() => setMonthListLoading(false));
+      requestAnimationFrame(() => {
+        setMonthListLoading(false);
+        monthListStatusRef.current?.focus();
+      });
     }, 180);
   };
   useEffect(() => () => {
@@ -2081,9 +2085,12 @@ export default function Presupuesto() {
                 <>
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <p
-                      className="text-xs text-muted-foreground"
+                      ref={monthListStatusRef}
+                      tabIndex={-1}
+                      className="text-xs text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
                       role="status"
                       aria-live="polite"
+                      aria-atomic="true"
                     >
                       Mostrando {rangeFrom}–{rangeTo} de {filtered.length} ({activeTotal} en {activeLabel})
                     </p>
