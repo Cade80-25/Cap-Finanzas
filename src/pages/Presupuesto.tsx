@@ -348,6 +348,22 @@ export default function Presupuesto() {
   const MONTH_LIST_PAGE_SIZES = [25, 50, 100, 200] as const;
   const [monthListPageSize, setMonthListPageSize] = useState<number>(25);
   const [monthListPage, setMonthListPage] = useState(1);
+  const [monthListLoading, setMonthListLoading] = useState(false);
+  const [monthListGotoInput, setMonthListGotoInput] = useState("");
+  const monthListLoadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const changeMonthListPage = (next: number, totalPages: number) => {
+    const clamped = Math.min(Math.max(1, next), totalPages);
+    if (clamped === monthListPage) return;
+    setMonthListLoading(true);
+    if (monthListLoadingTimerRef.current) clearTimeout(monthListLoadingTimerRef.current);
+    monthListLoadingTimerRef.current = setTimeout(() => {
+      setMonthListPage(clamped);
+      requestAnimationFrame(() => setMonthListLoading(false));
+    }, 180);
+  };
+  useEffect(() => () => {
+    if (monthListLoadingTimerRef.current) clearTimeout(monthListLoadingTimerRef.current);
+  }, []);
   const skipPageResetRef = useRef(false);
   useEffect(() => {
     if (skipPageResetRef.current) {
