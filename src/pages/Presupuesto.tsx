@@ -2144,6 +2144,7 @@ export default function Presupuesto() {
                     </div>
                   )}
                   <ul
+                    id="month-list-results"
                     className={`max-h-[320px] overflow-y-auto rounded-md border border-border divide-y divide-border transition-opacity ${monthListLoading ? "opacity-50" : "opacity-100"}`}
                     aria-busy={monthListLoading}
                     aria-label={`${monthListDialog.title} · ${activeLabel} · página ${currentPage} de ${totalPages}`}
