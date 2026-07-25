@@ -351,6 +351,7 @@ export default function Presupuesto() {
   const [monthListLoading, setMonthListLoading] = useState(false);
   const [monthListGotoInput, setMonthListGotoInput] = useState("");
   const monthListLoadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const monthListStatusRef = useRef<HTMLParagraphElement | null>(null);
   const changeMonthListPage = (next: number, totalPages: number) => {
     const clamped = Math.min(Math.max(1, next), totalPages);
     if (clamped === monthListPage) return;
@@ -358,7 +359,10 @@ export default function Presupuesto() {
     if (monthListLoadingTimerRef.current) clearTimeout(monthListLoadingTimerRef.current);
     monthListLoadingTimerRef.current = setTimeout(() => {
       setMonthListPage(clamped);
-      requestAnimationFrame(() => setMonthListLoading(false));
+      requestAnimationFrame(() => {
+        setMonthListLoading(false);
+        monthListStatusRef.current?.focus();
+      });
     }, 180);
   };
   useEffect(() => () => {
