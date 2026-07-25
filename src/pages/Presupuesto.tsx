@@ -2087,16 +2087,6 @@ export default function Presupuesto() {
                     >
                       Mostrando {rangeFrom}–{rangeTo} de {filtered.length} ({activeTotal} en {activeLabel})
                     </p>
-              return (
-                <>
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <p
-                      className="text-xs text-muted-foreground"
-                      role="status"
-                      aria-live="polite"
-                    >
-                      Mostrando {rangeFrom}–{rangeTo} de {filtered.length} ({activeTotal} en {activeLabel})
-                    </p>
                     <div className="flex items-center gap-2 text-xs flex-wrap">
                       <Button
                         type="button"
