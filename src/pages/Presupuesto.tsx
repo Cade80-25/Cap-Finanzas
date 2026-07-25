@@ -348,6 +348,22 @@ export default function Presupuesto() {
   const MONTH_LIST_PAGE_SIZES = [25, 50, 100, 200] as const;
   const [monthListPageSize, setMonthListPageSize] = useState<number>(25);
   const [monthListPage, setMonthListPage] = useState(1);
+  const [monthListLoading, setMonthListLoading] = useState(false);
+  const [monthListGotoInput, setMonthListGotoInput] = useState("");
+  const monthListLoadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const changeMonthListPage = (next: number, totalPages: number) => {
+    const clamped = Math.min(Math.max(1, next), totalPages);
+    if (clamped === monthListPage) return;
+    setMonthListLoading(true);
+    if (monthListLoadingTimerRef.current) clearTimeout(monthListLoadingTimerRef.current);
+    monthListLoadingTimerRef.current = setTimeout(() => {
+      setMonthListPage(clamped);
+      requestAnimationFrame(() => setMonthListLoading(false));
+    }, 180);
+  };
+  useEffect(() => () => {
+    if (monthListLoadingTimerRef.current) clearTimeout(monthListLoadingTimerRef.current);
+  }, []);
   const skipPageResetRef = useRef(false);
   useEffect(() => {
     if (skipPageResetRef.current) {
@@ -2071,7 +2087,34 @@ export default function Presupuesto() {
                     >
                       Mostrando {rangeFrom}–{rangeTo} de {filtered.length} ({activeTotal} en {activeLabel})
                     </p>
-                    <div className="flex items-center gap-1 text-xs">
+                    <div className="flex items-center gap-2 text-xs flex-wrap">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        disabled={filtered.length === 0}
+                        onClick={() => {
+                          const header = "Mes,Etiqueta";
+                          const rows = filtered.map((m) => {
+                            const label = monthLabel(m).replace(/"/g, '""');
+                            return `${m},"${label}"`;
+                          });
+                          const csv = "\uFEFF" + [header, ...rows].join("\n");
+                          const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          const stamp = new Date().toISOString().split("T")[0];
+                          a.href = url;
+                          a.download = `meses_${monthListFilter}_${stamp}.csv`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                        aria-label="Exportar lista filtrada a CSV"
+                      >
+                        <Download className="h-3 w-3 mr-1" aria-hidden />
+                        Exportar CSV
+                      </Button>
                       <Label htmlFor="month-list-page-size" className="text-xs text-muted-foreground">
                         Por página
                       </Label>
@@ -2088,8 +2131,14 @@ export default function Presupuesto() {
                       </select>
                     </div>
                   </div>
+                  {monthListLoading && (
+                    <div aria-live="polite" aria-label="Cargando página">
+                      <Progress value={undefined as unknown as number} className="h-1" />
+                    </div>
+                  )}
                   <ul
-                    className="max-h-[320px] overflow-y-auto rounded-md border border-border divide-y divide-border"
+                    className={`max-h-[320px] overflow-y-auto rounded-md border border-border divide-y divide-border transition-opacity ${monthListLoading ? "opacity-50" : "opacity-100"}`}
+                    aria-busy={monthListLoading}
                     aria-label={`${monthListDialog.title} · ${activeLabel} · página ${currentPage} de ${totalPages}`}
                   >
                     {pageItems.length === 0 ? (
@@ -2109,13 +2158,13 @@ export default function Presupuesto() {
                     )}
                   </ul>
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setMonthListPage(1)}
-                        disabled={currentPage === 1}
+                        onClick={() => changeMonthListPage(1, totalPages)}
+                        disabled={currentPage === 1 || monthListLoading}
                         aria-label="Primera página"
                       >
                         « Primera
@@ -2125,8 +2174,8 @@ export default function Presupuesto() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => setMonthListPage((p) => Math.max(1, p - 1))}
-                          disabled={currentPage === 1}
+                          onClick={() => changeMonthListPage(currentPage - 1, totalPages)}
+                          disabled={currentPage === 1 || monthListLoading}
                           aria-label="Página anterior"
                         >
                           ‹ Anterior
@@ -2138,8 +2187,8 @@ export default function Presupuesto() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => setMonthListPage((p) => Math.min(totalPages, p + 1))}
-                          disabled={currentPage === totalPages}
+                          onClick={() => changeMonthListPage(currentPage + 1, totalPages)}
+                          disabled={currentPage === totalPages || monthListLoading}
                           aria-label="Página siguiente"
                         >
                           Siguiente ›
@@ -2149,12 +2198,46 @@ export default function Presupuesto() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setMonthListPage(totalPages)}
-                        disabled={currentPage === totalPages}
+                        onClick={() => changeMonthListPage(totalPages, totalPages)}
+                        disabled={currentPage === totalPages || monthListLoading}
                         aria-label="Última página"
                       >
                         Última »
                       </Button>
+                      <form
+                        className="flex items-center gap-1"
+                        onSubmit={(ev) => {
+                          ev.preventDefault();
+                          const n = parseInt(monthListGotoInput, 10);
+                          if (!Number.isFinite(n)) return;
+                          changeMonthListPage(n, totalPages);
+                          setMonthListGotoInput("");
+                        }}
+                      >
+                        <Label htmlFor="month-list-goto" className="text-xs text-muted-foreground">
+                          Ir a
+                        </Label>
+                        <Input
+                          id="month-list-goto"
+                          type="number"
+                          inputMode="numeric"
+                          min={1}
+                          max={totalPages}
+                          value={monthListGotoInput}
+                          onChange={(ev) => setMonthListGotoInput(ev.target.value)}
+                          placeholder={`1–${totalPages}`}
+                          className="h-7 w-20 text-xs"
+                          aria-label={`Ir a página específica entre 1 y ${totalPages}`}
+                        />
+                        <Button
+                          type="submit"
+                          variant="outline"
+                          size="sm"
+                          disabled={monthListLoading || !monthListGotoInput}
+                        >
+                          Ir
+                        </Button>
+                      </form>
                     </div>
                   )}
                 </>
