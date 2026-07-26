@@ -2165,7 +2165,17 @@ export default function Presupuesto() {
                       ))
                     )}
                   </ul>
-                  {totalPages > 1 && (
+                  {totalPages > 1 && (() => {
+                    const disabledCls =
+                      "aria-disabled:opacity-50 aria-disabled:cursor-not-allowed aria-disabled:pointer-events-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+                    const firstDisabled = currentPage === 1 || monthListLoading;
+                    const lastDisabled = currentPage === totalPages || monthListLoading;
+                    const gotoDisabled = monthListLoading || !monthListGotoInput;
+                    const guard = (isDisabled: boolean, fn: () => void) => () => {
+                      if (isDisabled) return;
+                      fn();
+                    };
+                    return (
                     <nav
                       className="flex items-center justify-between gap-2 flex-wrap"
                       aria-label="Paginación de la lista de meses"
@@ -2175,10 +2185,14 @@ export default function Presupuesto() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => changeMonthListPage(1, totalPages)}
-                        disabled={currentPage === 1 || monthListLoading}
-                        aria-disabled={currentPage === 1 || monthListLoading}
-                        aria-label={`Ir a la primera página (página 1 de ${totalPages})`}
+                        className={disabledCls}
+                        onClick={guard(firstDisabled, () => changeMonthListPage(1, totalPages))}
+                        aria-disabled={firstDisabled}
+                        aria-label={
+                          firstDisabled && currentPage === 1
+                            ? "Primera página (no disponible, ya estás en la primera)"
+                            : `Ir a la primera página (página 1 de ${totalPages})`
+                        }
                       >
                         « Primera
                       </Button>
@@ -2187,9 +2201,9 @@ export default function Presupuesto() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => changeMonthListPage(currentPage - 1, totalPages)}
-                          disabled={currentPage === 1 || monthListLoading}
-                          aria-disabled={currentPage === 1 || monthListLoading}
+                          className={disabledCls}
+                          onClick={guard(firstDisabled, () => changeMonthListPage(currentPage - 1, totalPages))}
+                          aria-disabled={firstDisabled}
                           aria-label={
                             currentPage === 1
                               ? "Página anterior (no disponible, estás en la primera página)"
@@ -2205,9 +2219,9 @@ export default function Presupuesto() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => changeMonthListPage(currentPage + 1, totalPages)}
-                          disabled={currentPage === totalPages || monthListLoading}
-                          aria-disabled={currentPage === totalPages || monthListLoading}
+                          className={disabledCls}
+                          onClick={guard(lastDisabled, () => changeMonthListPage(currentPage + 1, totalPages))}
+                          aria-disabled={lastDisabled}
                           aria-label={
                             currentPage === totalPages
                               ? "Página siguiente (no disponible, estás en la última página)"
@@ -2221,10 +2235,14 @@ export default function Presupuesto() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => changeMonthListPage(totalPages, totalPages)}
-                        disabled={currentPage === totalPages || monthListLoading}
-                        aria-disabled={currentPage === totalPages || monthListLoading}
-                        aria-label={`Ir a la última página (página ${totalPages} de ${totalPages})`}
+                        className={disabledCls}
+                        onClick={guard(lastDisabled, () => changeMonthListPage(totalPages, totalPages))}
+                        aria-disabled={lastDisabled}
+                        aria-label={
+                          lastDisabled && currentPage === totalPages
+                            ? "Última página (no disponible, ya estás en la última)"
+                            : `Ir a la última página (página ${totalPages} de ${totalPages})`
+                        }
                       >
                         Última »
                       </Button>
@@ -2234,6 +2252,7 @@ export default function Presupuesto() {
                         aria-label="Ir a una página específica"
                         onSubmit={(ev) => {
                           ev.preventDefault();
+                          if (gotoDisabled) return;
                           const n = parseInt(monthListGotoInput, 10);
                           if (!Number.isFinite(n)) return;
                           changeMonthListPage(n, totalPages);
@@ -2252,7 +2271,7 @@ export default function Presupuesto() {
                           value={monthListGotoInput}
                           onChange={(ev) => setMonthListGotoInput(ev.target.value)}
                           placeholder={`1–${totalPages}`}
-                          className="h-7 w-20 text-xs"
+                          className="h-7 w-20 text-xs focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                           aria-label={`Número de página entre 1 y ${totalPages}`}
                           aria-describedby="month-list-goto-hint"
                         />
@@ -2263,8 +2282,11 @@ export default function Presupuesto() {
                           type="submit"
                           variant="outline"
                           size="sm"
-                          disabled={monthListLoading || !monthListGotoInput}
-                          aria-disabled={monthListLoading || !monthListGotoInput}
+                          className={disabledCls}
+                          aria-disabled={gotoDisabled}
+                          onClick={(ev) => {
+                            if (gotoDisabled) ev.preventDefault();
+                          }}
                           aria-label={
                             !monthListGotoInput
                               ? "Ir a página (introduce un número primero)"
@@ -2277,7 +2299,8 @@ export default function Presupuesto() {
                         </Button>
                       </form>
                     </nav>
-                  )}
+                    );
+                  })()}
                 </>
               );
             })()}
