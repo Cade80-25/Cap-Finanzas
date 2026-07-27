@@ -213,9 +213,11 @@ export default function LibroDiario() {
       return;
     }
 
+    const priceNum = parseFlexibleNumber(price, 0);
+    const qtyNum = parseFlexibleNumber(quantity, 0);
     const extraFields = {
-      price: parseFloat(price) || undefined,
-      quantity: parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
+      price: priceNum > 0 ? priceNum : undefined,
+      quantity: qtyNum > 0 ? qtyNum : undefined,
       creditor: creditor || undefined,
       notes: txNotes || undefined,
       calcExpression: calcExpression || undefined,
