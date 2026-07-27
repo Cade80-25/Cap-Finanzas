@@ -68,6 +68,8 @@ function TraditionalTransactionsView() {
       tipo,
       monto,
       cuenta: tx.account,
+      cantidad: tx.quantity,
+      precio: tx.price,
     };
   });
 
