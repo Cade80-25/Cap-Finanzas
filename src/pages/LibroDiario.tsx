@@ -551,21 +551,32 @@ export default function LibroDiario() {
                   <TableHead>Fecha</TableHead>
                   <TableHead>Cuenta</TableHead>
                   <TableHead>Descripción</TableHead>
-                  <TableHead>Cálculo</TableHead>
+                  <TableHead className="text-right">Cant.</TableHead>
+                  <TableHead className="text-right">P. Unit.</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
                   <TableHead data-tutorial="diario-debe-haber" className="text-right">Debe</TableHead>
                   <TableHead className="text-right">Haber</TableHead>
                   <TableHead className="text-right w-24">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transactions.map((transaction) => (
+                {transactions.map((transaction) => {
+                  const q = transaction.quantity;
+                  const p = transaction.price;
+                  const total = q && p ? q * p : undefined;
+                  return (
                   <TableRow key={transaction.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">{transaction.date}</TableCell>
                     <TableCell>{transaction.account}</TableCell>
-                    <TableCell>{transaction.description}</TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {transaction.calcExpression || "—"}
+                    <TableCell>
+                      {transaction.description}
+                      {transaction.calcExpression && (
+                        <div className="text-[11px] font-mono text-muted-foreground">{transaction.calcExpression}</div>
+                      )}
                     </TableCell>
+                    <TableCell className="text-right tabular-nums">{q ?? "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums">{p != null ? `$${p.toFixed(2)}` : "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums font-medium">{total != null ? `$${total.toFixed(2)}` : "—"}</TableCell>
                     <TableCell className="text-right font-medium text-success">
                       {transaction.debit > 0 ? `$${transaction.debit.toFixed(2)}` : "-"}
                     </TableCell>
