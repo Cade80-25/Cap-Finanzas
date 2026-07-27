@@ -213,9 +213,11 @@ export default function LibroDiario() {
       return;
     }
 
+    const priceNum = parseFlexibleNumber(price, 0);
+    const qtyNum = parseFlexibleNumber(quantity, 0);
     const extraFields = {
-      price: parseFloat(price) || undefined,
-      quantity: parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
+      price: priceNum > 0 ? priceNum : undefined,
+      quantity: qtyNum > 0 ? qtyNum : undefined,
       creditor: creditor || undefined,
       notes: txNotes || undefined,
       calcExpression: calcExpression || undefined,
@@ -364,6 +366,65 @@ export default function LibroDiario() {
                 )}
               </div>
 
+              {/* Cantidad × Precio unitario = Total */}
+              <div className="rounded-md border bg-muted/30 p-3 space-y-2">
+                <div className="text-sm font-medium">Detalle del producto / servicio</div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="grid gap-1">
+                    <Label htmlFor="quantity" className="text-xs">Cantidad</Label>
+                    <Input
+                      id="quantity" type="text" inputMode="decimal" autoComplete="off" placeholder="1"
+                      value={quantity}
+                      onChange={(e) => {
+                        const q = e.target.value;
+                        setQuantity(q);
+                        const qn = parseFlexibleNumber(q, 0);
+                        const pn = parseFlexibleNumber(price, 0);
+                        if (qn > 0 && pn > 0) {
+                          const total = +(qn * pn).toFixed(2);
+                          if (credit > 0) setCredit(total); else setDebit(total);
+                          setCalcExpression(`${qn} × ${pn} = ${total}`);
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="grid gap-1">
+                    <Label htmlFor="price" className="text-xs">Precio unitario ($)</Label>
+                    <Input
+                      id="price" type="text" inputMode="decimal" autoComplete="off" placeholder="0.00"
+                      value={price}
+                      onChange={(e) => {
+                        const p = e.target.value;
+                        setPrice(p);
+                        const qn = parseFlexibleNumber(quantity, 0);
+                        const pn = parseFlexibleNumber(p, 0);
+                        if (qn > 0 && pn > 0) {
+                          const total = +(qn * pn).toFixed(2);
+                          if (credit > 0) setCredit(total); else setDebit(total);
+                          setCalcExpression(`${qn} × ${pn} = ${total}`);
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="grid gap-1">
+                    <Label className="text-xs">Total ($)</Label>
+                    <Input
+                      readOnly
+                      className="bg-background font-semibold"
+                      value={(() => {
+                        const qn = parseFlexibleNumber(quantity, 0);
+                        const pn = parseFlexibleNumber(price, 0);
+                        return qn > 0 && pn > 0 ? (qn * pn).toFixed(2) : "";
+                      })()}
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  El total se aplica automáticamente al Debe o Haber de abajo.
+                </p>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="debit">Debe ($)</Label>
@@ -490,21 +551,32 @@ export default function LibroDiario() {
                   <TableHead>Fecha</TableHead>
                   <TableHead>Cuenta</TableHead>
                   <TableHead>Descripción</TableHead>
-                  <TableHead>Cálculo</TableHead>
+                  <TableHead className="text-right">Cant.</TableHead>
+                  <TableHead className="text-right">P. Unit.</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
                   <TableHead data-tutorial="diario-debe-haber" className="text-right">Debe</TableHead>
                   <TableHead className="text-right">Haber</TableHead>
                   <TableHead className="text-right w-24">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transactions.map((transaction) => (
+                {transactions.map((transaction) => {
+                  const q = transaction.quantity;
+                  const p = transaction.price;
+                  const total = q && p ? q * p : undefined;
+                  return (
                   <TableRow key={transaction.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">{transaction.date}</TableCell>
                     <TableCell>{transaction.account}</TableCell>
-                    <TableCell>{transaction.description}</TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {transaction.calcExpression || "—"}
+                    <TableCell>
+                      {transaction.description}
+                      {transaction.calcExpression && (
+                        <div className="text-[11px] font-mono text-muted-foreground">{transaction.calcExpression}</div>
+                      )}
                     </TableCell>
+                    <TableCell className="text-right tabular-nums">{q ?? "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums">{p != null ? `$${p.toFixed(2)}` : "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums font-medium">{total != null ? `$${total.toFixed(2)}` : "—"}</TableCell>
                     <TableCell className="text-right font-medium text-success">
                       {transaction.debit > 0 ? `$${transaction.debit.toFixed(2)}` : "-"}
                     </TableCell>
@@ -534,7 +606,8 @@ export default function LibroDiario() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           ) : (

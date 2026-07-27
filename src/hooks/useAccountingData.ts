@@ -39,7 +39,7 @@ export function useAccountingData() {
     const accountsMap: Record<string, { 
       name: string; 
       label: string;
-      transactions: Array<{ date: string; description: string; debit: number; credit: number; balance: number }>;
+      transactions: Array<{ date: string; description: string; debit: number; credit: number; balance: number; price?: number; quantity?: number }>;
       totalDebit: number;
       totalCredit: number;
       balance: number;
@@ -68,6 +68,8 @@ export function useAccountingData() {
         debit: tx.debit,
         credit: tx.credit,
         balance: accountsMap[tx.account].balance,
+        price: tx.price,
+        quantity: tx.quantity,
       });
     });
 

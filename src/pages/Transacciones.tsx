@@ -68,6 +68,8 @@ function TraditionalTransactionsView() {
       tipo,
       monto,
       cuenta: tx.account,
+      cantidad: tx.quantity,
+      precio: tx.price,
     };
   });
 
@@ -216,6 +218,8 @@ function TraditionalTransactionsView() {
                   <TableHead>Descripción</TableHead>
                   <TableHead>Cuenta</TableHead>
                   <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Cant.</TableHead>
+                  <TableHead className="text-right">P. Unit.</TableHead>
                   <TableHead className="text-right">Monto</TableHead>
                 </TableRow>
               </TableHeader>
@@ -230,6 +234,8 @@ function TraditionalTransactionsView() {
                         {transaccion.tipo}
                       </Badge>
                     </TableCell>
+                    <TableCell className="text-right tabular-nums">{transaccion.cantidad ?? "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums">{transaccion.precio != null ? `$${transaccion.precio.toFixed(2)}` : "—"}</TableCell>
                     <TableCell className={`text-right font-semibold ${transaccion.monto > 0 ? "text-success" : "text-destructive"}`}>
                       {transaccion.monto > 0 ? "+" : ""}${Math.abs(transaccion.monto).toFixed(2)}
                     </TableCell>
