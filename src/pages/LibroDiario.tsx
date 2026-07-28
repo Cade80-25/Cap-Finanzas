@@ -407,36 +407,46 @@ export default function LibroDiario() {
                     <Input
                       id="quantity" type="text" inputMode="decimal" autoComplete="off" placeholder="1"
                       value={quantity}
+                      aria-invalid={!!qtyError}
                       onChange={(e) => {
-                        const q = e.target.value;
-                        setQuantity(q);
-                        const qn = parseFlexibleNumber(q, 0);
+                        const raw = sanitizeNumericInput(e.target.value);
+                        setQuantity(raw);
+                        const ok = isValidNumericInput(raw);
+                        setQtyError(ok ? "" : "Número inválido");
+                        if (!ok) return;
+                        const qn = parseFlexibleNumber(raw, 0);
                         const pn = parseFlexibleNumber(price, 0);
                         if (qn > 0 && pn > 0) {
-                          const total = +(qn * pn).toFixed(2);
+                          const total = roundMoney(qn * pn);
                           if (credit > 0) setCredit(total); else setDebit(total);
-                          setCalcExpression(`${qn} × ${pn} = ${total}`);
+                          setCalcExpression(`${qn} × ${pn} = ${total.toFixed(2)}`);
                         }
                       }}
                     />
+                    {qtyError && <p className="text-[11px] text-destructive">{qtyError}</p>}
                   </div>
                   <div className="grid gap-1">
                     <Label htmlFor="price" className="text-xs">Precio unitario ($)</Label>
                     <Input
                       id="price" type="text" inputMode="decimal" autoComplete="off" placeholder="0.00"
                       value={price}
+                      aria-invalid={!!priceError}
                       onChange={(e) => {
-                        const p = e.target.value;
-                        setPrice(p);
+                        const raw = sanitizeNumericInput(e.target.value);
+                        setPrice(raw);
+                        const ok = isValidNumericInput(raw);
+                        setPriceError(ok ? "" : "Número inválido");
+                        if (!ok) return;
                         const qn = parseFlexibleNumber(quantity, 0);
-                        const pn = parseFlexibleNumber(p, 0);
+                        const pn = parseFlexibleNumber(raw, 0);
                         if (qn > 0 && pn > 0) {
-                          const total = +(qn * pn).toFixed(2);
+                          const total = roundMoney(qn * pn);
                           if (credit > 0) setCredit(total); else setDebit(total);
-                          setCalcExpression(`${qn} × ${pn} = ${total}`);
+                          setCalcExpression(`${qn} × ${pn} = ${total.toFixed(2)}`);
                         }
                       }}
                     />
+                    {priceError && <p className="text-[11px] text-destructive">{priceError}</p>}
                   </div>
                   <div className="grid gap-1">
                     <Label className="text-xs">Total ($)</Label>
@@ -444,9 +454,10 @@ export default function LibroDiario() {
                       readOnly
                       className="bg-background font-semibold"
                       value={(() => {
+                        if (qtyError || priceError) return "";
                         const qn = parseFlexibleNumber(quantity, 0);
                         const pn = parseFlexibleNumber(price, 0);
-                        return qn > 0 && pn > 0 ? (qn * pn).toFixed(2) : "";
+                        return qn > 0 && pn > 0 ? roundMoney(qn * pn).toFixed(2) : "";
                       })()}
                       placeholder="0.00"
                     />
@@ -456,6 +467,7 @@ export default function LibroDiario() {
                   El total se aplica automáticamente al Debe o Haber de abajo.
                 </p>
               </div>
+
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
