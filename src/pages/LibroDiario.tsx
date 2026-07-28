@@ -123,6 +123,11 @@ export default function LibroDiario() {
   const [txNotes, setTxNotes] = useState("");
   const [calcExpression, setCalcExpression] = useState<string>("");
   const [showExtraFields, setShowExtraFields] = useState(false);
+  const [qtyError, setQtyError] = useState<string>("");
+  const [priceError, setPriceError] = useState<string>("");
+  const [minAmount, setMinAmount] = useState<string>("");
+  const [maxAmount, setMaxAmount] = useState<string>("");
+  const [totalSort, setTotalSort] = useState<"none" | "asc" | "desc">("none");
   const [validationSuggestions, setValidationSuggestions] = useState<
     Array<{
       message: string;
