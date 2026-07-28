@@ -147,6 +147,8 @@ export default function LibroDiario() {
     setCredit(0);
     setPrice("");
     setQuantity("1");
+    setQtyError("");
+    setPriceError("");
     setCreditor("");
     setTxNotes("");
     setCalcExpression("");
