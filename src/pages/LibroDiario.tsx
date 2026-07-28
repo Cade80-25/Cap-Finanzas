@@ -213,6 +213,10 @@ export default function LibroDiario() {
       toast.error("Escribe una descripción");
       return;
     }
+    if (qtyError || priceError) {
+      toast.error("Corrige Cantidad o Precio unitario antes de guardar");
+      return;
+    }
     if (hasBlockingError(debit, credit)) {
       toast.error(
         debit > 0 && credit > 0
@@ -222,8 +226,10 @@ export default function LibroDiario() {
       return;
     }
 
-    const priceNum = parseFlexibleNumber(price, 0);
+    const priceNum = roundMoney(parseFlexibleNumber(price, 0));
     const qtyNum = parseFlexibleNumber(quantity, 0);
+    const roundedDebit = roundMoney(debit);
+    const roundedCredit = roundMoney(credit);
     const extraFields = {
       price: priceNum > 0 ? priceNum : undefined,
       quantity: qtyNum > 0 ? qtyNum : undefined,
@@ -236,7 +242,7 @@ export default function LibroDiario() {
       setTransactions((prev) =>
         prev.map((t) =>
           t.id === editingTransaction.id
-            ? { ...t, date, account: selectedAccount, description: description.trim(), debit, credit, ...extraFields }
+            ? { ...t, date, account: selectedAccount, description: description.trim(), debit: roundedDebit, credit: roundedCredit, ...extraFields }
             : t
         ).sort((a, b) => a.date.localeCompare(b.date))
       );
@@ -244,7 +250,7 @@ export default function LibroDiario() {
     } else {
       const newTx: Transaction = {
         id: Date.now(), date, account: selectedAccount,
-        description: description.trim(), debit, credit, ...extraFields,
+        description: description.trim(), debit: roundedDebit, credit: roundedCredit, ...extraFields,
       };
       setTransactions((prev) =>
         [...prev, newTx].sort((a, b) => a.date.localeCompare(b.date))
@@ -255,6 +261,23 @@ export default function LibroDiario() {
     setOpen(false);
     resetForm();
   };
+
+  // Compute filtered + sorted view for the table
+  const displayedTransactions = (() => {
+    const min = minAmount.trim() ? parseFlexibleNumber(minAmount, Number.NEGATIVE_INFINITY) : Number.NEGATIVE_INFINITY;
+    const max = maxAmount.trim() ? parseFlexibleNumber(maxAmount, Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
+    const withTotal = transactions.map((t) => {
+      const total = t.quantity && t.price
+        ? roundMoney(t.quantity * t.price)
+        : Math.max(t.debit || 0, t.credit || 0);
+      return { t, total };
+    });
+    const filtered = withTotal.filter(({ total }) => total >= min && total <= max);
+    if (totalSort !== "none") {
+      filtered.sort((a, b) => totalSort === "asc" ? a.total - b.total : b.total - a.total);
+    }
+    return filtered;
+  })();
 
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
