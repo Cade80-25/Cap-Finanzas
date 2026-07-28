@@ -41,6 +41,9 @@ function TraditionalTransactionsView() {
   const { transactions, ACCOUNT_CATEGORIES } = useAccountingData();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState("todos");
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
+  const [sortMode, setSortMode] = useState<"fecha-desc" | "fecha-asc" | "total-desc" | "total-asc">("fecha-desc");
 
   // Transformar transacciones del libro diario al formato de visualización
   const transaccionesFormateadas = transactions.map((tx) => {
@@ -76,14 +79,27 @@ function TraditionalTransactionsView() {
     };
   });
 
+  const min = minAmount.trim() ? parseFlexibleNumber(minAmount, Number.NEGATIVE_INFINITY) : Number.NEGATIVE_INFINITY;
+  const max = maxAmount.trim() ? parseFlexibleNumber(maxAmount, Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
+
   const filteredTransacciones = transaccionesFormateadas.filter((t) => {
     const matchesSearch = t.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          t.categoria.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterTipo === "todos" || 
       (filterTipo === "ingreso" && t.tipo === "Ingreso") ||
       (filterTipo === "gasto" && t.tipo === "Gasto");
-    return matchesSearch && matchesFilter;
-  }).sort((a, b) => b.fecha.localeCompare(a.fecha));
+    const abs = Math.abs(t.monto);
+    const matchesAmount = abs >= min && abs <= max;
+    return matchesSearch && matchesFilter && matchesAmount;
+  }).sort((a, b) => {
+    switch (sortMode) {
+      case "fecha-asc": return a.fecha.localeCompare(b.fecha);
+      case "total-desc": return Math.abs(b.monto) - Math.abs(a.monto);
+      case "total-asc": return Math.abs(a.monto) - Math.abs(b.monto);
+      case "fecha-desc":
+      default: return b.fecha.localeCompare(a.fecha);
+    }
+  });
 
   // Calcular totales
   const totalIngresos = transaccionesFormateadas
