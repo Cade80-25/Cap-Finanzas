@@ -199,32 +199,68 @@ function TraditionalTransactionsView() {
 
       <Card data-tutorial="transacciones-tabla">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Lista de Transacciones</CardTitle>
-              <CardDescription>Datos sincronizados con el Libro Diario</CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 w-64"
-                />
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <CardTitle>Lista de Transacciones</CardTitle>
+                <CardDescription>Datos sincronizados con el Libro Diario</CardDescription>
               </div>
-              <Select value={filterTipo} onValueChange={setFilterTipo}>
-                <SelectTrigger className="w-40">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="ingreso">Ingresos</SelectItem>
-                  <SelectItem value="gasto">Gastos</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2 flex-wrap">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 w-64"
+                  />
+                </div>
+                <Select value={filterTipo} onValueChange={setFilterTipo}>
+                  <SelectTrigger className="w-40">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos</SelectItem>
+                    <SelectItem value="ingreso">Ingresos</SelectItem>
+                    <SelectItem value="gasto">Gastos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-end gap-2">
+              <div className="grid gap-1">
+                <Label htmlFor="minMonto" className="text-xs">Monto mín. ($)</Label>
+                <Input id="minMonto" type="text" inputMode="decimal" className="w-32"
+                  placeholder="0.00" value={minAmount}
+                  onChange={(e) => setMinAmount(sanitizeNumericInput(e.target.value))} />
+              </div>
+              <div className="grid gap-1">
+                <Label htmlFor="maxMonto" className="text-xs">Monto máx. ($)</Label>
+                <Input id="maxMonto" type="text" inputMode="decimal" className="w-32"
+                  placeholder="Sin límite" value={maxAmount}
+                  onChange={(e) => setMaxAmount(sanitizeNumericInput(e.target.value))} />
+              </div>
+              <div className="grid gap-1">
+                <Label className="text-xs">Ordenar por</Label>
+                <Select value={sortMode} onValueChange={(v: typeof sortMode) => setSortMode(v)}>
+                  <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fecha-desc">Fecha (recientes)</SelectItem>
+                    <SelectItem value="fecha-asc">Fecha (antiguas)</SelectItem>
+                    <SelectItem value="total-desc">Monto (mayor)</SelectItem>
+                    <SelectItem value="total-asc">Monto (menor)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {(minAmount || maxAmount) && (
+                <Button variant="ghost" size="sm" onClick={() => { setMinAmount(""); setMaxAmount(""); }}>
+                  Limpiar
+                </Button>
+              )}
+              <div className="ml-auto text-xs text-muted-foreground self-center">
+                Mostrando {filteredTransacciones.length} de {transaccionesFormateadas.length}
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -239,9 +275,20 @@ function TraditionalTransactionsView() {
                   <TableHead>Tipo</TableHead>
                   <TableHead className="text-right">Cant.</TableHead>
                   <TableHead className="text-right">P. Unit.</TableHead>
-                  <TableHead className="text-right">Monto</TableHead>
+                  <TableHead className="text-right">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                      onClick={() => setSortMode(sortMode === "total-desc" ? "total-asc" : "total-desc")}
+                      aria-label="Ordenar por Monto"
+                    >
+                      Monto
+                      <ArrowUpDown className="h-3 w-3" />
+                    </button>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 {filteredTransacciones.map((transaccion) => (
                   <TableRow key={transaccion.id}>
