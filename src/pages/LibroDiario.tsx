@@ -44,7 +44,9 @@ import {
 } from "@/components/ui/select";
 import { ContextualHelp, AccountSelectionHelp } from "@/components/ContextualHelp";
 import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
+import { isValidNumericInput, sanitizeNumericInput, roundMoney } from "@/lib/numeric-input";
 import { FullCalculator } from "@/components/FullCalculator";
+import { ArrowUpDown } from "lucide-react";
 
 type Transaction = JournalTransaction;
 
@@ -121,6 +123,11 @@ export default function LibroDiario() {
   const [txNotes, setTxNotes] = useState("");
   const [calcExpression, setCalcExpression] = useState<string>("");
   const [showExtraFields, setShowExtraFields] = useState(false);
+  const [qtyError, setQtyError] = useState<string>("");
+  const [priceError, setPriceError] = useState<string>("");
+  const [minAmount, setMinAmount] = useState<string>("");
+  const [maxAmount, setMaxAmount] = useState<string>("");
+  const [totalSort, setTotalSort] = useState<"none" | "asc" | "desc">("none");
   const [validationSuggestions, setValidationSuggestions] = useState<
     Array<{
       message: string;
@@ -140,6 +147,8 @@ export default function LibroDiario() {
     setCredit(0);
     setPrice("");
     setQuantity("1");
+    setQtyError("");
+    setPriceError("");
     setCreditor("");
     setTxNotes("");
     setCalcExpression("");
@@ -204,6 +213,10 @@ export default function LibroDiario() {
       toast.error("Escribe una descripción");
       return;
     }
+    if (qtyError || priceError) {
+      toast.error("Corrige Cantidad o Precio unitario antes de guardar");
+      return;
+    }
     if (hasBlockingError(debit, credit)) {
       toast.error(
         debit > 0 && credit > 0
@@ -213,8 +226,10 @@ export default function LibroDiario() {
       return;
     }
 
-    const priceNum = parseFlexibleNumber(price, 0);
+    const priceNum = roundMoney(parseFlexibleNumber(price, 0));
     const qtyNum = parseFlexibleNumber(quantity, 0);
+    const roundedDebit = roundMoney(debit);
+    const roundedCredit = roundMoney(credit);
     const extraFields = {
       price: priceNum > 0 ? priceNum : undefined,
       quantity: qtyNum > 0 ? qtyNum : undefined,
@@ -227,7 +242,7 @@ export default function LibroDiario() {
       setTransactions((prev) =>
         prev.map((t) =>
           t.id === editingTransaction.id
-            ? { ...t, date, account: selectedAccount, description: description.trim(), debit, credit, ...extraFields }
+            ? { ...t, date, account: selectedAccount, description: description.trim(), debit: roundedDebit, credit: roundedCredit, ...extraFields }
             : t
         ).sort((a, b) => a.date.localeCompare(b.date))
       );
@@ -235,7 +250,7 @@ export default function LibroDiario() {
     } else {
       const newTx: Transaction = {
         id: Date.now(), date, account: selectedAccount,
-        description: description.trim(), debit, credit, ...extraFields,
+        description: description.trim(), debit: roundedDebit, credit: roundedCredit, ...extraFields,
       };
       setTransactions((prev) =>
         [...prev, newTx].sort((a, b) => a.date.localeCompare(b.date))
@@ -246,6 +261,23 @@ export default function LibroDiario() {
     setOpen(false);
     resetForm();
   };
+
+  // Compute filtered + sorted view for the table
+  const displayedTransactions = (() => {
+    const min = minAmount.trim() ? parseFlexibleNumber(minAmount, Number.NEGATIVE_INFINITY) : Number.NEGATIVE_INFINITY;
+    const max = maxAmount.trim() ? parseFlexibleNumber(maxAmount, Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
+    const withTotal = transactions.map((t) => {
+      const total = t.quantity && t.price
+        ? roundMoney(t.quantity * t.price)
+        : Math.max(t.debit || 0, t.credit || 0);
+      return { t, total };
+    });
+    const filtered = withTotal.filter(({ total }) => total >= min && total <= max);
+    if (totalSort !== "none") {
+      filtered.sort((a, b) => totalSort === "asc" ? a.total - b.total : b.total - a.total);
+    }
+    return filtered;
+  })();
 
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
@@ -375,36 +407,46 @@ export default function LibroDiario() {
                     <Input
                       id="quantity" type="text" inputMode="decimal" autoComplete="off" placeholder="1"
                       value={quantity}
+                      aria-invalid={!!qtyError}
                       onChange={(e) => {
-                        const q = e.target.value;
-                        setQuantity(q);
-                        const qn = parseFlexibleNumber(q, 0);
+                        const raw = sanitizeNumericInput(e.target.value);
+                        setQuantity(raw);
+                        const ok = isValidNumericInput(raw);
+                        setQtyError(ok ? "" : "Número inválido");
+                        if (!ok) return;
+                        const qn = parseFlexibleNumber(raw, 0);
                         const pn = parseFlexibleNumber(price, 0);
                         if (qn > 0 && pn > 0) {
-                          const total = +(qn * pn).toFixed(2);
+                          const total = roundMoney(qn * pn);
                           if (credit > 0) setCredit(total); else setDebit(total);
-                          setCalcExpression(`${qn} × ${pn} = ${total}`);
+                          setCalcExpression(`${qn} × ${pn} = ${total.toFixed(2)}`);
                         }
                       }}
                     />
+                    {qtyError && <p className="text-[11px] text-destructive">{qtyError}</p>}
                   </div>
                   <div className="grid gap-1">
                     <Label htmlFor="price" className="text-xs">Precio unitario ($)</Label>
                     <Input
                       id="price" type="text" inputMode="decimal" autoComplete="off" placeholder="0.00"
                       value={price}
+                      aria-invalid={!!priceError}
                       onChange={(e) => {
-                        const p = e.target.value;
-                        setPrice(p);
+                        const raw = sanitizeNumericInput(e.target.value);
+                        setPrice(raw);
+                        const ok = isValidNumericInput(raw);
+                        setPriceError(ok ? "" : "Número inválido");
+                        if (!ok) return;
                         const qn = parseFlexibleNumber(quantity, 0);
-                        const pn = parseFlexibleNumber(p, 0);
+                        const pn = parseFlexibleNumber(raw, 0);
                         if (qn > 0 && pn > 0) {
-                          const total = +(qn * pn).toFixed(2);
+                          const total = roundMoney(qn * pn);
                           if (credit > 0) setCredit(total); else setDebit(total);
-                          setCalcExpression(`${qn} × ${pn} = ${total}`);
+                          setCalcExpression(`${qn} × ${pn} = ${total.toFixed(2)}`);
                         }
                       }}
                     />
+                    {priceError && <p className="text-[11px] text-destructive">{priceError}</p>}
                   </div>
                   <div className="grid gap-1">
                     <Label className="text-xs">Total ($)</Label>
@@ -412,9 +454,10 @@ export default function LibroDiario() {
                       readOnly
                       className="bg-background font-semibold"
                       value={(() => {
+                        if (qtyError || priceError) return "";
                         const qn = parseFlexibleNumber(quantity, 0);
                         const pn = parseFlexibleNumber(price, 0);
-                        return qn > 0 && pn > 0 ? (qn * pn).toFixed(2) : "";
+                        return qn > 0 && pn > 0 ? roundMoney(qn * pn).toFixed(2) : "";
                       })()}
                       placeholder="0.00"
                     />
@@ -424,6 +467,7 @@ export default function LibroDiario() {
                   El total se aplica automáticamente al Debe o Haber de abajo.
                 </p>
               </div>
+
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -545,71 +589,117 @@ export default function LibroDiario() {
         </CardHeader>
         <CardContent>
           {transactions.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Cuenta</TableHead>
-                  <TableHead>Descripción</TableHead>
-                  <TableHead className="text-right">Cant.</TableHead>
-                  <TableHead className="text-right">P. Unit.</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead data-tutorial="diario-debe-haber" className="text-right">Debe</TableHead>
-                  <TableHead className="text-right">Haber</TableHead>
-                  <TableHead className="text-right w-24">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transactions.map((transaction) => {
-                  const q = transaction.quantity;
-                  const p = transaction.price;
-                  const total = q && p ? q * p : undefined;
-                  return (
-                  <TableRow key={transaction.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium">{transaction.date}</TableCell>
-                    <TableCell>{transaction.account}</TableCell>
-                    <TableCell>
-                      {transaction.description}
-                      {transaction.calcExpression && (
-                        <div className="text-[11px] font-mono text-muted-foreground">{transaction.calcExpression}</div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">{q ?? "—"}</TableCell>
-                    <TableCell className="text-right tabular-nums">{p != null ? `$${p.toFixed(2)}` : "—"}</TableCell>
-                    <TableCell className="text-right tabular-nums font-medium">{total != null ? `$${total.toFixed(2)}` : "—"}</TableCell>
-                    <TableCell className="text-right font-medium text-success">
-                      {transaction.debit > 0 ? `$${transaction.debit.toFixed(2)}` : "-"}
-                    </TableCell>
-                    <TableCell className="text-right font-medium text-destructive">
-                      {transaction.credit > 0 ? `$${transaction.credit.toFixed(2)}` : "-"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => handleEdit(transaction)}
-                          title="Editar"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => handleDelete(transaction)}
-                          title="Eliminar"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            <>
+              {/* Filtros por Total */}
+              <div className="flex flex-wrap items-end gap-2 mb-4">
+                <div className="grid gap-1">
+                  <Label htmlFor="minAmount" className="text-xs">Total mín. ($)</Label>
+                  <Input
+                    id="minAmount" type="text" inputMode="decimal" className="w-32"
+                    placeholder="0.00"
+                    value={minAmount}
+                    onChange={(e) => setMinAmount(sanitizeNumericInput(e.target.value))}
+                  />
+                </div>
+                <div className="grid gap-1">
+                  <Label htmlFor="maxAmount" className="text-xs">Total máx. ($)</Label>
+                  <Input
+                    id="maxAmount" type="text" inputMode="decimal" className="w-32"
+                    placeholder="Sin límite"
+                    value={maxAmount}
+                    onChange={(e) => setMaxAmount(sanitizeNumericInput(e.target.value))}
+                  />
+                </div>
+                {(minAmount || maxAmount || totalSort !== "none") && (
+                  <Button variant="ghost" size="sm" onClick={() => { setMinAmount(""); setMaxAmount(""); setTotalSort("none"); }}>
+                    Limpiar
+                  </Button>
+                )}
+                <div className="ml-auto text-xs text-muted-foreground self-center">
+                  Mostrando {displayedTransactions.length} de {transactions.length}
+                </div>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Cuenta</TableHead>
+                    <TableHead>Descripción</TableHead>
+                    <TableHead className="text-right">Cant.</TableHead>
+                    <TableHead className="text-right">P. Unit.</TableHead>
+                    <TableHead className="text-right">
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                        onClick={() => setTotalSort(totalSort === "desc" ? "asc" : totalSort === "asc" ? "none" : "desc")}
+                        aria-label={`Ordenar por Total (${totalSort === "asc" ? "ascendente" : totalSort === "desc" ? "descendente" : "sin orden"})`}
+                      >
+                        Total
+                        <ArrowUpDown className="h-3 w-3" />
+                        {totalSort !== "none" && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {totalSort === "asc" ? "↑" : "↓"}
+                          </span>
+                        )}
+                      </button>
+                    </TableHead>
+                    <TableHead data-tutorial="diario-debe-haber" className="text-right">Debe</TableHead>
+                    <TableHead className="text-right">Haber</TableHead>
+                    <TableHead className="text-right w-24">Acciones</TableHead>
                   </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {displayedTransactions.map(({ t: transaction, total }) => {
+                    const q = transaction.quantity;
+                    const p = transaction.price;
+                    const hasProduct = q && p;
+                    return (
+                    <TableRow key={transaction.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">{transaction.date}</TableCell>
+                      <TableCell>{transaction.account}</TableCell>
+                      <TableCell>
+                        {transaction.description}
+                        {transaction.calcExpression && (
+                          <div className="text-[11px] font-mono text-muted-foreground">{transaction.calcExpression}</div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">{q ?? "—"}</TableCell>
+                      <TableCell className="text-right tabular-nums">{p != null ? `$${p.toFixed(2)}` : "—"}</TableCell>
+                      <TableCell className="text-right tabular-nums font-medium">{hasProduct ? `$${roundMoney(q! * p!).toFixed(2)}` : `$${total.toFixed(2)}`}</TableCell>
+                      <TableCell className="text-right font-medium text-success">
+                        {transaction.debit > 0 ? `$${transaction.debit.toFixed(2)}` : "-"}
+                      </TableCell>
+                      <TableCell className="text-right font-medium text-destructive">
+                        {transaction.credit > 0 ? `$${transaction.credit.toFixed(2)}` : "-"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleEdit(transaction)}
+                            title="Editar"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => handleDelete(transaction)}
+                            title="Eliminar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </>
           ) : (
             <div className="flex items-center justify-center h-[200px] text-muted-foreground">
               No hay transacciones registradas. Agrega tu primera transacción.
