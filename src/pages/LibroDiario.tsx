@@ -44,7 +44,9 @@ import {
 } from "@/components/ui/select";
 import { ContextualHelp, AccountSelectionHelp } from "@/components/ContextualHelp";
 import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
+import { isValidNumericInput, sanitizeNumericInput, roundMoney } from "@/lib/numeric-input";
 import { FullCalculator } from "@/components/FullCalculator";
+import { ArrowUpDown } from "lucide-react";
 
 type Transaction = JournalTransaction;
 
