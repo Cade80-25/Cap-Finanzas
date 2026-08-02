@@ -147,12 +147,6 @@
         "AppImage"
       ],
       "icon": "public/icon-final.png"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "Cade80-25",
-      "repo": "Cap-Finanzas",
-      "private": false
     }
   }
 }

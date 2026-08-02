@@ -1,5 +1,13 @@
 const { app, BrowserWindow, ipcMain, session } = require('electron');
-const { autoUpdater } = require('electron-updater');
+// Desactivado: auto-updater roto por build local sin GitHub Release firmado
+const autoUpdater = {
+  autoDownload: false,
+  autoInstallOnAppQuit: false,
+  on: () => {},
+  checkForUpdates: () => {},
+  downloadUpdate: () => {},
+  quitAndInstall: () => {},
+};
 const path = require('path');
 
 function createWindow() {
@@ -41,6 +49,11 @@ function createWindow() {
   });
 
   return win;
+}
+
+// Deshabilitar aceleración de GPU antes de que la app esté lista para evitar crashes de network service/GPU en Windows
+if (process.platform === 'win32') {
+  app.disableHardwareAcceleration();
 }
 
 app.whenReady().then(() => {
