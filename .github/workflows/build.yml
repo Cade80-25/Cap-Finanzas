@@ -54,23 +54,23 @@ jobs:
           VITE_SUPABASE_URL: https://pcxvnqsoafagnthazoir.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjeHZucXNvYWZhZ250aGF6b2lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDkxMTUsImV4cCI6MjA4NTI4NTExNX0.KHQfeM-Jfv1hp8mKZSKXM9gFbCC9AlrgGx68Ee7JJzo"
 
-      # --publish always uploads installers AND latest*.yml feed files to the GitHub release
-      - name: Build & publish Electron (Windows)
+      # Build installers only; release artifacts are uploaded below for debugging
+      - name: Build Electron (Windows)
         if: matrix.platform == 'win'
-        run: npx electron-builder --win --publish always
+        run: npx electron-builder --win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & publish Electron (macOS)
+      - name: Build Electron (macOS)
         if: matrix.platform == 'mac'
-        run: npx electron-builder --mac --publish always
+        run: npx electron-builder --mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
-      - name: Build & publish Electron (Linux)
+      - name: Build Electron (Linux)
         if: matrix.platform == 'linux'
-        run: npx electron-builder --linux --publish always
+        run: npx electron-builder --linux
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
