@@ -1,0 +1,2 @@
+ALTER TABLE public.calendar_reminders ADD COLUMN IF NOT EXISTS installation_id text;
+CREATE INDEX IF NOT EXISTS idx_calendar_reminders_event_install ON public.calendar_reminders(event_id, installation_id);
