@@ -123,7 +123,10 @@ export async function exportToExcel(transactions: ExportTransaction[], filename?
   );
 }
 
-// ── PDF (HTML-based) ──
+// ── PDF (HTML-based) ─────────────────────────────────────────────────────────
+// NOTA: Todos los campos de usuario (fecha, descripcion, categoria, tipo)
+// están escapados con escapeHtml() para prevenir XSS en el PDF exportado.
+// monto es un número formateado con toFixed(2) — no requiere escape.
 export function exportToPDF(transactions: ExportTransaction[], filename?: string) {
   if (transactions.length === 0) return;
 

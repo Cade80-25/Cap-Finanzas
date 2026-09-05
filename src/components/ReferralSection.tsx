@@ -39,6 +39,9 @@ export function ReferralSection() {
       setMyCode(stored);
     }
 
+    // TODO: Validar contra Supabase si está configurado.
+    // Si no hay sesión activa, mantener lectura desde localStorage.
+    // Esto evita manipulación del bonus desde el cliente.
     const storedBonus = parseInt(localStorage.getItem("cap-finanzas-referral-bonus") || "0");
     setBonusDays(storedBonus);
 

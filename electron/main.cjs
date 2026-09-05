@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, session } = require('electron');
+const { app, BrowserWindow, ipcMain, session, safeStorage } = require('electron');
 // Desactivado: auto-updater roto por build local sin GitHub Release firmado
 const autoUpdater = {
   autoDownload: false,
@@ -20,6 +20,8 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      sandbox: true, // Seguridad: aisla el renderer del sistema
+      webSecurity: true, // Seguridad: impide acceso a recursos inseguros
       backgroundThrottling: false, // Mantiene rendimiento aunque la ventana pierda foco
       spellcheck: false,
       preload: path.join(__dirname, 'preload.cjs')
@@ -139,6 +141,50 @@ ipcMain.on('toggle-native-menu', () => {
   const nextVisible = !win.isMenuBarVisible();
   setNativeMenuVisible(nextVisible);
 });
+
+// ── Secure Storage (safeStorage de Electron) ─────────────────────────────────
+ipcMain.handle('secure-store-get', (_event, key: string) => {
+  try {
+    if (!safeStorage?.isEncryptionAvailable) return null;
+    const encrypted = safeStorage.encryptString(key);
+    // Guardar en localStorage del main process (no es localStorage del renderer)
+    // Usamos un Map en memoria para no persistir en disco sin cifrar
+    secureStorageCache.set(key, encrypted);
+    return true;
+  } catch {
+    return false;
+  }
+});
+
+ipcMain.handle('secure-store-set', (_event, key: string, value: string) => {
+  try {
+    if (!safeStorage?.isEncryptionAvailable) return false;
+    const encrypted = safeStorage.encryptString(value);
+    secureStorageCache.set(key, encrypted);
+    return true;
+  } catch {
+    return false;
+  }
+});
+
+ipcMain.handle('secure-store-get-value', (_event, key: string) => {
+  try {
+    if (!safeStorage?.isEncryptionAvailable) return null;
+    const encrypted = secureStorageCache.get(key);
+    if (!encrypted) return null;
+    return safeStorage.decryptString(encrypted);
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle('secure-store-delete', (_event, key: string) => {
+  secureStorageCache.delete(key);
+  return true;
+});
+
+// Cache en memoria para datos cifrados con safeStorage
+const secureStorageCache = new Map<string, ArrayBuffer>();
 
 // Check for updates on app start (only in production)
 app.on('ready', () => {

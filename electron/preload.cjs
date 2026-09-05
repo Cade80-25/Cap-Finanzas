@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 // Expone APIs seguras al proceso de renderizado si es necesario
-contextBridge.exposeInMainWorld('electron', {
+contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
   isElectron: true,
 
@@ -22,5 +22,18 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.removeAllListeners('update-error');
     ipcRenderer.removeAllListeners('download-progress');
     ipcRenderer.removeAllListeners('update-downloaded');
-  }
+  },
+
+  // Secure Storage (safeStorage de Electron)
+  secureStore: {
+    async set(key: string, value: string): Promise<boolean> {
+      return ipcRenderer.invoke('secure-store-set', key, value);
+    },
+    async get(key: string): Promise<string | null> {
+      return ipcRenderer.invoke('secure-store-get-value', key);
+    },
+    async delete(key: string): Promise<boolean> {
+      return ipcRenderer.invoke('secure-store-delete', key);
+    },
+  },
 });

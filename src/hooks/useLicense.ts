@@ -1,6 +1,7 @@
 import { useLocalStorage } from "./useLocalStorage";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { encryptData, decryptData } from "@/lib/crypto";
 
 export type LicenseMode = "simple" | "traditional";
 export type LicenseStatus = "trial" | "active" | "expired";
@@ -41,10 +42,50 @@ function getInstallationId(): string {
   return id;
 }
 
-function readToken(): LicenseTokenData | null {
+// Clave para cifrar el token en localStorage (derivada del installationId)
+function getEncryptionKey(installationId: string): string {
+  return `cap-finanzas-token-key-${installationId}`;
+}
+
+async function readToken(installationId: string): Promise<LicenseTokenData | null> {
   try {
+    // Intentar leer desde Electron secureStorage primero
+    const electronAPI = window.electronAPI;
+    if (electronAPI?.secureStore) {
+      const stored = await electronAPI.secureStore.get(TOKEN_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as LicenseTokenData;
+        if (parsed.token && parsed.exp && parsed.installation_id) {
+          return parsed;
+        }
+      }
+      return null;
+    }
+
+    // Fallback: localStorage cifrado
     const raw = localStorage.getItem(TOKEN_KEY);
     if (!raw) return null;
+
+    // Verificar si está cifrado (formato salt:iv:ciphertext)
+    if (raw.includes(":") && !raw.startsWith("{")) {
+      try {
+        const key = getEncryptionKey(installationId);
+        const decrypted = await decryptData(raw, key);
+        const parsed = JSON.parse(decrypted) as LicenseTokenData;
+        if (parsed.token && parsed.exp && parsed.installation_id) {
+          return parsed;
+        }
+      } catch {
+        // Si falla el descifrado, intentar parsear directamente
+        const parsed = JSON.parse(raw) as LicenseTokenData;
+        if (parsed.token && parsed.exp && parsed.installation_id) {
+          return parsed;
+        }
+      }
+      return null;
+    }
+
+    // Formato legacy sin cifrar
     const parsed = JSON.parse(raw) as LicenseTokenData;
     if (!parsed.token || !parsed.exp || !parsed.installation_id) return null;
     return parsed;
@@ -53,11 +94,35 @@ function readToken(): LicenseTokenData | null {
   }
 }
 
-function writeToken(data: LicenseTokenData) {
-  localStorage.setItem(TOKEN_KEY, JSON.stringify(data));
+async function writeToken(data: LicenseTokenData) {
+  const electronAPI = window.electronAPI;
+
+  if (electronAPI?.secureStore) {
+    // Guardar en Electron safeStorage
+    try {
+      await electronAPI.secureStore.set(TOKEN_KEY, JSON.stringify(data));
+      return;
+    } catch {
+      // Si falla, caer a localStorage cifrado
+    }
+  }
+
+  // Fallback: localStorage cifrado
+  const key = getEncryptionKey(data.installation_id);
+  try {
+    const encrypted = await encryptData(JSON.stringify(data), key);
+    localStorage.setItem(TOKEN_KEY, encrypted);
+  } catch {
+    // Si falla el cifrado, guardar sin cifrado (legacy)
+    localStorage.setItem(TOKEN_KEY, JSON.stringify(data));
+  }
 }
 
 function clearToken() {
+  const electronAPI = window.electronAPI;
+  if (electronAPI?.secureStore) {
+    electronAPI.secureStore.delete(TOKEN_KEY).catch(() => {});
+  }
   localStorage.removeItem(TOKEN_KEY);
 }
 
@@ -82,10 +147,15 @@ const defaultLicenseData: LicenseData = {
 export function useLicense() {
   const [licenseData, setLicenseData] = useLocalStorage<LicenseData>(
     LICENSE_KEY,
-    defaultLicenseData,
+    defaultLicenseData
   );
   const installationId = useMemo(() => getInstallationId(), []);
-  const [token, setTokenState] = useState<LicenseTokenData | null>(() => readToken());
+  const [token, setTokenState] = useState<LicenseTokenData | null>(null);
+
+  // Cargar token al inicializar
+  useEffect(() => {
+    readToken(installationId).then((t) => setTokenState(t));
+  }, [installationId]);
 
   // Initialize trial on first use
   const initializeTrial = useCallback(() => {
@@ -104,7 +174,7 @@ export function useLicense() {
     }
     const bonusDays = parseInt(
       localStorage.getItem("cap-finanzas-referral-bonus") || "0",
-      10,
+      10
     );
     const totalTrialDays = TRIAL_DAYS + bonusDays;
     const startDate = new Date(licenseData.trialStartDate);
@@ -125,7 +195,7 @@ export function useLicense() {
   const isModeAvailable = useCallback(
     (_mode: LicenseMode): boolean =>
       status === "trial" || status === "active",
-    [status],
+    [status]
   );
 
   const setMode = useCallback(
@@ -134,13 +204,13 @@ export function useLicense() {
         setLicenseData((prev) => ({ ...prev, mode }));
       }
     },
-    [isModeAvailable, setLicenseData],
+    [isModeAvailable, setLicenseData]
   );
 
   // Server activation
   const activateLicense = useCallback(
     async (
-      code: string,
+      code: string
     ): Promise<{ success: boolean; message: string }> => {
       const cleanCode = code.trim().toUpperCase();
       if (!cleanCode) {
@@ -150,11 +220,10 @@ export function useLicense() {
       try {
         const { data, error } = await supabase.functions.invoke(
           "license-activate",
-          { body: { code: cleanCode, installation_id: installationId } },
+          { body: { code: cleanCode, installation_id: installationId } }
         );
 
         if (error) {
-          // Network or non-2xx
           const msg =
             (error as any)?.context?.responseJson?.error ||
             (error as any)?.message ||
@@ -179,7 +248,7 @@ export function useLicense() {
           code: cleanCode,
           installation_id: installationId,
         };
-        writeToken(newToken);
+        await writeToken(newToken);
         setTokenState(newToken);
 
         // Mirror for backwards compatibility
@@ -204,33 +273,35 @@ export function useLicense() {
         };
       }
     },
-    [installationId, setLicenseData],
+    [installationId, setLicenseData]
   );
 
   // Periodic re-validation when online (silent)
   useEffect(() => {
     let cancelled = false;
-    const t = readToken();
-    if (!t) return;
-    // Only revalidate if we have internet
-    if (typeof navigator !== "undefined" && navigator.onLine === false) return;
 
-    (async () => {
+    // Token inicial ya cargado, pero intentar refrescar
+    const refreshToken = async () => {
+      const t = await readToken(installationId);
+      if (!t) return;
+      if (cancelled) setTokenState(t);
+
+      // Only revalidate if we have internet
+      if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+
       try {
         const { data, error } = await supabase.functions.invoke(
           "license-verify",
-          { body: { token: t.token, installation_id: t.installation_id } },
+          { body: { token: t.token, installation_id: t.installation_id } }
         );
         if (cancelled) return;
 
         if (error) {
-          // Distinguish revoked/invalid vs network
           const status = (error as any)?.context?.status;
           if (status === 401 || status === 403 || status === 404) {
             clearToken();
             setTokenState(null);
           }
-          // network errors: keep cached token
           return;
         }
 
@@ -242,24 +313,26 @@ export function useLicense() {
             code: t.code,
             installation_id: t.installation_id,
           };
-          writeToken(renewed);
-          setTokenState(renewed);
+          await writeToken(renewed);
+          if (!cancelled) setTokenState(renewed);
         }
       } catch {
         // offline: keep cached token
       }
-    })();
+    };
+
+    refreshToken();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [installationId]);
 
   const pricing = { full: 0 };
 
   const referralAccountBonus = Math.min(
     parseInt(localStorage.getItem("cap-finanzas-referral-count") || "0", 10),
-    5,
+    5
   );
   const accountSlots = Math.min(5 + referralAccountBonus, 10);
   const maxProfiles = ACTIVE_MAX_PROFILES;

@@ -18,25 +18,62 @@ interface GeneratedLicense {
   used: boolean;
 }
 
+/**
+ * Genera un código de licencia usando crypto.getRandomValues() para
+ * aleatoriedad criptográficamente segura.
+ */
 function generateLicenseCode(): string {
   const prefix = "CF-FULL";
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
-  
+
+  // Usar crypto.getRandomValues() en vez de Math.random()
+  const randomBytes = new Uint32Array(8);
+  crypto.getRandomValues(randomBytes);
+
   for (let i = 0; i < 8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars.charAt(randomBytes[i] % chars.length);
   }
-  
+
   let checksum = 0;
   for (let i = 0; i < code.length; i++) {
     checksum += code.charCodeAt(i);
   }
   const checksumChar = chars.charAt(checksum % chars.length);
-  
+
   return `${prefix}-${code.substring(0, 4)}-${code.substring(4)}${checksumChar}`;
 }
 
 export default function LicenseGenerator() {
+  // Gate: no renderizar en producción
+  if (import.meta.env.PROD) {
+    return (
+      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Herramienta de Desarrollo
+            </CardTitle>
+            <CardDescription>
+              El generador de licencias está disponible solo en modo desarrollo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Esta herramienta es para uso interno del equipo de Cap Finanzas y
+              no está disponible en la aplicación instalada.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return <LicenseGeneratorInner />;
+}
+
+function LicenseGeneratorInner() {
   const [licenses, setLicenses] = useState<GeneratedLicense[]>(() => {
     const saved = localStorage.getItem("cap-finanzas-generated-licenses");
     return saved ? JSON.parse(saved) : [];
@@ -79,7 +116,7 @@ export default function LicenseGenerator() {
 
   const generateLicenses = async () => {
     const newLicenses: GeneratedLicense[] = [];
-    
+
     for (let i = 0; i < quantity; i++) {
       newLicenses.push({
         code: generateLicenseCode(),
@@ -89,9 +126,9 @@ export default function LicenseGenerator() {
         used: false,
       });
     }
-    
+
     saveLicenses([...newLicenses, ...licenses]);
-    
+
     toast({
       title: `${quantity} licencia(s) generada(s)`,
       description: "Cap Finanzas — Acceso Completo ($10 USD)",
@@ -126,7 +163,7 @@ export default function LicenseGenerator() {
     const rows = licenses
       .map((l) => `${l.code},${new Date(l.createdAt).toLocaleDateString()},${l.customerEmail || ""},${l.used ? "Sí" : "No"}`)
       .join("\n");
-    
+
     const blob = new Blob([headers + rows], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -134,7 +171,7 @@ export default function LicenseGenerator() {
     a.download = `licencias-cap-finanzas-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    
+
     toast({ title: "CSV exportado", description: `${licenses.length} licencias exportadas` });
   };
 
