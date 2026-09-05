@@ -29,6 +29,11 @@ function createWindow() {
   // Mostrar la ventana cuando el contenido esté listo (arranque visiblemente más rápido)
   win.once('ready-to-show', () => win.show());
 
+  // Fallback: mostrar la ventana si la página falla al cargar
+  win.once('did-fail-load', () => {
+    win.show();
+  });
+
   // Oculta el menú nativo (File/Edit/View/...) por defecto, pero permite mostrarlo luego
   win.setMenuBarVisibility(false);
 

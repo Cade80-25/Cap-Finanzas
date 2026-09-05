@@ -29,3 +29,8 @@ release/
 .env
 .env.local
 .env*.local
+
+# Temporal / scratch (no versionar)
+.hermes/
+temp-asar-inject/
+temp-asar-patch/

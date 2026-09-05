@@ -17,6 +17,8 @@ export type JournalTransaction = {
   subcategory?: string;
   /** Human-readable calculator expression that produced the amount (e.g. "1050 ÷ 3 = 350"). */
   calcExpression?: string;
+  /** Indica si la transacción fue conciliada (reconciliación bancaria). */
+  reconciled?: boolean;
 };
 
 // KEY ÚNICA Y DEFINITIVA para todas las transacciones
@@ -64,6 +66,9 @@ function normalizeTransaction(raw: any, index: number): JournalTransaction | nul
 
   const id = asNumber(raw.id) || Date.now() + index;
 
+  // Retrocompatibilidad: transacciones viejas sin el campo = no conciliadas
+  const reconciled = raw.reconciled === true || raw.reconciled === 1 || raw.reconciled === "true";
+
   return {
     id,
     date,
@@ -71,6 +76,7 @@ function normalizeTransaction(raw: any, index: number): JournalTransaction | nul
     description: description || "(sin descripción)",
     debit,
     credit,
+    reconciled,
   };
 }
 

@@ -856,6 +856,7 @@ export function SimpleTransactionsView() {
               {(() => {
                 const renderRow = (tx: typeof filteredTransactions[number]) => {
                   const cat = getCategoryLabel(tx.category, tx.subcategory);
+                  const hasUnitInfo = tx.price != null || (tx.quantity != null && tx.quantity !== 1);
                   return (
                     <div key={tx.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
                       <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg shrink-0">{cat.icon}</div>
@@ -873,14 +874,16 @@ export function SimpleTransactionsView() {
                             🧮 {renderHighlighted(tx.calcExpression)}
                           </p>
                         )}
+                        {hasUnitInfo && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">
+                            {tx.price != null ? `P. unit.: $${tx.price.toFixed(2)}` : ''}{tx.price != null && tx.quantity && tx.quantity !== 1 ? ' × ' : ''}{tx.quantity && tx.quantity !== 1 ? `${tx.quantity}` : ''}
+                          </p>
+                        )}
                       </div>
                       <div className="text-right shrink-0">
                         <p className={`font-bold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
                           {tx.type === "income" ? "+" : "-"}${tx.amount.toFixed(2)}
                         </p>
-                        {tx.price && tx.quantity && tx.quantity !== 1 && (
-                          <p className="text-[10px] text-muted-foreground">${tx.price.toFixed(2)} × {tx.quantity}</p>
-                        )}
                       </div>
                       <div className="flex gap-1 shrink-0">
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary"

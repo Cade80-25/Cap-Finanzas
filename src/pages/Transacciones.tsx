@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useAccountingData } from "@/hooks/useAccountingData";
+import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { SimpleTransactionsView } from "@/components/SimpleTransactionsView";
 import { useNavigate } from "react-router-dom";
@@ -38,7 +39,8 @@ import { toast } from "sonner";
 // Traditional view component
 function TraditionalTransactionsView() {
   const navigate = useNavigate();
-  const { transactions, ACCOUNT_CATEGORIES } = useAccountingData();
+  const { ACCOUNT_CATEGORIES } = useAccountingData();
+  const { transactions, setTransactions } = useJournalTransactions();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTipo, setFilterTipo] = useState("todos");
   const [minAmount, setMinAmount] = useState("");
@@ -76,8 +78,19 @@ function TraditionalTransactionsView() {
       cuenta: tx.account,
       cantidad: tx.quantity,
       precio: tx.price,
+      reconciled: tx.reconciled === true,
     };
   });
+
+  const handleToggleReconciled = (id: number) => {
+    setTransactions((prev) =>
+      prev.map((tx) =>
+        tx.id === id ? { ...tx, reconciled: !(tx.reconciled === true) } : tx
+      )
+    );
+  };
+
+  const totalConciliados = transaccionesFormateadas.filter((t) => t.reconciled).length;
 
   const min = minAmount.trim() ? parseFlexibleNumber(minAmount, Number.NEGATIVE_INFINITY) : Number.NEGATIVE_INFINITY;
   const max = maxAmount.trim() ? parseFlexibleNumber(maxAmount, Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
@@ -259,7 +272,7 @@ function TraditionalTransactionsView() {
                 </Button>
               )}
               <div className="ml-auto text-xs text-muted-foreground self-center">
-                Mostrando {filteredTransacciones.length} de {transaccionesFormateadas.length}
+                Mostrando {filteredTransacciones.length} de {transaccionesFormateadas.length} · <span className="font-medium">Conciliados: {totalConciliados}</span>
               </div>
             </div>
           </div>
@@ -286,6 +299,7 @@ function TraditionalTransactionsView() {
                       <ArrowUpDown className="h-3 w-3" />
                     </button>
                   </TableHead>
+                  <TableHead className="text-center">Conciliado</TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -304,6 +318,15 @@ function TraditionalTransactionsView() {
                     <TableCell className="text-right tabular-nums">{transaccion.precio != null ? `$${transaccion.precio.toFixed(2)}` : "—"}</TableCell>
                     <TableCell className={`text-right font-semibold ${transaccion.monto > 0 ? "text-success" : "text-destructive"}`}>
                       {transaccion.monto > 0 ? "+" : ""}${Math.abs(transaccion.monto).toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <input
+                        type="checkbox"
+                        aria-label={`Conciliar ${transaccion.descripcion}`}
+                        checked={transaccion.reconciled}
+                        onChange={() => handleToggleReconciled(transaccion.id)}
+                        className="h-4 w-4 cursor-pointer accent-primary"
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
