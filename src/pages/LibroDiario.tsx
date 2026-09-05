@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Plus, AlertCircle, Pencil, Trash2, Calculator, ChevronDown, ChevronUp, StickyNote } from "lucide-react";
+import { Plus, AlertCircle, Pencil, Trash2, Calculator, ChevronDown, ChevronUp, StickyNote, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { useJournalTransactions, type JournalTransaction } from "@/hooks/useJournalTransactions";
+import { useJournalTransactions, type JournalTransaction, isCompoundTransaction, getTransactionBalance } from "@/hooks/useJournalTransactions";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
@@ -47,6 +47,8 @@ import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
 import { isValidNumericInput, sanitizeNumericInput, roundMoney } from "@/lib/numeric-input";
 import { FullCalculator } from "@/components/FullCalculator";
 import { ArrowUpDown } from "lucide-react";
+import { CompoundEntryModal } from "@/components/CompoundEntryModal";
+import { CustomAccountsManager } from "@/components/CustomAccountsManager";
 
 type Transaction = JournalTransaction;
 
@@ -111,7 +113,9 @@ export default function LibroDiario() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
-  
+  const [compoundModalOpen, setCompoundModalOpen] = useState(false);
+  const [customAccountsModalOpen, setCustomAccountsModalOpen] = useState(false);
+
   const [date, setDate] = useState("");
   const [selectedAccount, setSelectedAccount] = useState("");
   const [description, setDescription] = useState("");
@@ -267,10 +271,14 @@ export default function LibroDiario() {
     const min = minAmount.trim() ? parseFlexibleNumber(minAmount, Number.NEGATIVE_INFINITY) : Number.NEGATIVE_INFINITY;
     const max = maxAmount.trim() ? parseFlexibleNumber(maxAmount, Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
     const withTotal = transactions.map((t) => {
-      const total = t.quantity && t.price
-        ? roundMoney(t.quantity * t.price)
-        : Math.max(t.debit || 0, t.credit || 0);
-      return { t, total };
+      const compound = isCompoundTransaction(t);
+      const balance = compound ? getTransactionBalance(t) : null;
+      const total = compound
+        ? balance!.totalDebit + balance!.totalCredit
+        : t.quantity && t.price
+          ? roundMoney(t.quantity * t.price)
+          : Math.max(t.debit || 0, t.credit || 0);
+      return { t, total, compound };
     });
     const filtered = withTotal.filter(({ total }) => total >= min && total <= max);
     if (totalSort !== "none") {
@@ -288,14 +296,23 @@ export default function LibroDiario() {
             Registro cronológico de todas las transacciones
           </p>
         </div>
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-          <DialogTrigger asChild>
-            <Button data-tutorial="diario-new-btn" className="bg-gradient-primary shadow-soft">
-              <Plus className="h-4 w-4 mr-2" />
-              Nueva Transacción
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setCustomAccountsModalOpen(true)}>
+            <BookOpen className="h-4 w-4 mr-1" />
+            Plan de Cuentas
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setCompoundModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" />
+            Compuesto
+          </Button>
+          <Dialog open={open} onOpenChange={handleOpenChange}>
+            <DialogTrigger asChild>
+              <Button data-tutorial="diario-new-btn" className="bg-gradient-primary shadow-soft">
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva Transacción
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingTransaction ? "Editar Transacción" : "Registrar Transacción"}
@@ -649,40 +666,72 @@ export default function LibroDiario() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {displayedTransactions.map(({ t: transaction, total }) => {
+                  {displayedTransactions.map(({ t: transaction, total, compound }) => {
                     const q = transaction.quantity;
                     const p = transaction.price;
                     const hasProduct = q && p;
                     return (
                     <TableRow key={transaction.id} className="hover:bg-muted/50">
                       <TableCell className="font-medium">{transaction.date}</TableCell>
-                      <TableCell>{transaction.account}</TableCell>
                       <TableCell>
+                        {compound ? (
+                          <div className="flex flex-wrap gap-1">
+                            {transaction.lines?.map((line, idx) => (
+                              <Badge key={idx} variant="outline" className="text-[10px]">
+                                {line.account}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          transaction.account
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {compound && (
+                          <Badge variant="secondary" className="bg-purple-100 text-purple-800 mr-1 mb-1">
+                            Compuesto
+                          </Badge>
+                        )}
                         {transaction.description}
-                        {transaction.calcExpression && (
+                        {compound && transaction.lines && (
+                          <div className="text-[11px] text-muted-foreground mt-0.5">
+                            {transaction.lines.map((l, i) => (
+                              <div key={i}>
+                                {l.account}: D={l.debit || 0} C={l.credit || 0}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {transaction.calcExpression && !compound && (
                           <div className="text-[11px] font-mono text-muted-foreground">{transaction.calcExpression}</div>
                         )}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">{q ?? "—"}</TableCell>
-                      <TableCell className="text-right tabular-nums">{p != null ? `$${p.toFixed(2)}` : "—"}</TableCell>
+                      <TableCell className="text-right tabular-nums">{compound ? "—" : (q ?? "—")}</TableCell>
+                      <TableCell className="text-right tabular-nums">{compound ? "—" : (p != null ? `$${p.toFixed(2)}` : "—")}</TableCell>
                       <TableCell className="text-right tabular-nums font-medium">{hasProduct ? `$${roundMoney(q! * p!).toFixed(2)}` : `$${total.toFixed(2)}`}</TableCell>
                       <TableCell className="text-right font-medium text-success">
-                        {transaction.debit > 0 ? `$${transaction.debit.toFixed(2)}` : "-"}
+                        {compound
+                          ? transaction.lines?.reduce((sum, l) => sum + (l.debit || 0), 0).toFixed(2) || "-"
+                          : (transaction.debit > 0 ? `$${transaction.debit.toFixed(2)}` : "-")}
                       </TableCell>
                       <TableCell className="text-right font-medium text-destructive">
-                        {transaction.credit > 0 ? `$${transaction.credit.toFixed(2)}` : "-"}
+                        {compound
+                          ? transaction.lines?.reduce((sum, l) => sum + (l.credit || 0), 0).toFixed(2) || "-"
+                          : (transaction.credit > 0 ? `$${transaction.credit.toFixed(2)}` : "-")}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => handleEdit(transaction)}
-                            title="Editar"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+                          {!compound && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleEdit(transaction)}
+                              title="Editar"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
@@ -707,6 +756,18 @@ export default function LibroDiario() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de Asiento Compuesto */}
+      <CompoundEntryModal
+        open={compoundModalOpen}
+        onOpenChange={setCompoundModalOpen}
+      />
+
+      {/* Modal de Plan de Cuentas */}
+      <CustomAccountsManager
+        open={customAccountsModalOpen}
+        onOpenChange={setCustomAccountsModalOpen}
+      />
     </div>
   );
 }

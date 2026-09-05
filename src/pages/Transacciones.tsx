@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, Download, ArrowUpRight, FileSpreadsheet, FileText, ArrowUpDown } from "lucide-react";
+import { Search, Filter, Download, ArrowUpRight, FileSpreadsheet, FileText, ArrowUpDown, Plus, BookOpen } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { sanitizeNumericInput } from "@/lib/numeric-input";
 import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
@@ -29,9 +29,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useAccountingData } from "@/hooks/useAccountingData";
-import { useJournalTransactions } from "@/hooks/useJournalTransactions";
+import { useJournalTransactions, getTransactionBalance, isCompoundTransaction, getCompoundAccounts } from "@/hooks/useJournalTransactions";
 import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { SimpleTransactionsView } from "@/components/SimpleTransactionsView";
+import { CompoundEntryModal } from "@/components/CompoundEntryModal";
+import { CustomAccountsManager } from "@/components/CustomAccountsManager";
 import { useNavigate } from "react-router-dom";
 import { exportToCSV, exportToExcel, exportToPDF, type ExportTransaction } from "@/lib/export-transactions";
 import { toast } from "sonner";
@@ -46,20 +48,30 @@ function TraditionalTransactionsView() {
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
   const [sortMode, setSortMode] = useState<"fecha-desc" | "fecha-asc" | "total-desc" | "total-asc">("fecha-desc");
+  const [compoundModalOpen, setCompoundModalOpen] = useState(false);
+  const [customAccountsModalOpen, setCustomAccountsModalOpen] = useState(false);
 
   // Transformar transacciones del libro diario al formato de visualización
   const transaccionesFormateadas = transactions.map((tx) => {
     const category = ACCOUNT_CATEGORIES[tx.account];
-    const isIngreso = category?.type === "ingreso";
-    const isGasto = category?.type === "gasto";
+    const compound = isCompoundTransaction(tx);
+    const accounts = getCompoundAccounts(tx);
+    const balance = getTransactionBalance(tx);
     
     let tipo = "Otro";
     let monto = 0;
-    
-    if (isIngreso) {
+    let categoria = category?.label || tx.account;
+    let cuentasResumen = "";
+
+    if (compound) {
+      tipo = "Compuesto";
+      monto = balance.balance;
+      categoria = tx.description || "Asiento compuesto";
+      cuentasResumen = accounts.join(", ");
+    } else if (category?.type === "ingreso") {
       tipo = "Ingreso";
       monto = tx.credit - tx.debit;
-    } else if (isGasto) {
+    } else if (category?.type === "gasto") {
       tipo = "Gasto";
       monto = -(tx.debit - tx.credit);
     } else {
@@ -71,14 +83,17 @@ function TraditionalTransactionsView() {
     return {
       id: tx.id,
       fecha: tx.date,
-      descripcion: tx.description,
-      categoria: category?.label || tx.account,
+      descripcion: compound ? tx.description : tx.description,
+      categoria,
+      cuentasResumen,
       tipo,
       monto,
       cuenta: tx.account,
       cantidad: tx.quantity,
       precio: tx.price,
       reconciled: tx.reconciled === true,
+      isCompound: compound,
+      lines: tx.lines,
     };
   });
 
@@ -97,10 +112,12 @@ function TraditionalTransactionsView() {
 
   const filteredTransacciones = transaccionesFormateadas.filter((t) => {
     const matchesSearch = t.descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         t.categoria.toLowerCase().includes(searchTerm.toLowerCase());
+                         t.categoria.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (t.cuentasResumen && t.cuentasResumen.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesFilter = filterTipo === "todos" || 
       (filterTipo === "ingreso" && t.tipo === "Ingreso") ||
-      (filterTipo === "gasto" && t.tipo === "Gasto");
+      (filterTipo === "gasto" && t.tipo === "Gasto") ||
+      (filterTipo === "compuesto" && t.isCompound);
     const abs = Math.abs(t.monto);
     const matchesAmount = abs >= min && abs <= max;
     return matchesSearch && matchesFilter && matchesAmount;
@@ -123,9 +140,11 @@ function TraditionalTransactionsView() {
     .filter(t => t.tipo === "Gasto")
     .reduce((sum, t) => sum + Math.abs(t.monto), 0);
 
+  const totalCompuestos = transaccionesFormateadas.filter(t => t.isCompound).length;
+
   const exportData: ExportTransaction[] = transaccionesFormateadas.map((t) => ({
     fecha: t.fecha,
-    descripcion: t.descripcion,
+    descripcion: t.isCompound ? `[Compuesto] ${t.descripcion} (${t.cuentasResumen})` : t.descripcion,
     categoria: t.categoria,
     tipo: t.tipo,
     monto: t.monto,
@@ -175,6 +194,14 @@ function TraditionalTransactionsView() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button variant="outline" size="sm" onClick={() => setCustomAccountsModalOpen(true)}>
+            <BookOpen className="h-4 w-4 mr-1" />
+            Plan de Cuentas
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setCompoundModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" />
+            Asiento Compuesto
+          </Button>
           <Button className="shadow-soft" onClick={() => navigate("/libro-diario")}>
             <ArrowUpRight className="h-4 w-4 mr-2" />
             Ir al Libro Diario
@@ -183,7 +210,7 @@ function TraditionalTransactionsView() {
       </div>
 
       {/* Resumen */}
-      <div data-tutorial="transacciones-resumen" className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div data-tutorial="transacciones-resumen" className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Transacciones</CardTitle>
@@ -206,6 +233,14 @@ function TraditionalTransactionsView() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-destructive">${totalGastos.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Asientos Compuestos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalCompuestos}</div>
           </CardContent>
         </Card>
       </div>
@@ -237,6 +272,7 @@ function TraditionalTransactionsView() {
                     <SelectItem value="todos">Todos</SelectItem>
                     <SelectItem value="ingreso">Ingresos</SelectItem>
                     <SelectItem value="gasto">Gastos</SelectItem>
+                    <SelectItem value="compuesto">Compuestos</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -284,8 +320,8 @@ function TraditionalTransactionsView() {
                 <TableRow>
                   <TableHead>Fecha</TableHead>
                   <TableHead>Descripción</TableHead>
-                  <TableHead>Cuenta</TableHead>
                   <TableHead>Tipo</TableHead>
+                  <TableHead>Cuenta</TableHead>
                   <TableHead className="text-right">Cant.</TableHead>
                   <TableHead className="text-right">P. Unit.</TableHead>
                   <TableHead className="text-right">
@@ -307,12 +343,37 @@ function TraditionalTransactionsView() {
                 {filteredTransacciones.map((transaccion) => (
                   <TableRow key={transaccion.id}>
                     <TableCell>{transaccion.fecha}</TableCell>
-                    <TableCell className="font-medium">{transaccion.descripcion}</TableCell>
-                    <TableCell>{transaccion.categoria}</TableCell>
+                    <TableCell className="font-medium">
+                      {transaccion.descripcion}
+                      {transaccion.isCompound && transaccion.cuentasResumen && (
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {transaccion.cuentasResumen}
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell>
-                      <Badge variant={transaccion.tipo === "Ingreso" ? "default" : transaccion.tipo === "Gasto" ? "secondary" : "outline"}>
-                        {transaccion.tipo}
-                      </Badge>
+                      {transaccion.isCompound ? (
+                        <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                          Compuesto
+                        </Badge>
+                      ) : (
+                        <Badge variant={transaccion.tipo === "Ingreso" ? "default" : transaccion.tipo === "Gasto" ? "secondary" : "outline"}>
+                          {transaccion.tipo}
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {transaccion.isCompound ? (
+                        <div className="flex flex-wrap gap-1">
+                          {transaccion.lines?.map((line, idx) => (
+                            <Badge key={idx} variant="outline" className="text-[10px]">
+                              {line.account}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        transaccion.cuenta
+                      )}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{transaccion.cantidad ?? "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">{transaccion.precio != null ? `$${transaccion.precio.toFixed(2)}` : "—"}</TableCell>
@@ -342,6 +403,18 @@ function TraditionalTransactionsView() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de Asiento Compuesto */}
+      <CompoundEntryModal
+        open={compoundModalOpen}
+        onOpenChange={setCompoundModalOpen}
+      />
+
+      {/* Modal de Plan de Cuentas */}
+      <CustomAccountsManager
+        open={customAccountsModalOpen}
+        onOpenChange={setCustomAccountsModalOpen}
+      />
     </div>
   );
 }
