@@ -171,3 +171,21 @@ export function useJournalTransactions() {
   const { activeProfileId, activeWalletId } = useWalletContext();
   return useJournalTransactionsForWallet(activeWalletId, activeProfileId);
 }
+
+// --- Helper functions para asientos compuestos ---
+
+export function isCompoundTransaction(tx: JournalTransaction): boolean {
+  return tx.isCompound === true && Array.isArray(tx.lines) && tx.lines.length >= 2;
+}
+
+export function getTransactionBalance(tx: JournalTransaction): number {
+  if (isCompoundTransaction(tx)) {
+    return tx.lines!.reduce((sum, l) => sum + (l.debit || 0) - (l.credit || 0), 0);
+  }
+  return (tx.debit || 0) - (tx.credit || 0);
+}
+
+export function getCompoundAccounts(tx: JournalTransaction): string[] {
+  if (!isCompoundTransaction(tx)) return [];
+  return tx.lines!.map(l => l.account).filter(Boolean);
+}

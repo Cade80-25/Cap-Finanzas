@@ -111,7 +111,7 @@ export function CustomAccountsManager({ open, onOpenChange }: CustomAccountsMana
           <DialogDescription>
             Gestiona tus cuentas contables personalizadas. Estas cuentas estarán disponibles
             en los selectores de cuenta junto con las cuentas del sistema.
-          </DialogDialogDescription>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
