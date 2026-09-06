@@ -143,34 +143,34 @@ ipcMain.on('toggle-native-menu', () => {
 });
 
 // ── Secure Storage (safeStorage de Electron) ─────────────────────────────────
-ipcMain.handle('secure-store-get', (_event, key: string) => {
+const secureStorageCache = new Map();
+
+ipcMain.handle('secure-store-get', (_event, key) => {
   try {
     if (!safeStorage?.isEncryptionAvailable) return null;
-    const encrypted = safeStorage.encryptString(key);
-    // Guardar en localStorage del main process (no es localStorage del renderer)
-    // Usamos un Map en memoria para no persistir en disco sin cifrar
-    secureStorageCache.set(key, encrypted);
+    const encrypted = safeStorage.encryptString(String(key));
+    secureStorageCache.set(String(key), encrypted);
     return true;
   } catch {
     return false;
   }
 });
 
-ipcMain.handle('secure-store-set', (_event, key: string, value: string) => {
+ipcMain.handle('secure-store-set', (_event, key, value) => {
   try {
     if (!safeStorage?.isEncryptionAvailable) return false;
-    const encrypted = safeStorage.encryptString(value);
-    secureStorageCache.set(key, encrypted);
+    const encrypted = safeStorage.encryptString(String(value));
+    secureStorageCache.set(String(key), encrypted);
     return true;
   } catch {
     return false;
   }
 });
 
-ipcMain.handle('secure-store-get-value', (_event, key: string) => {
+ipcMain.handle('secure-store-get-value', (_event, key) => {
   try {
     if (!safeStorage?.isEncryptionAvailable) return null;
-    const encrypted = secureStorageCache.get(key);
+    const encrypted = secureStorageCache.get(String(key));
     if (!encrypted) return null;
     return safeStorage.decryptString(encrypted);
   } catch {
@@ -178,13 +178,10 @@ ipcMain.handle('secure-store-get-value', (_event, key: string) => {
   }
 });
 
-ipcMain.handle('secure-store-delete', (_event, key: string) => {
-  secureStorageCache.delete(key);
+ipcMain.handle('secure-store-delete', (_event, key) => {
+  secureStorageCache.delete(String(key));
   return true;
 });
-
-// Cache en memoria para datos cifrados con safeStorage
-const secureStorageCache = new Map<string, ArrayBuffer>();
 
 // Check for updates on app start (only in production)
 app.on('ready', () => {
