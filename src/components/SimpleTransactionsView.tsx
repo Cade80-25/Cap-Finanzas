@@ -28,6 +28,8 @@ import QRReceiptScanner from "@/components/QRReceiptScanner";
 import { exportToCSV, exportToExcel, exportToPDF, type ExportTransaction } from "@/lib/export-transactions";
 import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
 import { FullCalculator } from "@/components/FullCalculator";
+import { QuickExpenseDialog } from "@/components/FloatingQuickExpense";
+import { QuickIncomeDialog } from "@/components/QuickIncomeDialog";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -292,6 +294,8 @@ export function SimpleTransactionsView() {
   const { totals } = useSimpleAccountingData();
   const { getCategoryById } = useCategories();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
+  const [quickIncomeOpen, setQuickIncomeOpen] = useState(false);
   const [defaultType, setDefaultType] = useState<"income" | "expense">("expense");
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
   const [search, setSearch] = useState("");
@@ -602,6 +606,18 @@ export function SimpleTransactionsView() {
             <Plus className="h-5 w-5 text-muted-foreground group-hover:text-destructive transition-colors" />
           </CardContent>
         </Card>
+      </div>
+
+      {/* Barra de acciones rápidas (un solo paso) */}
+      <div className="flex flex-wrap gap-2">
+        <Button variant="default" size="sm" onClick={() => setQuickIncomeOpen(true)}>
+          <TrendingUp className="h-4 w-4 mr-1" />
+          Ingreso Rápido
+        </Button>
+        <Button variant="default" size="sm" onClick={() => setQuickExpenseOpen(true)}>
+          <TrendingDown className="h-4 w-4 mr-1" />
+          Gasto Rápido
+        </Button>
       </div>
 
       {/* QR Scanner Banner */}
@@ -1042,6 +1058,10 @@ export function SimpleTransactionsView() {
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {resetAnnouncement}
       </div>
+
+      {/* Diálogos rápidos */}
+      <QuickIncomeDialog open={quickIncomeOpen} onOpenChange={setQuickIncomeOpen} />
+      <QuickExpenseDialog open={quickExpenseOpen} onOpenChange={setQuickExpenseOpen} />
     </div>
   );
 }

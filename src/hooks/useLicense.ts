@@ -277,12 +277,29 @@ export function useLicense() {
   const accountSlots = Math.min(5 + referralAccountBonus, 10);
   const maxProfiles = 50;
 
+  // Modos comprados: prioriza lo guardado localmente (isActivated).
+  // Si la licencia está activada localmente, respeta purchasedModes persistido.
+  const purchasedModes: LicenseMode[] = licenseData.isActivated
+    ? licenseData.purchasedModes.length > 0
+      ? licenseData.purchasedModes
+      : ["simple", "traditional"]
+    : status === "active"
+      ? ["simple", "traditional"]
+      : [];
+
+  // Ajusta el modo al arrancar si el modo persistido no está entre los comprados
+  // (p.ej. solo compró "simple" pero quedó "traditional" guardado).
+  useEffect(() => {
+    if (purchasedModes.length === 1 && licenseData.mode !== purchasedModes[0]) {
+      setLicenseData((prev) => ({ ...prev, mode: purchasedModes[0] }));
+    }
+  }, [purchasedModes, licenseData.mode, setLicenseData]);
+
   return {
     mode: licenseData.mode,
     status,
     trialInfo,
-    purchasedModes:
-      status === "active" ? (["simple", "traditional"] as LicenseMode[]) : [],
+    purchasedModes,
     initializeTrial,
     setMode,
     activateLicense,
