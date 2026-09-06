@@ -2,6 +2,7 @@ import { useLocalStorage } from "./useLocalStorage";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { encryptData, decryptData } from "@/lib/crypto";
+import { CONFIG } from "@/lib/config";
 
 export type LicenseMode = "simple" | "traditional";
 export type LicenseStatus = "trial" | "active" | "expired";
@@ -189,14 +190,27 @@ export function useLicense() {
     };
   }, [licenseData.trialStartDate]);
 
-  // App is fully free — everyone gets full access.
-  const status = "active" as LicenseStatus;
+  // Calcular estado real basado en token y trial
+  const hasValidToken = isTokenValid(token, installationId);
+  const status: LicenseStatus = hasValidToken
+    ? "active"
+    : trialInfo.isExpired
+      ? "expired"
+      : "trial";
 
   const isModeAvailable = useCallback(
     (_mode: LicenseMode): boolean =>
       status === "trial" || status === "active",
     [status]
   );
+
+  const getDaysUntilExpiry = useCallback((): number => {
+    if (hasValidToken) {
+      const nowSec = Math.floor(Date.now() / 1000);
+      return Math.max(0, Math.floor((token!.exp - nowSec) / 86400));
+    }
+    return trialInfo.daysRemaining;
+  }, [hasValidToken, token, trialInfo.daysRemaining]);
 
   const setMode = useCallback(
     (mode: LicenseMode) => {
@@ -328,7 +342,10 @@ export function useLicense() {
     };
   }, [installationId]);
 
-  const pricing = { full: 0 };
+  const pricing = {
+    personal: CONFIG.PRICING.PERSONAL.price,
+    empresarial: CONFIG.PRICING.EMPRESARIAL.price,
+  };
 
   const referralAccountBonus = Math.min(
     parseInt(localStorage.getItem("cap-finanzas-referral-count") || "0", 10),
@@ -353,6 +370,7 @@ export function useLicense() {
     licenseToken: token?.token ?? null,
     licenseCode: token?.code ?? licenseData.licenseCode ?? null,
     installationId,
+    getDaysUntilExpiry,
   };
 }
 
