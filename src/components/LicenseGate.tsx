@@ -1,10 +1,10 @@
 // LicenseGate — bloquea acceso si trial expirado
-import { TrialExpiredModal } from "./TrialExpiredModal";
+import { TrialExpiredGate } from "./TrialExpiredModal";
 
 interface LicenseGateProps {
   children: React.ReactNode;
 }
 
 export function LicenseGate({ children }: LicenseGateProps) {
-  return <TrialExpiredModal>{children}</TrialExpiredModal>;
+  return <TrialExpiredGate>{children}</TrialExpiredGate>;
 }
