@@ -1,7 +1,6 @@
 import { useLocalStorage } from "./useLocalStorage";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { encryptData, decryptData } from "@/lib/crypto";
 import { CONFIG } from "@/lib/config";
 
 export type LicenseMode = "simple" | "traditional";
@@ -9,7 +8,7 @@ export type LicenseStatus = "trial" | "active" | "expired";
 
 interface LicenseTokenData {
   token: string;
-  exp: number; // unix seconds
+  exp: number;
   code: string;
   activated_at: string;
   installation_id: string;
@@ -18,7 +17,6 @@ interface LicenseTokenData {
 interface LicenseData {
   mode: LicenseMode;
   trialStartDate: string | null;
-  // Legacy fields kept for backward compatibility with stored state
   activatedAt: string | null;
   licenseCode: string | null;
   isActivated: boolean;
@@ -27,12 +25,9 @@ interface LicenseData {
   usedAccountCodes: string[];
 }
 
-const TRIAL_DAYS = 30;
 const LICENSE_KEY = "cap-finanzas-license";
 const TOKEN_KEY = "cap-finanzas-license-token";
 const INSTALLATION_KEY = "cap-finanzas-installation-id";
-const TRIAL_MAX_PROFILES = 3;
-const ACTIVE_MAX_PROFILES = 50;
 
 function getInstallationId(): string {
   let id = localStorage.getItem(INSTALLATION_KEY);
@@ -43,50 +38,10 @@ function getInstallationId(): string {
   return id;
 }
 
-// Clave para cifrar el token en localStorage (derivada del installationId)
-function getEncryptionKey(installationId: string): string {
-  return `cap-finanzas-token-key-${installationId}`;
-}
-
-async function readToken(installationId: string): Promise<LicenseTokenData | null> {
+function readToken(installationId: string): LicenseTokenData | null {
   try {
-    // Intentar leer desde Electron secureStorage primero
-    const electronAPI = window.electronAPI;
-    if (electronAPI?.secureStore) {
-      const stored = await electronAPI.secureStore.get(TOKEN_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as LicenseTokenData;
-        if (parsed.token && parsed.exp && parsed.installation_id) {
-          return parsed;
-        }
-      }
-      return null;
-    }
-
-    // Fallback: localStorage cifrado
     const raw = localStorage.getItem(TOKEN_KEY);
     if (!raw) return null;
-
-    // Verificar si está cifrado (formato salt:iv:ciphertext)
-    if (raw.includes(":") && !raw.startsWith("{")) {
-      try {
-        const key = getEncryptionKey(installationId);
-        const decrypted = await decryptData(raw, key);
-        const parsed = JSON.parse(decrypted) as LicenseTokenData;
-        if (parsed.token && parsed.exp && parsed.installation_id) {
-          return parsed;
-        }
-      } catch {
-        // Si falla el descifrado, intentar parsear directamente
-        const parsed = JSON.parse(raw) as LicenseTokenData;
-        if (parsed.token && parsed.exp && parsed.installation_id) {
-          return parsed;
-        }
-      }
-      return null;
-    }
-
-    // Formato legacy sin cifrar
     const parsed = JSON.parse(raw) as LicenseTokenData;
     if (!parsed.token || !parsed.exp || !parsed.installation_id) return null;
     return parsed;
@@ -95,35 +50,15 @@ async function readToken(installationId: string): Promise<LicenseTokenData | nul
   }
 }
 
-async function writeToken(data: LicenseTokenData) {
-  const electronAPI = window.electronAPI;
-
-  if (electronAPI?.secureStore) {
-    // Guardar en Electron safeStorage
-    try {
-      await electronAPI.secureStore.set(TOKEN_KEY, JSON.stringify(data));
-      return;
-    } catch {
-      // Si falla, caer a localStorage cifrado
-    }
-  }
-
-  // Fallback: localStorage cifrado
-  const key = getEncryptionKey(data.installation_id);
+function writeToken(data: LicenseTokenData) {
   try {
-    const encrypted = await encryptData(JSON.stringify(data), key);
-    localStorage.setItem(TOKEN_KEY, encrypted);
-  } catch {
-    // Si falla el cifrado, guardar sin cifrado (legacy)
     localStorage.setItem(TOKEN_KEY, JSON.stringify(data));
+  } catch {
+    // localStorage lleno o desactivado
   }
 }
 
 function clearToken() {
-  const electronAPI = window.electronAPI;
-  if (electronAPI?.secureStore) {
-    electronAPI.secureStore.delete(TOKEN_KEY).catch(() => {});
-  }
   localStorage.removeItem(TOKEN_KEY);
 }
 
@@ -151,14 +86,12 @@ export function useLicense() {
     defaultLicenseData
   );
   const installationId = useMemo(() => getInstallationId(), []);
-  const [token, setTokenState] = useState<LicenseTokenData | null>(null);
+  const [token, setTokenState] = useState<LicenseTokenData | null>(() => readToken(installationId));
 
-  // Cargar token al inicializar
   useEffect(() => {
-    readToken(installationId).then((t) => setTokenState(t));
+    setTokenState(readToken(installationId));
   }, [installationId]);
 
-  // Initialize trial on first use
   const initializeTrial = useCallback(() => {
     if (!licenseData.trialStartDate) {
       setLicenseData((prev) => ({
@@ -168,16 +101,15 @@ export function useLicense() {
     }
   }, [licenseData.trialStartDate, setLicenseData]);
 
-  // Trial info (includes referral bonus days)
   const trialInfo = useMemo(() => {
     if (!licenseData.trialStartDate) {
-      return { daysRemaining: TRIAL_DAYS, isExpired: false, bonusDays: 0 };
+      return { daysRemaining: CONFIG.TRIAL_DAYS, isExpired: false, bonusDays: 0 };
     }
     const bonusDays = parseInt(
       localStorage.getItem("cap-finanzas-referral-bonus") || "0",
       10
     );
-    const totalTrialDays = TRIAL_DAYS + bonusDays;
+    const totalTrialDays = CONFIG.TRIAL_DAYS + bonusDays;
     const startDate = new Date(licenseData.trialStartDate);
     const now = new Date();
     const diffTime = now.getTime() - startDate.getTime();
@@ -190,7 +122,6 @@ export function useLicense() {
     };
   }, [licenseData.trialStartDate]);
 
-  // Calcular estado real basado en token y trial
   const hasValidToken = isTokenValid(token, installationId);
   const status: LicenseStatus = hasValidToken
     ? "active"
@@ -221,7 +152,6 @@ export function useLicense() {
     [isModeAvailable, setLicenseData]
   );
 
-  // Server activation
   const activateLicense = useCallback(
     async (
       code: string
@@ -262,10 +192,9 @@ export function useLicense() {
           code: cleanCode,
           installation_id: installationId,
         };
-        await writeToken(newToken);
+        writeToken(newToken);
         setTokenState(newToken);
 
-        // Mirror for backwards compatibility
         setLicenseData((prev) => ({
           ...prev,
           activatedAt: data.activated_at,
@@ -276,33 +205,25 @@ export function useLicense() {
 
         return {
           success: true,
-          message:
-            "¡Licencia activada exitosamente! Tienes acceso completo a Cap Finanzas.",
+          message: "¡Licencia activada exitosamente!",
         };
       } catch (e: any) {
         return {
           success: false,
-          message:
-            "No se pudo conectar con el servidor. Necesitas conexión a internet para activar la licencia la primera vez.",
+          message: "No se pudo conectar con el servidor.",
         };
       }
     },
     [installationId, setLicenseData]
   );
 
-  // Periodic re-validation when online (silent)
   useEffect(() => {
     let cancelled = false;
+    const t = readToken(installationId);
+    if (!t) return;
+    if (typeof navigator !== "undefined" && navigator.onLine === false) return;
 
-    // Token inicial ya cargado, pero intentar refrescar
-    const refreshToken = async () => {
-      const t = await readToken(installationId);
-      if (!t) return;
-      if (cancelled) setTokenState(t);
-
-      // Only revalidate if we have internet
-      if (typeof navigator !== "undefined" && navigator.onLine === false) return;
-
+    (async () => {
       try {
         const { data, error } = await supabase.functions.invoke(
           "license-verify",
@@ -327,15 +248,13 @@ export function useLicense() {
             code: t.code,
             installation_id: t.installation_id,
           };
-          await writeToken(renewed);
-          if (!cancelled) setTokenState(renewed);
+          writeToken(renewed);
+          setTokenState(renewed);
         }
       } catch {
-        // offline: keep cached token
+        // offline
       }
-    };
-
-    refreshToken();
+    })();
 
     return () => {
       cancelled = true;
@@ -352,7 +271,7 @@ export function useLicense() {
     5
   );
   const accountSlots = Math.min(5 + referralAccountBonus, 10);
-  const maxProfiles = ACTIVE_MAX_PROFILES;
+  const maxProfiles = 50;
 
   return {
     mode: licenseData.mode,

@@ -1,15 +1,12 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Expone APIs seguras al proceso de renderizado si es necesario
 contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
   isElectron: true,
 
-  // Native menu (File/Edit/View/...)
   setNativeMenuVisible: (visible) => ipcRenderer.send('set-native-menu-visible', visible),
   toggleNativeMenu: () => ipcRenderer.send('toggle-native-menu'),
 
-  // Auto-updater API
   checkForUpdates: () => ipcRenderer.send('check-for-updates'),
   downloadUpdate: () => ipcRenderer.send('download-update'),
   installUpdate: () => ipcRenderer.send('install-update'),
@@ -22,18 +19,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.removeAllListeners('update-error');
     ipcRenderer.removeAllListeners('download-progress');
     ipcRenderer.removeAllListeners('update-downloaded');
-  },
-
-  // Secure Storage (safeStorage de Electron)
-  secureStore: {
-    async set(key: string, value: string): Promise<boolean> {
-      return ipcRenderer.invoke('secure-store-set', key, value);
-    },
-    async get(key: string): Promise<string | null> {
-      return ipcRenderer.invoke('secure-store-get-value', key);
-    },
-    async delete(key: string): Promise<boolean> {
-      return ipcRenderer.invoke('secure-store-delete', key);
-    },
   },
 });
