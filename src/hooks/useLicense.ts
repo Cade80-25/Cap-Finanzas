@@ -130,9 +130,13 @@ export function useLicense() {
       : "trial";
 
   const isModeAvailable = useCallback(
-    (_mode: LicenseMode): boolean =>
-      status === "trial" || status === "active",
-    [status]
+    (_mode: LicenseMode): boolean => {
+      // Licencia activada localmente (isActivated) habilita ambos modos,
+      // incluso sin conexión al servidor de verificación.
+      if (licenseData.isActivated) return true;
+      return status === "trial" || status === "active";
+    },
+    [licenseData.isActivated, status]
   );
 
   const getDaysUntilExpiry = useCallback((): number => {
