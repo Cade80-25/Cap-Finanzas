@@ -30,6 +30,8 @@ import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
 import { FullCalculator } from "@/components/FullCalculator";
 import { QuickExpenseDialog } from "@/components/FloatingQuickExpense";
 import { QuickIncomeDialog } from "@/components/QuickIncomeDialog";
+import { StatCard } from "@/components/StatCard";
+import { Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -644,22 +646,24 @@ export function SimpleTransactionsView() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Balance</CardTitle></CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${totals.balance >= 0 ? "text-success" : "text-destructive"}`}>
-              ${totals.balance.toFixed(2)}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Ingresos del Mes</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-success">+${totals.ingresosDelMes.toFixed(2)}</div></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Gastos del Mes</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-destructive">-${totals.gastosDelMes.toFixed(2)}</div></CardContent>
-        </Card>
+        <StatCard
+          title="Balance"
+          value={`$${totals.balance.toFixed(2)}`}
+          icon={Wallet}
+          variant={totals.balance >= 0 ? "default" : "destructive"}
+        />
+        <StatCard
+          title="Ingresos del Mes"
+          value={`+$${totals.ingresosDelMes.toFixed(2)}`}
+          icon={TrendingUp}
+          variant="success"
+        />
+        <StatCard
+          title="Gastos del Mes"
+          value={`-$${totals.gastosDelMes.toFixed(2)}`}
+          icon={TrendingDown}
+          variant="destructive"
+        />
       </div>
 
       {/* Transactions list with grouping */}

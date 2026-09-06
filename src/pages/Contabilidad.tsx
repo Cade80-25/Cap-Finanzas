@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, FileText, BarChart3, TrendingUp, Calculator } from "lucide-react";
+import { BookOpen, FileText, BarChart3, TrendingUp, Calculator, Columns3, Table2 } from "lucide-react";
 import LibroDiario from "./LibroDiario";
 import LibroMayor from "./LibroMayor";
 import Balance from "./Balance";
 import EstadoResultados from "./EstadoResultados";
+import { CuentasT } from "@/components/CuentasT";
+import { BalanceComprobacion } from "@/components/BalanceComprobacion";
 
 export default function Contabilidad() {
   const [params, setParams] = useSearchParams();
@@ -34,7 +36,7 @@ export default function Contabilidad() {
       </div>
 
       <Tabs value={tab} onValueChange={handleChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 max-w-3xl h-auto">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 max-w-3xl h-auto">
           <TabsTrigger value="diario" className="gap-2 py-2">
             <BookOpen className="h-4 w-4" />
             <span className="hidden sm:inline">Libro Diario</span>
@@ -55,6 +57,16 @@ export default function Contabilidad() {
             <span className="hidden sm:inline">Resultados</span>
             <span className="sm:hidden">Result.</span>
           </TabsTrigger>
+          <TabsTrigger value="cuentas-t" className="gap-2 py-2">
+            <Columns3 className="h-4 w-4" />
+            <span className="hidden sm:inline">Cuentas T</span>
+            <span className="sm:hidden">Cuentas T</span>
+          </TabsTrigger>
+          <TabsTrigger value="comprobacion" className="gap-2 py-2">
+            <Table2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Comprobación</span>
+            <span className="sm:hidden">Comprob.</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="diario" className="mt-4 -mx-3 sm:-mx-6 lg:-mx-8">
@@ -68,6 +80,12 @@ export default function Contabilidad() {
         </TabsContent>
         <TabsContent value="resultados" className="mt-4 -mx-3 sm:-mx-6 lg:-mx-8">
           <EstadoResultados />
+        </TabsContent>
+        <TabsContent value="cuentas-t" className="mt-4">
+          <CuentasT />
+        </TabsContent>
+        <TabsContent value="comprobacion" className="mt-4">
+          <BalanceComprobacion />
         </TabsContent>
       </Tabs>
     </div>

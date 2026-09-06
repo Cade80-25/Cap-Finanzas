@@ -2,6 +2,14 @@ import { useEffect, useCallback } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { useWalletContext } from "@/contexts/WalletContext";
 
+/** Línea de un asiento compuesto. */
+export interface JournalLine {
+  account: string;
+  debit?: number;
+  credit?: number;
+  description?: string;
+}
+
 export type JournalTransaction = {
   id: number;
   date: string;
@@ -19,6 +27,9 @@ export type JournalTransaction = {
   calcExpression?: string;
   /** Indica si la transacción fue conciliada (reconciliación bancaria). */
   reconciled?: boolean;
+  /** Asiento compuesto: líneas de débito/crédito cuando isCompound === true. */
+  isCompound?: boolean;
+  lines?: JournalLine[];
 };
 
 // KEY ÚNICA Y DEFINITIVA para todas las transacciones
