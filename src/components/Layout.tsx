@@ -20,7 +20,6 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { useModeFeatures, FeatureKey } from "@/hooks/useModeFeatures";
 import { Badge } from "@/components/ui/badge";
 import { FloatingAddAccount } from "@/components/FloatingAddAccount";
-import { FloatingQuickExpense } from "@/components/FloatingQuickExpense";
 import { FirstVisitTooltip } from "@/components/FirstVisitTooltip";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -154,7 +153,6 @@ export default function Layout() {
             </footer>
           </main>
 
-          <FloatingQuickExpense />
           <FloatingAddAccount />
           <FirstVisitTooltip />
           <MobileBottomNav />

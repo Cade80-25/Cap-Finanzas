@@ -32,13 +32,19 @@ const EXPENSE_ACCOUNTS = [
 ];
 
 /**
- * Botón flotante de "Gasto Rápido": un solo paso.
+ * Diálogo de "Gasto Rápido": un solo paso.
  * Abre un diálogo mínimo (monto + descripción) y crea la transacción de gasto
  * de inmediato con valores por defecto razonables (cuenta gastos-operativos, debit=monto).
+ * Reutilizable: recibe el estado open/onOpenChange para montarlo donde haga falta.
  */
-export function FloatingQuickExpense() {
+export function QuickExpenseDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const { transactions, setTransactions } = useJournalTransactions();
-  const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [account, setAccount] = useState("gastos-operativos");
@@ -74,8 +80,80 @@ export function FloatingQuickExpense() {
     setTransactions([...transactions, newTransaction]);
     toast.success(`Gasto registrado: $${value.toFixed(2)}`);
     reset();
-    setOpen(false);
+    onOpenChange(false);
   };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <TrendingDown className="h-4 w-4 text-destructive" />
+            Gasto Rápido
+          </DialogTitle>
+          <DialogDescription>
+            Registra un gasto en un solo paso. Solo necesitas el monto y la descripción.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="quick-expense-amount">Monto</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+              <Input
+                id="quick-expense-amount"
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                className="pl-7 text-lg font-semibold h-12"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(sanitizeNumericInput(e.target.value))}
+                autoFocus
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="quick-expense-description">Descripción</Label>
+            <Input
+              id="quick-expense-description"
+              type="text"
+              placeholder="Ej: Compra supermercado, combustible..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="quick-expense-account">Categoría (opcional)</Label>
+            <Select value={account} onValueChange={setAccount}>
+              <SelectTrigger id="quick-expense-account" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EXPENSE_ACCOUNTS.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button type="submit" className="w-full" variant="destructive">
+            <TrendingDown className="h-4 w-4 mr-2" />
+            Registrar Gasto
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * Botón flotante de "Gasto Rápido".
+ * (Deprecado: la acción principal vive ahora en la barra de Transacciones.)
+ */
+export function FloatingQuickExpense() {
+  const [open, setOpen] = useState(false);
 
   return (
     <>
@@ -88,67 +166,7 @@ export function FloatingQuickExpense() {
         <Zap className="h-5 w-5" aria-hidden="true" />
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <TrendingDown className="h-4 w-4 text-destructive" />
-              Gasto Rápido
-            </DialogTitle>
-            <DialogDescription>
-              Registra un gasto en un solo paso. Solo necesitas el monto y la descripción.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="quick-expense-amount">Monto</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
-                <Input
-                  id="quick-expense-amount"
-                  type="text"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  className="pl-7 text-lg font-semibold h-12"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(sanitizeNumericInput(e.target.value))}
-                  autoFocus
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="quick-expense-description">Descripción</Label>
-              <Input
-                id="quick-expense-description"
-                type="text"
-                placeholder="Ej: Compra supermercado, combustible..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="quick-expense-account">Categoría (opcional)</Label>
-              <Select value={account} onValueChange={setAccount}>
-                <SelectTrigger id="quick-expense-account" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {EXPENSE_ACCOUNTS.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>
-                      {a.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="submit" className="w-full" variant="destructive">
-              <TrendingDown className="h-4 w-4 mr-2" />
-              Registrar Gasto
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <QuickExpenseDialog open={open} onOpenChange={setOpen} />
     </>
   );
 }

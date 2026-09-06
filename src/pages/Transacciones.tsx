@@ -34,6 +34,8 @@ import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { SimpleTransactionsView } from "@/components/SimpleTransactionsView";
 import { CompoundEntryModal } from "@/components/CompoundEntryModal";
 import { CustomAccountsManager } from "@/components/CustomAccountsManager";
+import { QuickExpenseDialog } from "@/components/FloatingQuickExpense";
+import { Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { exportToCSV, exportToExcel, exportToPDF, type ExportTransaction } from "@/lib/export-transactions";
 import { toast } from "sonner";
@@ -50,6 +52,7 @@ function TraditionalTransactionsView() {
   const [sortMode, setSortMode] = useState<"fecha-desc" | "fecha-asc" | "total-desc" | "total-asc">("fecha-desc");
   const [compoundModalOpen, setCompoundModalOpen] = useState(false);
   const [customAccountsModalOpen, setCustomAccountsModalOpen] = useState(false);
+  const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
 
   // Transformar transacciones del libro diario al formato de visualización
   const transaccionesFormateadas = transactions.map((tx) => {
@@ -194,6 +197,10 @@ function TraditionalTransactionsView() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button variant="default" size="sm" onClick={() => setQuickExpenseOpen(true)}>
+            <Zap className="h-4 w-4 mr-1" />
+            Gasto Rápido
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setCustomAccountsModalOpen(true)}>
             <BookOpen className="h-4 w-4 mr-1" />
             Plan de Cuentas
@@ -414,6 +421,12 @@ function TraditionalTransactionsView() {
       <CustomAccountsManager
         open={customAccountsModalOpen}
         onOpenChange={setCustomAccountsModalOpen}
+      />
+
+      {/* Modal de Gasto Rápido */}
+      <QuickExpenseDialog
+        open={quickExpenseOpen}
+        onOpenChange={setQuickExpenseOpen}
       />
     </div>
   );
