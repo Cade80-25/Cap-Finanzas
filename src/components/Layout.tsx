@@ -4,7 +4,7 @@ import { WalletSelector } from "@/components/WalletSelector";
 import { ProfileSelector } from "@/components/ProfileSelector";
 import {
   Home, Receipt, Calendar, Target, Tag, PieChart, Cog,
-  X, Globe, GraduationCap, Calculator, LucideIcon,
+  X, Globe, GraduationCap, Calculator, LucideIcon, Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ const allNavigation: NavItem[] = [
   { name: "Panel Principal", href: "/", icon: Home, featureKey: "dashboard" },
   { name: "Transacciones", href: "/transacciones", icon: Receipt, featureKey: "transactions" },
   { name: "Calendario", href: "/calendario", icon: Calendar, featureKey: "calendar" },
+  { name: "Programados", href: "/scheduler", icon: Clock, featureKey: "scheduler" },
   { name: "Presupuesto", href: "/presupuesto", icon: Target, featureKey: "budget" },
   { name: "Monedas", href: "/monedas", icon: Globe, featureKey: "currencies" },
   { name: "Categorías", href: "/categorias", icon: Tag, featureKey: "categories" },

@@ -24,7 +24,8 @@ export type FeatureKey =
   | "manual"
   | "notifications"
   | "settings"
-  | "account";
+  | "account"
+  | "scheduler";
 
 interface FeatureConfig {
   key: FeatureKey;
@@ -39,6 +40,7 @@ const FEATURE_CONFIG: FeatureConfig[] = [
   { key: "dashboard", route: "/", label: "Panel Principal", simpleMode: true, traditionalMode: true },
   { key: "transactions", route: "/transacciones", label: "Transacciones", simpleMode: true, traditionalMode: true, simplifiedInSimple: true },
   { key: "calendar", route: "/calendario", label: "Calendario", simpleMode: true, traditionalMode: true },
+  { key: "scheduler", route: "/scheduler", label: "Programados", simpleMode: true, traditionalMode: true },
   { key: "budget", route: "/presupuesto", label: "Presupuesto", simpleMode: true, traditionalMode: true },
   { key: "currencies", route: "/monedas", label: "Monedas", simpleMode: true, traditionalMode: true },
   { key: "categories", route: "/categorias", label: "Categorías", simpleMode: false, traditionalMode: true },
