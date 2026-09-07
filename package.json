@@ -1,7 +1,7 @@
 {
   "name": "Cap-Finanzas",
   "private": true,
-  "version": "1.1.17",
+  "version": "1.1.18",
   "type": "module",
   "main": "electron/main.cjs",
   "description": "Aplicación de finanzas personales y contabilidad",
