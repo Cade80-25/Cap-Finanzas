@@ -30,15 +30,107 @@ interface EditState {
   icon: string;
 }
 
+// Accumulate leaf (selectable) subcategories of a subtree, alongside their rendered path.
+interface FlatSub {
+  id: string;
+  label: string;
+  icon: string;
+  depth: number;
+}
+
+function flattenSubs(subs: SubCategory[], depth: number, acc: FlatSub[] = []): FlatSub[] {
+  for (const s of subs) {
+    acc.push({ id: s.id, label: s.label, icon: s.icon || "📌", depth });
+    if (s.children?.length) flattenSubs(s.children, depth + 1, acc);
+  }
+  return acc;
+}
+
+// Recursively render a subcategory node + its children with indentation.
+interface SubNodeProps {
+  cat: Category;
+  sub: SubCategory;
+  depth: number;
+  selected: boolean;
+  onSelectSub: (subId: string) => void;
+  onAddChild: (parentSub: SubCategory) => void;
+  onEditSub: (categoryId: string, sub: SubCategory) => void;
+  onDeleteSub: (sub: SubCategory) => void;
+}
+
+function SubNode({ cat, sub, depth, selected, onSelectSub, onAddChild, onEditSub, onDeleteSub }: SubNodeProps) {
+  const hasChildren = !!sub.children?.length;
+  return (
+    <div>
+      <div
+        className={cn(
+          "group/sub flex items-center gap-2 px-2 py-1 rounded text-sm cursor-pointer",
+          selected ? "bg-primary/80 text-primary-foreground" : "hover:bg-muted"
+        )}
+        style={{ marginLeft: depth * 14 }}
+        onClick={() => onSelectSub(sub.id)}
+      >
+        <span className="text-base shrink-0">{sub.icon || "📌"}</span>
+        <span className="flex-1 truncate">{sub.label}</span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-4 w-4 opacity-0 group-hover/sub:opacity-100"
+          onClick={e => { e.stopPropagation(); onAddChild(sub); }}
+          title="Agregar sub-subcategoría"
+        >
+          <FolderPlus className="h-2.5 w-2.5" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-4 w-4 opacity-0 group-hover/sub:opacity-100"
+          onClick={e => { e.stopPropagation(); onEditSub(cat.id, sub); }}
+          title="Editar subcategoría"
+        >
+          <Pencil className="h-2.5 w-2.5" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-4 w-4 opacity-0 group-hover/sub:opacity-100"
+          onClick={e => { e.stopPropagation(); onDeleteSub(sub); }}
+          title="Eliminar subcategoría"
+        >
+          <Trash2 className="h-2.5 w-2.5" />
+        </Button>
+      </div>
+      {hasChildren &&
+        sub.children!.map(child => (
+          <SubNode
+            key={child.id}
+            cat={cat}
+            sub={child}
+            depth={depth + 1}
+            selected={selected || false}
+            onSelectSub={onSelectSub}
+            onAddChild={onAddChild}
+            onEditSub={onEditSub}
+            onDeleteSub={onDeleteSub}
+          />
+        ))}
+    </div>
+  );
+}
+
 export function CategorySelector({ type, value, subcategoryValue, onSelect }: CategorySelectorProps) {
   const {
     incomeCategories, expenseCategories,
     addCategory, addSubcategory, deleteCategory, removeSubcategory,
-    updateCategory, updateSubcategory,
+    updateCategory, updateSubcategory, getSubcategoryPath,
   } = useCategories();
   const [search, setSearch] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [addSubOpen, setAddSubOpen] = useState<string | null>(null);
+  // addSubOpen stores the parent context: { categoryId, parentSubId? }
+  const [addSubOpen, setAddSubOpen] = useState<{ categoryId: string; parentSubId?: string } | null>(null);
   const [newCatLabel, setNewCatLabel] = useState("");
   const [newCatIcon, setNewCatIcon] = useState("📁");
   const [newSubLabel, setNewSubLabel] = useState("");
@@ -48,11 +140,14 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
   const [confirmDelete, setConfirmDelete] = useState<{ categoryId: string; sub: SubCategory } | null>(null);
 
   const categories = type === "income" ? incomeCategories : expenseCategories;
+
+  // Search matches category label or any subcategory (including nested) label.
+  const matchesSearch = (c: Category, q: string) => {
+    if (c.label.toLowerCase().includes(q)) return true;
+    return flattenSubs(c.subcategories, 0).some(s => s.label.toLowerCase().includes(q));
+  };
   const filtered = search
-    ? categories.filter(c =>
-        c.label.toLowerCase().includes(search.toLowerCase()) ||
-        c.subcategories.some(s => s.label.toLowerCase().includes(search.toLowerCase()))
-      )
+    ? categories.filter(c => matchesSearch(c, search.toLowerCase()))
     : categories;
 
   const handleAddCategory = () => {
@@ -62,13 +157,14 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
     setNewCatLabel(""); setNewCatIcon("📁"); setAddDialogOpen(false);
   };
 
-  const handleAddSubcategory = (catId: string) => {
+  const handleAddSubcategory = () => {
+    if (!addSubOpen) return;
     if (!newSubLabel.trim()) {
       toast.error("Ingresa un nombre para la subcategoría");
       return;
     }
     const subId = `${newSubLabel.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}-${Date.now().toString(36)}`;
-    addSubcategory(catId, { id: subId, label: newSubLabel.trim(), icon: newSubIcon });
+    addSubcategory(addSubOpen.categoryId, addSubOpen.parentSubId, { id: subId, label: newSubLabel.trim(), icon: newSubIcon });
     toast.success(`Subcategoría "${newSubLabel.trim()}" agregada`);
     setNewSubLabel(""); setNewSubIcon("📌"); setAddSubOpen(null);
   };
@@ -91,10 +187,24 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
   };
 
   const startEditCategory = (c: Category) => setEditing({ kind: "category", categoryId: c.id, label: c.label, icon: c.icon });
-  const startEditSub = (catId: string, s: SubCategory) =>
-    setEditing({ kind: "subcategory", categoryId: catId, subId: s.id, label: s.label, icon: s.icon || "📌" });
+  const startEditSub = (categoryId: string, sub: SubCategory) =>
+    setEditing({ kind: "subcategory", categoryId, subId: sub.id, label: sub.label, icon: sub.icon || "📌" });
 
   const selectedCat = categories.find(c => c.id === value);
+
+  // Resolve the full label path of the selected subcategory (for nested display).
+  const selectedPathLabel = selectedCat && subcategoryValue
+    ? (() => {
+        const path = getSubcategoryPath(selectedCat.subcategories, subcategoryValue);
+        if (path && path.length > 0) {
+          const names = path.map(id =>
+            findSubInTree(selectedCat.subcategories, id)?.label || id
+          );
+          return names.join(" > ");
+        }
+        return subcategoryValue;
+      })()
+    : undefined;
 
   return (
     <div className="space-y-2">
@@ -139,7 +249,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                   variant="ghost"
                   size="icon"
                   className="h-5 w-5 opacity-0 group-hover/cat:opacity-100"
-                  onClick={e => { e.stopPropagation(); setExpandedCat(cat.id); setAddSubOpen(cat.id); setNewSubLabel(""); setNewSubIcon("📌"); }}
+                  onClick={e => { e.stopPropagation(); setExpandedCat(cat.id); setAddSubOpen({ categoryId: cat.id }); setNewSubLabel(""); setNewSubIcon("📌"); }}
                   title="Agregar subcategoría"
                 >
                   <FolderPlus className="h-3 w-3" />
@@ -167,51 +277,29 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                 )}
               </div>
               {expandedCat === cat.id && (
-                <div className="ml-6 border-l pl-2 my-1 space-y-0.5">
+                <div className="ml-4 border-l pl-2 my-1 space-y-0.5">
                   {cat.subcategories.length === 0 && (
                     <p className="text-xs text-muted-foreground px-2 py-1 italic">
                       Sin subcategorías
                     </p>
                   )}
                   {cat.subcategories.map(sub => (
-                    <div
+                    <SubNode
                       key={sub.id}
-                      className={cn(
-                        "group/sub flex items-center gap-2 px-2 py-1 rounded text-sm cursor-pointer",
-                        value === cat.id && subcategoryValue === sub.id
-                          ? "bg-primary/80 text-primary-foreground"
-                          : "hover:bg-muted"
-                      )}
-                      onClick={() => onSelect(cat.id, sub.id)}
-                    >
-                      <span className="text-base">{sub.icon || "📌"}</span>
-                      <span className="flex-1 truncate">{sub.label}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-4 w-4 opacity-0 group-hover/sub:opacity-100"
-                        onClick={e => { e.stopPropagation(); startEditSub(cat.id, sub); }}
-                        title="Editar subcategoría"
-                      >
-                        <Pencil className="h-2.5 w-2.5" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-4 w-4 opacity-0 group-hover/sub:opacity-100"
-                        onClick={e => { e.stopPropagation(); setConfirmDelete({ categoryId: cat.id, sub }); }}
-                        title="Eliminar subcategoría"
-                      >
-                        <Trash2 className="h-2.5 w-2.5" />
-                      </Button>
-                    </div>
+                      cat={cat}
+                      sub={sub}
+                      depth={0}
+                      selected={value === cat.id && subcategoryValue === sub.id}
+                      onSelectSub={subId => onSelect(cat.id, subId)}
+                      onAddChild={parentSub => { setAddSubOpen({ categoryId: cat.id, parentSubId: parentSub.id }); setNewSubLabel(""); setNewSubIcon("📌"); }}
+                      onEditSub={startEditSub}
+                      onDeleteSub={sub => setConfirmDelete({ categoryId: cat.id, sub })}
+                    />
                   ))}
                   <button
                     type="button"
                     className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
-                    onClick={() => { setAddSubOpen(cat.id); setNewSubLabel(""); setNewSubIcon("📌"); }}
+                    onClick={() => { setAddSubOpen({ categoryId: cat.id }); setNewSubLabel(""); setNewSubIcon("📌"); }}
                   >
                     <Plus className="h-3 w-3" /> Agregar subcategoría
                   </button>
@@ -228,7 +316,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
       {selectedCat && (
         <p className="text-xs text-muted-foreground">
           Seleccionada: {selectedCat.icon} {selectedCat.label}
-          {subcategoryValue && ` > ${selectedCat.subcategories.find(s => s.id === subcategoryValue)?.label || subcategoryValue}`}
+          {selectedPathLabel && ` > ${selectedPathLabel}`}
         </p>
       )}
 
@@ -256,7 +344,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
         </DialogContent>
       </Dialog>
 
-      {/* Add subcategory */}
+      {/* Add subcategory (top-level or nested) */}
       <Dialog open={!!addSubOpen} onOpenChange={open => { if (!open) setAddSubOpen(null); }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -274,7 +362,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddSubOpen(null)}>Cancelar</Button>
-            <Button onClick={() => addSubOpen && handleAddSubcategory(addSubOpen)}>Crear</Button>
+            <Button onClick={handleAddSubcategory}>Crear</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -333,4 +421,16 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
       </AlertDialog>
     </div>
   );
+}
+
+// Local helper used only for label resolution above.
+function findSubInTree(subs: SubCategory[], id: string): SubCategory | null {
+  for (const s of subs) {
+    if (s.id === id) return s;
+    if (s.children?.length) {
+      const found = findSubInTree(s.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
 }

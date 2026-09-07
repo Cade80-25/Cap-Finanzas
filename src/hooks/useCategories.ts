@@ -6,6 +6,7 @@ export interface SubCategory {
   id: string;
   label: string;
   icon?: string;
+  children?: SubCategory[];
 }
 
 export interface Category {
@@ -130,6 +131,13 @@ const DEFAULT_CATEGORIES: Category[] = [
 
 const CATEGORIES_KEY = "cap-finanzas-categories";
 
+// Remove a subcategory (and its descendants) from the tree by id.
+function removeSubFromTree(subs: SubCategory[], id: string): SubCategory[] {
+  return subs
+    .filter(s => s.id !== id)
+    .map(s => (s.children?.length ? { ...s, children: removeSubFromTree(s.children, id) } : s));
+}
+
 export function useCategories() {
   const { activeProfileId, activeWalletId } = useWalletContext();
   
@@ -157,33 +165,87 @@ export function useCategories() {
     setCategories(prev => prev.filter(c => c.id !== id));
   }, [setCategories]);
 
-  const addSubcategory = useCallback((categoryId: string, sub: SubCategory) => {
-    setCategories(prev => prev.map(c => 
-      c.id === categoryId 
-        ? { ...c, subcategories: [...c.subcategories, sub] }
-        : c
-    ));
-  }, [setCategories]);
+  // Recursively find a subcategory by id anywhere in the tree.
+  const findSubcategory = useCallback((subs: SubCategory[], id: string): SubCategory | null => {
+    for (const s of subs) {
+      if (s.id === id) return s;
+      if (s.children?.length) {
+        const found = findSubcategory(s.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  }, []);
 
+  // Build the path (list of subcategory ids, root-first) to a given subcategory id.
+  const getSubcategoryPath = useCallback((subs: SubCategory[], id: string): string[] | null => {
+    for (const s of subs) {
+      if (s.id === id) return [s.id];
+      if (s.children?.length) {
+        const childPath = getSubcategoryPath(s.children, id);
+        if (childPath) return [s.id, ...childPath];
+      }
+    }
+    return null;
+  }, []);
+
+  // Immutable helper: map over the subcategory tree, applying `fn` to the target node.
+  const mapSubcategoryTree = useCallback(
+    (subs: SubCategory[], id: string, fn: (s: SubCategory) => SubCategory | null): SubCategory[] => {
+      return subs.map(s => {
+        if (s.id === id) {
+          const updated = fn(s);
+          return updated ?? s;
+        }
+        if (s.children?.length) {
+          return { ...s, children: mapSubcategoryTree(s.children, id, fn) };
+        }
+        return s;
+      });
+    },
+    []
+  );
+
+  // Add a subcategory. If parentSubId is provided, append as a child of that subcategory
+  // (at any depth); otherwise append at the category's top level. Backward compatible.
+  const addSubcategory = useCallback((categoryId: string, parentSubId: string | undefined, sub: SubCategory) => {
+    setCategories(prev => prev.map(c => {
+      if (c.id !== categoryId) return c;
+      if (parentSubId) {
+        return { ...c, subcategories: mapSubcategoryTree(c.subcategories, parentSubId, s => ({ ...s, children: [...(s.children ?? []), sub] })) };
+      }
+      return { ...c, subcategories: [...c.subcategories, sub] };
+    }));
+  }, [setCategories, mapSubcategoryTree]);
+
+  // Remove a subcategory by id at any depth. Also disconnects its descendants.
   const removeSubcategory = useCallback((categoryId: string, subId: string) => {
-    setCategories(prev => prev.map(c => 
-      c.id === categoryId 
-        ? { ...c, subcategories: c.subcategories.filter(s => s.id !== subId) }
+    setCategories(prev => prev.map(c =>
+      c.id === categoryId
+        ? { ...c, subcategories: removeSubFromTree(c.subcategories, subId) }
         : c
     ));
   }, [setCategories]);
 
+  // Update a subcategory by id at any depth.
   const updateSubcategory = useCallback((categoryId: string, subId: string, updates: Partial<SubCategory>) => {
     setCategories(prev => prev.map(c =>
       c.id === categoryId
-        ? { ...c, subcategories: c.subcategories.map(s => s.id === subId ? { ...s, ...updates } : s) }
+        ? { ...c, subcategories: mapSubcategoryTree(c.subcategories, subId, s => ({ ...s, ...updates })) }
         : c
     ));
-  }, [setCategories]);
+  }, [setCategories, mapSubcategoryTree]);
 
   const getCategoryById = useCallback((id: string) => {
     return categories.find(c => c.id === id);
   }, [categories]);
+
+  // Find a subcategory by id within a given category (deep search).
+  const findSubcategoryInCategory = useCallback((categoryId: string, subId: string): SubCategory | null => {
+    const cat = categories.find(c => c.id === categoryId);
+    if (!cat) return null;
+    return findSubcategory(cat.subcategories, subId);
+  }, [categories, findSubcategory]);
 
   const incomeCategories = categories.filter(c => c.type === "income" || c.type === "both");
   const expenseCategories = categories.filter(c => c.type === "expense" || c.type === "both");
@@ -198,6 +260,9 @@ export function useCategories() {
     addSubcategory,
     removeSubcategory,
     updateSubcategory,
+    findSubcategory,
+    getSubcategoryPath,
+    findSubcategoryInCategory,
     getCategoryById,
     setCategories,
   };
