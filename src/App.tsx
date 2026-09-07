@@ -19,6 +19,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Transacciones = lazy(() => import("./pages/Transacciones"));
 const Calendario = lazy(() => import("./pages/Calendario"));
 const Scheduler = lazy(() => import("./pages/Scheduler"));
+const Importar = lazy(() => import("./pages/Importar"));
 const Presupuesto = lazy(() => import("./pages/Presupuesto"));
 const Monedas = lazy(() => import("./pages/Monedas"));
 const Categorias = lazy(() => import("./pages/Categorias"));
@@ -96,6 +97,7 @@ const App = () => (
                   <Route path="transacciones" element={<Transacciones />} />
                   <Route path="calendario" element={<Calendario />} />
                   <Route path="scheduler" element={<Scheduler />} />
+                  <Route path="importar" element={<Importar />} />
                   <Route path="presupuesto" element={<Presupuesto />} />
                   <Route path="monedas" element={<Monedas />} />
                   <Route path="categorias" element={<Categorias />} />
