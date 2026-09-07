@@ -22,6 +22,7 @@ import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
 import { useCategories } from "@/hooks/useCategories";
+import { useSections } from "@/hooks/useSections";
 import { CategorySelector } from "@/components/CategorySelector";
 import { suggestCategory } from "@/hooks/useAutoCategory";
 import { toast } from "sonner";
@@ -53,6 +54,7 @@ interface EditingTransaction {
   customField1?: string;
   customField2?: boolean;
   customField3?: string;
+  section?: string;
 }
 
 interface QRPrefillData {
@@ -87,6 +89,9 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   const [customField1, setCustomField1] = useState(editing?.customField1 ?? "");
   const [customField2, setCustomField2] = useState(editing?.customField2 ?? false);
   const [customField3, setCustomField3] = useState(editing?.customField3 ?? "");
+  const [section, setSection] = useState(editing?.section ?? "");
+
+  const { sections } = useSections();
 
   const sum = useMemo(() => {
     if (useCalculator) {
@@ -143,6 +148,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
               customField1: customField1 || undefined,
               customField2: customField2 || undefined,
               customField3: customField3 || undefined,
+              section: section || undefined,
             }
           : tx
       ));
@@ -161,6 +167,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         customField1: customField1 || undefined,
         customField2: customField2 || undefined,
         customField3: customField3 || undefined,
+        section: section || undefined,
       };
       setTransactions([...transactions, newTransaction]);
       toast.success(type === "income" ? "Ingreso registrado" : "Gasto registrado");
@@ -312,6 +319,25 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         <Label htmlFor="customField2" className="cursor-pointer">
           Campo personalizado 2
         </Label>
+      </div>
+
+      {/* Sección */}
+      <div className="space-y-2">
+        <Label htmlFor="section">Sección</Label>
+        <Select value={section} onValueChange={setSection}>
+          <SelectTrigger id="section">
+            <SelectValue placeholder="Sin sección" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Sin sección</SelectItem>
+            {sections.map(s => (
+              <SelectItem key={s.id} value={s.id}>
+                {s.icon && <span className="mr-1">{s.icon}</span>}
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Date */}

@@ -27,6 +27,8 @@ export type JournalTransaction = {
   calcExpression?: string;
   /** Indica si la transacción fue conciliada (reconciliación bancaria). */
   reconciled?: boolean;
+  /** Sección / agrupador libre (Casa, Trabajo, Proyecto X, etc.). */
+  section?: string;
   /** Asiento compuesto: líneas de débito/crédito cuando isCompound === true. */
   isCompound?: boolean;
   lines?: JournalLine[];
@@ -92,6 +94,7 @@ function normalizeTransaction(raw: any, index: number): JournalTransaction | nul
     debit,
     credit,
     reconciled,
+    section: raw.section || undefined,
   };
 }
 
