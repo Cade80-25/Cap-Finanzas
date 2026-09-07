@@ -2,36 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Design system inspired by Mint, Copilot, Plaid fintech apps.
-   All colors MUST be HSL.
+/* Cap Finanzas — Diseño profesional fusionado Personal Finances + Cap Finanzas
+   Paleta: índigoprofundo + verde esmeralda + blanco + violeta
 */
-
 @layer base {
   /* ═══════════════════════════════════════════
-     TEMA CLARO — Inspirado en Copilot/Plaid: fondo cálido,
-     acentos índigo vibrantes, toques teal
+     TEMA CLARO — Profesional: blanco limpio, índigo, verde esmeralda
      ═══════════════════════════════════════════ */
   :root {
-    --background: 225 20% 95%;
-    --foreground: 222 20% 18%;
+    --background: 220 14% 98%;
+    --foreground: 222 20% 15%;
 
-    --card: 220 15% 99%;
-    --card-foreground: 222 20% 18%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 20% 15%;
 
-    --popover: 220 15% 99%;
-    --popover-foreground: 222 20% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 20% 15%;
 
     --primary: 238 55% 52%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 248 52% 62%;
 
-    --secondary: 225 18% 92%;
-    --secondary-foreground: 222 20% 18%;
+    --secondary: 220 13% 94%;
+    --secondary-foreground: 222 20% 15%;
 
-    --muted: 220 16% 91%;
-    --muted-foreground: 220 10% 44%;
+    --muted: 220 13% 94%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 248 50% 58%;
+    --accent: 162 55% 38%;
     --accent-foreground: 0 0% 100%;
 
     --success: 162 55% 36%;
@@ -43,56 +41,56 @@
     --destructive: 4 68% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 225 15% 88%;
-    --input: 225 15% 88%;
+    --border: 220 13% 88%;
+    --input: 220 13% 88%;
     --ring: 238 55% 52%;
 
-    --radius: 0.75rem;
+    --radius: 0.625rem;
 
-    --sidebar-background: 245 22% 88%;
-    --sidebar-foreground: 240 20% 16%;
-    --sidebar-primary: 238 55% 52%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 245 20% 84%;
-    --sidebar-accent-foreground: 240 20% 16%;
-    --sidebar-border: 245 18% 82%;
-    --sidebar-ring: 238 55% 52%;
+    --sidebar-background: 238 42% 28%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 238 42% 28%;
+    --sidebar-accent: 238 40% 35%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 238 35% 25%;
+    --sidebar-ring: 238 50% 60%;
 
-    /* Custom design tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(238 55% 52%), hsl(248 52% 62%));
-    --gradient-success: linear-gradient(135deg, hsl(162 55% 36%), hsl(162 50% 46%));
-    --gradient-card: linear-gradient(180deg, hsl(220 15% 99%), hsl(225 18% 97%));
-    --card-widget: 225 16% 93%;
-    --shadow-soft: 0 1px 3px 0 hsl(222 20% 18% / 0.06), 0 1px 2px -1px hsl(222 20% 18% / 0.06);
-    --shadow-medium: 0 4px 6px -1px hsl(222 20% 18% / 0.07), 0 2px 4px -2px hsl(222 20% 18% / 0.07);
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --gradient-primary: linear-gradient(135deg, hsl(238 55% 52%), hsl(250 50% 60%));
+    --gradient-success: linear-gradient(135deg, hsl(162 55% 36%), hsl(162 50% 44%));
+    --gradient-income: linear-gradient(135deg, hsl(162 55% 36%), hsl(162 50% 44%));
+    --gradient-expense: linear-gradient(135deg, hsl(4 68% 52%), hsl(4 60% 60%));
+    --card-widget: 220 13% 96%;
+    --shadow-soft: 0 1px 3px 0 hsl(222 20% 15% / 0.06), 0 1px 2px -1px hsl(222 20% 15% / 0.06);
+    --shadow-medium: 0 4px 6px -1px hsl(222 20% 15% / 0.08), 0 2px 4px -2px hsl(222 20% 15% / 0.06);
+    --shadow-elevated: 0 10px 15px -3px hsl(222 20% 15% / 0.1), 0 4px 6px -4px hsl(222 20% 15% / 0.08);
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* ═══════════════════════════════════════════
-     TEMA OSCURO — Inspirado en Mint dark: fondos slate,
-     acentos luminosos, alto contraste
+     TEMA OSCURO — Profesivo: slate profundo, acentos luminosos
      ═══════════════════════════════════════════ */
   .dark {
-    --background: 225 20% 7%;
-    --foreground: 220 15% 92%;
+    --background: 225 18% 6%;
+    --foreground: 220 15% 95%;
 
-    --card: 225 18% 11%;
-    --card-foreground: 220 15% 92%;
+    --card: 225 16% 10%;
+    --card-foreground: 220 15% 95%;
 
-    --popover: 225 18% 11%;
-    --popover-foreground: 220 15% 92%;
+    --popover: 225 16% 10%;
+    --popover-foreground: 220 15% 95%;
 
     --primary: 240 50% 64%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 250 48% 72%;
 
-    --secondary: 225 16% 16%;
-    --secondary-foreground: 220 15% 92%;
+    --secondary: 225 14% 14%;
+    --secondary-foreground: 220 15% 95%;
 
-    --muted: 225 16% 16%;
-    --muted-foreground: 220 10% 56%;
+    --muted: 225 14% 14%;
+    --muted-foreground: 220 10% 60%;
 
-    --accent: 250 48% 68%;
+    --accent: 162 48% 42%;
     --accent-foreground: 0 0% 100%;
 
     --success: 162 48% 42%;
@@ -104,52 +102,53 @@
     --destructive: 4 60% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 225 16% 18%;
-    --input: 225 16% 18%;
+    --border: 225 12% 16%;
+    --input: 225 12% 16%;
     --ring: 240 50% 64%;
 
-    --sidebar-background: 225 20% 9%;
-    --sidebar-foreground: 220 15% 92%;
-    --sidebar-primary: 240 50% 64%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 16% 15%;
-    --sidebar-accent-foreground: 220 15% 92%;
-    --sidebar-border: 225 16% 18%;
-    --sidebar-ring: 240 50% 64%;
+    --sidebar-background: 238 42% 18%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 238 42% 18%;
+    --sidebar-accent: 238 35% 24%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 238 30% 16%;
+    --sidebar-ring: 238 50% 60%;
 
     --gradient-primary: linear-gradient(135deg, hsl(240 50% 64%), hsl(250 48% 72%));
     --gradient-success: linear-gradient(135deg, hsl(162 48% 42%), hsl(162 45% 52%));
-    --gradient-card: linear-gradient(180deg, hsl(225 18% 11%), hsl(225 18% 13%));
-    --card-widget: 225 15% 14%;
-    --shadow-soft: 0 1px 3px 0 hsl(0 0% 0% / 0.25);
-    --shadow-medium: 0 4px 6px -1px hsl(0 0% 0% / 0.35);
+    --gradient-income: linear-gradient(135deg, hsl(162 48% 42%), hsl(162 45% 52%));
+    --gradient-expense: linear-gradient(135deg, hsl(4 60% 55%), hsl(4 55% 62%));
+    --card-widget: 225 12% 13%;
+    --shadow-soft: 0 1px 3px 0 hsl(0 0% 0% / 0.3), 0 1px 2px -1px hsl(0 0% 0% / 0.3);
+    --shadow-medium: 0 4px 6px -1px hsl(0 0% 0% / 0.4), 0 2px 4px -2px hsl(0 0% 0% / 0.4);
+    --shadow-elevated: 0 10px 15px -3px hsl(0 0% 0% / 0.4), 0 4px 6px -4px hsl(0 0% 0% / 0.4);
   }
 
   /* ═══════════════════════════════════════════
-     TEMA INTERMEDIO — Inspirado en modo "dim" de Twitter/Discord:
-     fondo gris azulado medio, colores vibrantes
+     TEMA DIM — Balance profesional
      ═══════════════════════════════════════════ */
   [data-theme="dim"] {
-    --background: 225 18% 18%;
-    --foreground: 220 15% 88%;
+    --background: 225 16% 14%;
+    --foreground: 220 15% 90%;
 
-    --card: 225 16% 22%;
-    --card-foreground: 220 15% 88%;
+    --card: 225 14% 18%;
+    --card-foreground: 220 15% 90%;
 
-    --popover: 225 16% 22%;
-    --popover-foreground: 220 15% 88%;
+    --popover: 225 14% 18%;
+    --popover-foreground: 220 15% 90%;
 
     --primary: 240 52% 62%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 250 50% 70%;
 
-    --secondary: 225 15% 26%;
-    --secondary-foreground: 220 15% 88%;
+    --secondary: 225 12% 22%;
+    --secondary-foreground: 220 15% 90%;
 
-    --muted: 225 15% 26%;
-    --muted-foreground: 220 10% 56%;
+    --muted: 225 12% 22%;
+    --muted-foreground: 220 10% 58%;
 
-    --accent: 250 50% 65%;
+    --accent: 162 50% 40%;
     --accent-foreground: 0 0% 100%;
 
     --success: 162 50% 40%;
@@ -161,25 +160,27 @@
     --destructive: 4 62% 54%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 225 14% 28%;
-    --input: 225 14% 28%;
+    --border: 225 10% 24%;
+    --input: 225 10% 24%;
     --ring: 240 52% 62%;
 
-    --sidebar-background: 225 18% 20%;
-    --sidebar-foreground: 220 15% 88%;
-    --sidebar-primary: 240 52% 62%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 15% 26%;
-    --sidebar-accent-foreground: 220 15% 88%;
-    --sidebar-border: 225 14% 28%;
-    --sidebar-ring: 240 52% 62%;
+    --sidebar-background: 238 40% 22%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 238 40% 22%;
+    --sidebar-accent: 238 35% 28%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 238 30% 20%;
+    --sidebar-ring: 238 50% 60%;
 
     --gradient-primary: linear-gradient(135deg, hsl(240 52% 62%), hsl(250 50% 70%));
     --gradient-success: linear-gradient(135deg, hsl(162 50% 40%), hsl(162 48% 50%));
-    --gradient-card: linear-gradient(180deg, hsl(225 16% 22%), hsl(225 16% 24%));
-    --card-widget: 225 14% 24%;
-    --shadow-soft: 0 1px 3px 0 hsl(0 0% 0% / 0.2);
-    --shadow-medium: 0 4px 6px -1px hsl(0 0% 0% / 0.3);
+    --gradient-income: linear-gradient(135deg, hsl(162 50% 40%), hsl(162 48% 50%));
+    --gradient-expense: linear-gradient(135deg, hsl(4 62% 54%), hsl(4 55% 62%));
+    --card-widget: 225 12% 21%;
+    --shadow-soft: 0 1px 3px 0 hsl(0 0% 0% / 0.25), 0 1px 2px -1px hsl(0 0% 0% / 0.25);
+    --shadow-medium: 0 4px 6px -1px hsl(0 0% 0% / 0.35), 0 2px 4px -2px hsl(0 0% 0% / 0.35);
+    --shadow-elevated: 0 10px 15px -3px hsl(0 0% 0% / 0.35), 0 4px 6px -4px hsl(0 0% 0% / 0.35);
   }
 }
 
