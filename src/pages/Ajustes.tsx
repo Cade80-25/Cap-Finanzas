@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Settings as SettingsIcon, Cog } from "lucide-react";
+import { User, Settings as SettingsIcon, Cog, Shield } from "lucide-react";
 import Cuenta from "./Cuenta";
 import Configuracion from "./Configuracion";
+import Seguridad from "./Seguridad";
 
 export default function Ajustes() {
   const [params, setParams] = useSearchParams();
@@ -32,7 +33,7 @@ export default function Ajustes() {
       </div>
 
       <Tabs value={tab} onValueChange={handleChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className="grid w-full grid-cols-3 max-w-lg">
           <TabsTrigger value="cuenta" className="gap-2">
             <User className="h-4 w-4" />
             Cuenta
@@ -41,6 +42,10 @@ export default function Ajustes() {
             <SettingsIcon className="h-4 w-4" />
             Configuración
           </TabsTrigger>
+          <TabsTrigger value="seguridad" className="gap-2">
+            <Shield className="h-4 w-4" />
+            Seguridad
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="cuenta" className="mt-4 -mx-3 sm:-mx-6 lg:-mx-8">
@@ -48,6 +53,9 @@ export default function Ajustes() {
         </TabsContent>
         <TabsContent value="configuracion" className="mt-4 -mx-3 sm:-mx-6 lg:-mx-8">
           <Configuracion />
+        </TabsContent>
+        <TabsContent value="seguridad" className="mt-4 -mx-3 sm:-mx-6 lg:-mx-8">
+          <Seguridad />
         </TabsContent>
       </Tabs>
     </div>
