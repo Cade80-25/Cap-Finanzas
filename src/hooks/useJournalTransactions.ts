@@ -30,6 +30,10 @@ export type JournalTransaction = {
   /** Asiento compuesto: líneas de débito/crédito cuando isCompound === true. */
   isCompound?: boolean;
   lines?: JournalLine[];
+  /** Campos personalizados (replicados de Personal Finances). */
+  customField1?: string;
+  customField2?: boolean;
+  customField3?: string;
 };
 
 // KEY ÚNICA Y DEFINITIVA para todas las transacciones

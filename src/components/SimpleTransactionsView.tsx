@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
@@ -49,6 +50,9 @@ interface EditingTransaction {
   creditor?: string;
   notes?: string;
   calcExpression?: string;
+  customField1?: string;
+  customField2?: boolean;
+  customField3?: string;
 }
 
 interface QRPrefillData {
@@ -80,6 +84,9 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   const [creditor, setCreditor] = useState(editing?.creditor ?? qrPrefill?.description ?? "");
   const [notes, setNotes] = useState(editing?.notes ?? "");
   const [calcExpression, setCalcExpression] = useState<string>(editing?.calcExpression ?? "");
+  const [customField1, setCustomField1] = useState(editing?.customField1 ?? "");
+  const [customField2, setCustomField2] = useState(editing?.customField2 ?? false);
+  const [customField3, setCustomField3] = useState(editing?.customField3 ?? "");
 
   const sum = useMemo(() => {
     if (useCalculator) {
@@ -133,6 +140,9 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
               creditor: creditor || undefined,
               notes: notes || undefined,
               calcExpression: calcExpression || undefined,
+              customField1: customField1 || undefined,
+              customField2: customField2 || undefined,
+              customField3: customField3 || undefined,
             }
           : tx
       ));
@@ -148,6 +158,9 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         creditor: creditor || undefined,
         notes: notes || undefined,
         calcExpression: calcExpression || undefined,
+        customField1: customField1 || undefined,
+        customField2: customField2 || undefined,
+        customField3: customField3 || undefined,
       };
       setTransactions([...transactions, newTransaction]);
       toast.success(type === "income" ? "Ingreso registrado" : "Gasto registrado");
@@ -267,6 +280,38 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
           Anotaciones
         </Label>
         <Textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas adicionales..." rows={2} />
+      </div>
+
+      {/* Campos personalizados */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="customField1">Campo personalizado 1</Label>
+          <Input
+            id="customField1"
+            value={customField1}
+            onChange={e => setCustomField1(e.target.value)}
+            placeholder="Texto libre..."
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="customField3">Campo personalizado 3</Label>
+          <Input
+            id="customField3"
+            value={customField3}
+            onChange={e => setCustomField3(e.target.value)}
+            placeholder="Texto libre..."
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="customField2"
+          checked={customField2}
+          onCheckedChange={(checked) => setCustomField2(checked === true)}
+        />
+        <Label htmlFor="customField2" className="cursor-pointer">
+          Campo personalizado 2
+        </Label>
       </div>
 
       {/* Date */}

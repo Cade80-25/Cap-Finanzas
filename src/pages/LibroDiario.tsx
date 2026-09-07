@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -120,7 +121,10 @@ export default function LibroDiario() {
   const [price, setPrice] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("1");
   const [creditor, setCreditor] = useState("");
-  const [txNotes, setTxNotes] = useState("");
+    const [txNotes, setTxNotes] = useState("");
+    const [customField1, setCustomField1] = useState("");
+    const [customField2, setCustomField2] = useState(false);
+    const [customField3, setCustomField3] = useState("");
   const [calcExpression, setCalcExpression] = useState<string>("");
   const [showExtraFields, setShowExtraFields] = useState(false);
   const [qtyError, setQtyError] = useState<string>("");
@@ -231,12 +235,15 @@ export default function LibroDiario() {
     const roundedDebit = roundMoney(debit);
     const roundedCredit = roundMoney(credit);
     const extraFields = {
-      price: priceNum > 0 ? priceNum : undefined,
-      quantity: qtyNum > 0 ? qtyNum : undefined,
-      creditor: creditor || undefined,
-      notes: txNotes || undefined,
-      calcExpression: calcExpression || undefined,
-    };
+          price: priceNum > 0 ? priceNum : undefined,
+          quantity: qtyNum > 0 ? qtyNum : undefined,
+          creditor: creditor || undefined,
+          notes: txNotes || undefined,
+          calcExpression: calcExpression || undefined,
+          customField1: customField1 || undefined,
+          customField2: customField2 || undefined,
+          customField3: customField3 || undefined,
+        };
 
     if (editingTransaction) {
       setTransactions((prev) =>
@@ -504,17 +511,35 @@ export default function LibroDiario() {
               </Button>
 
               {showExtraFields && (
-                <div className="space-y-3 border-t pt-3">
-                  <div className="grid gap-2">
-                    <Label htmlFor="creditor">Acreedor / Pagador</Label>
-                    <Input id="creditor" value={creditor} onChange={e => setCreditor(e.target.value)} placeholder="Ej: Proveedor X" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="txNotes"><StickyNote className="h-3.5 w-3.5 inline mr-1" />Anotaciones</Label>
-                    <Textarea id="txNotes" value={txNotes} onChange={e => setTxNotes(e.target.value)} placeholder="Notas adicionales..." rows={2} />
-                  </div>
-                </div>
-              )}
+                              <div className="space-y-3 border-t pt-3">
+                                <div className="grid gap-2">
+                                  <Label htmlFor="creditor">Acreedor / Pagador</Label>
+                                  <Input id="creditor" value={creditor} onChange={e => setCreditor(e.target.value)} placeholder="Ej: Proveedor X" />
+                                </div>
+                                <div className="grid gap-2">
+                                  <Label htmlFor="txNotes"><StickyNote className="h-3.5 w-3.5 inline mr-1" />Anotaciones</Label>
+                                  <Textarea id="txNotes" value={txNotes} onChange={e => setTxNotes(e.target.value)} placeholder="Notas adicionales..." rows={2} />
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div className="grid gap-2">
+                                    <Label htmlFor="customField1">Campo personalizado 1</Label>
+                                    <Input id="customField1" value={customField1} onChange={e => setCustomField1(e.target.value)} placeholder="Texto libre..." />
+                                  </div>
+                                  <div className="grid gap-2">
+                                    <Label htmlFor="customField3">Campo personalizado 3</Label>
+                                    <Input id="customField3" value={customField3} onChange={e => setCustomField3(e.target.value)} placeholder="Texto libre..." />
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Checkbox
+                                    id="customField2"
+                                    checked={customField2}
+                                    onCheckedChange={(checked) => setCustomField2(checked === true)}
+                                  />
+                                  <Label htmlFor="customField2" className="cursor-pointer">Campo personalizado 2</Label>
+                                </div>
+                              </div>
+                            )}
               
               {validationSuggestions.length > 0 && (
                 <Alert className="border-warning bg-warning/10">
