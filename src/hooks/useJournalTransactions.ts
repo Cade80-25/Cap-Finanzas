@@ -95,6 +95,12 @@ function normalizeTransaction(raw: any, index: number): JournalTransaction | nul
     credit,
     reconciled,
     section: raw.section || undefined,
+    price: raw.price ?? raw.precio,
+    quantity: raw.quantity ?? raw.cantidad,
+    calcExpression: raw.calcExpression ?? raw.calc_expression,
+    notes: raw.notes ?? raw.notas,
+    subcategory: raw.subcategory ?? raw.subcategoria,
+    creditor: raw.creditor ?? raw.acreedor,
   };
 }
 
