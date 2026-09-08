@@ -89,7 +89,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   const [customField1, setCustomField1] = useState(editing?.customField1 ?? "");
   const [customField2, setCustomField2] = useState(editing?.customField2 ?? false);
   const [customField3, setCustomField3] = useState(editing?.customField3 ?? "");
-  const [section, setSection] = useState(editing?.section ?? "");
+  const [section, setSection] = useState(editing?.section ?? "none");
 
   const { sections } = useSections();
 
@@ -329,7 +329,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
             <SelectValue placeholder="Sin sección" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Sin sección</SelectItem>
+            <SelectItem value="none">Sin sección</SelectItem>
             {sections.map(s => (
               <SelectItem key={s.id} value={s.id}>
                 {s.icon && <span className="mr-1">{s.icon}</span>}
@@ -365,7 +365,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
 export function SimpleTransactionsView() {
   const { transactions, setTransactions } = useJournalTransactions();
   const { totals } = useSimpleAccountingData();
-  const { getCategoryById } = useCategories();
+  const { getCategoryById, incomeCategories, expenseCategories } = useCategories();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
   const [quickIncomeOpen, setQuickIncomeOpen] = useState(false);
@@ -387,6 +387,15 @@ export function SimpleTransactionsView() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [sortBy, setSortBy] = useLocalStorage<"date-desc" | "date-asc" | "amount-desc" | "amount-asc" | "net-desc" | "net-asc">(`simple-tx-sortBy:${filter}`, "date-desc");
+
+  // Mes seleccionado (default: mes actual; cambia automáticamente al pasar el mes real)
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+  const [selectedMonth, setSelectedMonth] = useState<string>(`${currentYear}-${String(currentMonth).padStart(2, "0")}`);
+
+  // Filtro explícito por categoría/subcategoría
+  const [catFilterExplicit, setCatFilterExplicit] = useState<string>("");
+  const [subFilterExplicit, setSubFilterExplicit] = useState<string>("");
 
   const hasCustomPreferences = groupBy !== "none" || sortBy !== "date-desc";
 
@@ -485,10 +494,23 @@ export function SimpleTransactionsView() {
     const q = search.trim().toLowerCase();
     const min = parseFlexibleNumber(minAmount, 0);
     const max = parseFlexibleNumber(maxAmount, 0);
-    const from = dateFrom ? dateFrom : null;
-    const to = dateTo ? dateTo : null;
+    
+    // Mes seleccionado: si hay un mes elegido y NO hay rango manual, usamos ese mes
+    let from = dateFrom ? dateFrom : null;
+    let to = dateTo ? dateTo : null;
+    if (!dateFrom && !dateTo && selectedMonth) {
+      const [year, month] = selectedMonth.split("-").map(Number);
+      from = `${year}-${String(month).padStart(2, "0")}-01`;
+      const lastDay = new Date(year, month, 0).getDate(); // month is 1-indexed here
+      to = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    }
+
     const result = allTransactions.filter(t => {
       if (filter !== "all" && t.type !== filter) return false;
+      // Filtro explícito por categoría/subcategoría
+      if (catFilterExplicit && t.category !== catFilterExplicit) return false;
+      if (subFilterExplicit && t.subcategory !== subFilterExplicit) return false;
+      // Filtros legacy (quick filters)
       if (categoryFilter && t.category !== categoryFilter) return false;
       if (subcategoryFilter && t.subcategory !== subcategoryFilter) return false;
       if (!amountRangeInvalid && min > 0 && t.amount < min) return false;
@@ -512,7 +534,7 @@ export function SimpleTransactionsView() {
         default: return b.date.localeCompare(a.date);
       }
     });
-  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter, minAmount, maxAmount, dateFrom, dateTo, sortBy, amountRangeInvalid]);
+  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter, catFilterExplicit, subFilterExplicit, minAmount, maxAmount, dateFrom, dateTo, selectedMonth, sortBy, amountRangeInvalid]);
 
   // Quick-filter suggestions: top categories/subcategories + recent keywords
   const quickFilters = useMemo(() => {
@@ -755,6 +777,70 @@ export function SimpleTransactionsView() {
               </Tabs>
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
+              {/* Selector de mes visible */}
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-full sm:w-[160px]" aria-label="Mes a visualizar">
+                  <SelectValue placeholder="Mes actual" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(() => {
+                    const months = [];
+                    const now = new Date();
+                    const curYear = now.getFullYear();
+                    const curMonth = now.getMonth() + 1;
+                    // Últimos 12 meses + próximos 3 meses
+                    for (let i = -12; i <= 3; i++) {
+                      let m = curMonth + i;
+                      let y = curYear;
+                      while (m < 1) { m += 12; y -= 1; }
+                      while (m > 12) { m -= 12; y += 1; }
+                      months.push({ value: `${y}-${String(m).padStart(2, "0")}`, label: new Date(y, m - 1).toLocaleDateString("es-ES", { month: "long", year: "numeric" }) });
+                    }
+                    return months.map(m => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.label}
+                      </SelectItem>
+                    ));
+                  })()}
+                </SelectContent>
+              </Select>
+
+              {/* Filtro de categoría visible */}
+              <Select value={catFilterExplicit} onValueChange={v => { setCatFilterExplicit(v); setSubFilterExplicit(""); }}>
+                <SelectTrigger className="w-full sm:w-[160px]" aria-label="Filtrar por categoría">
+                  <SelectValue placeholder="Todas las categorías" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas las categorías</SelectItem>
+                  {incomeCategories.concat(expenseCategories).map(c => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.icon} {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Filtro de subcategoría visible */}
+              {(catFilterExplicit || subFilterExplicit) && (
+                <Select value={subFilterExplicit} onValueChange={setSubFilterExplicit}>
+                  <SelectTrigger className="w-full sm:w-[160px]" aria-label="Filtrar por subcategoría">
+                    <SelectValue placeholder="Todas las subcategorías" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todas las subcategorías</SelectItem>
+                    {(() => {
+                      const cat = incomeCategories.concat(expenseCategories).find(c => c.id === catFilterExplicit);
+                      if (!cat) return [];
+                      return cat.subcategories.map(s => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.icon || "📌"} {s.label}
+                        </SelectItem>
+                      ));
+                    })()}
+                  </SelectContent>
+                </Select>
+              )}
+
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
