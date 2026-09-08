@@ -57,7 +57,7 @@ export default function Scheduler() {
   const [account, setAccount] = useState("gastos-operativos");
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
-  const [section, setSection] = useState("");
+  const [section, setSection] = useState("none");
   const [notes, setNotes] = useState("");
   const [creditor, setCreditor] = useState("");
   const [frequency, setFrequency] = useState<RecurrenceFrequency>("monthly");
@@ -95,7 +95,7 @@ export default function Scheduler() {
     setAccount(item.account);
     setCategory(item.category || "");
     setSubcategory(item.subcategory || "");
-    setSection(item.section || "");
+    setSection(item.section || "none");
     setNotes(item.notes || "");
     setCreditor(item.creditor || "");
     setFrequency(item.frequency);
@@ -123,7 +123,7 @@ export default function Scheduler() {
       account,
       category: category || undefined,
       subcategory: subcategory || undefined,
-      section: section || undefined,
+      section: section === "none" ? undefined : section,
       notes: notes || undefined,
       creditor: creditor || undefined,
       frequency,
@@ -329,7 +329,7 @@ export default function Scheduler() {
                   <SelectValue placeholder="Sin sección" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin sección</SelectItem>
+                  <SelectItem value="none">Sin sección</SelectItem>
                   {sections.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.icon && <span className="mr-1">{s.icon}</span>}

@@ -148,7 +148,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
               customField1: customField1 || undefined,
               customField2: customField2 || undefined,
               customField3: customField3 || undefined,
-              section: section || undefined,
+              section: section === "none" ? undefined : section,
             }
           : tx
       ));
@@ -167,7 +167,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         customField1: customField1 || undefined,
         customField2: customField2 || undefined,
         customField3: customField3 || undefined,
-        section: section || undefined,
+        section: section === "none" ? undefined : section,
       };
       setTransactions([...transactions, newTransaction]);
       toast.success(type === "income" ? "Ingreso registrado" : "Gasto registrado");
@@ -394,8 +394,8 @@ export function SimpleTransactionsView() {
   const [selectedMonth, setSelectedMonth] = useState<string>(`${currentYear}-${String(currentMonth).padStart(2, "0")}`);
 
   // Filtro explícito por categoría/subcategoría
-  const [catFilterExplicit, setCatFilterExplicit] = useState<string>("");
-  const [subFilterExplicit, setSubFilterExplicit] = useState<string>("");
+  const [catFilterExplicit, setCatFilterExplicit] = useState<string>("none");
+  const [subFilterExplicit, setSubFilterExplicit] = useState<string>("none");
 
   const hasCustomPreferences = groupBy !== "none" || sortBy !== "date-desc";
 
@@ -508,8 +508,8 @@ export function SimpleTransactionsView() {
     const result = allTransactions.filter(t => {
       if (filter !== "all" && t.type !== filter) return false;
       // Filtro explícito por categoría/subcategoría
-      if (catFilterExplicit && t.category !== catFilterExplicit) return false;
-      if (subFilterExplicit && t.subcategory !== subFilterExplicit) return false;
+      if (catFilterExplicit !== "none" && t.category !== catFilterExplicit) return false;
+      if (subFilterExplicit !== "none" && t.subcategory !== subFilterExplicit) return false;
       // Filtros legacy (quick filters)
       if (categoryFilter && t.category !== categoryFilter) return false;
       if (subcategoryFilter && t.subcategory !== subcategoryFilter) return false;
@@ -806,12 +806,12 @@ export function SimpleTransactionsView() {
               </Select>
 
               {/* Filtro de categoría visible */}
-              <Select value={catFilterExplicit} onValueChange={v => { setCatFilterExplicit(v); setSubFilterExplicit(""); }}>
+              <Select value={catFilterExplicit} onValueChange={v => { setCatFilterExplicit(v || "none"); setSubFilterExplicit("none"); }}>
                 <SelectTrigger className="w-full sm:w-[160px]" aria-label="Filtrar por categoría">
                   <SelectValue placeholder="Todas las categorías" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas las categorías</SelectItem>
+                  <SelectItem value="none">Todas las categorías</SelectItem>
                   {incomeCategories.concat(expenseCategories).map(c => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.icon} {c.label}
@@ -821,13 +821,13 @@ export function SimpleTransactionsView() {
               </Select>
 
               {/* Filtro de subcategoría visible */}
-              {(catFilterExplicit || subFilterExplicit) && (
-                <Select value={subFilterExplicit} onValueChange={setSubFilterExplicit}>
+              {(catFilterExplicit !== "none" || subFilterExplicit !== "none") && (
+                <Select value={subFilterExplicit} onValueChange={v => setSubFilterExplicit(v || "none")}>
                   <SelectTrigger className="w-full sm:w-[160px]" aria-label="Filtrar por subcategoría">
                     <SelectValue placeholder="Todas las subcategorías" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas las subcategorías</SelectItem>
+                    <SelectItem value="none">Todas las subcategorías</SelectItem>
                     {(() => {
                       const cat = incomeCategories.concat(expenseCategories).find(c => c.id === catFilterExplicit);
                       if (!cat) return [];
