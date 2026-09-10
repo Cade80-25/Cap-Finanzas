@@ -59,6 +59,41 @@ function asNumber(v: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+// Reparación de mojibake: caracteres acentuados corrompidos por doble codificación
+// UTF-8 leído como Latin-1. Corrige "ï¿½" -> vocal acentuada correspondiente.
+function repairMojibake(input: string): string {
+  if (!input) return input;
+  if (input.indexOf("\uFFFD") === -1 && input.indexOf("\u00BF") === -1) return input;
+
+  let out = input;
+  // Reparaciones de palabras completas (más fiables que reglas sueltas)
+  const words: [string, string][] = [
+    ["Devoluci\uFFFD\uFFFD\uFFFDn", "Devolución"],
+    ["contribuci\uFFFD\uFFFD\uFFFDn", "contribución"],
+    ["Alimentaci\uFFFD\uFFFD\uFFFDn", "Alimentación"],
+    ["Polic\uFFFD\uFFFD\uFFFDa", "Policía"],
+    ["Jos\uFFFD\uFFFD\uFFFD", "José"],
+    ["P\uFFFD\uFFFD\uFFFDrez", "Pérez"],
+    ["R\uFFFD\uFFFD\uFFFDos", "Ríos"],
+    ["Buj\uFFFD\uFFFD\uFFFDa", "Bujía"],
+    ["cient\uFFFD\uFFFD\uFFFDfica", "científica"],
+    ["pr\uFFFD\uFFFD\uFFFDximo", "próximo"],
+    ["pr\uFFFD\uFFFD\uFFFDxim", "próxim"],
+    ["est\uFFFD\uFFFD\uFFFD", "está"],
+    ["\uFFFD\uFFFD\uFFFDltima", "última"],
+    ["\uFFFD\uFFFD\uFFFDBienvenido", "¡Bienvenido"],
+  ];
+  for (const [bad, good] of words) {
+    out = out.split(bad).join(good);
+  }
+  // Reglas restantes para casos no cubiertos
+  return out
+    .replace(/\uFFFD\uFFFD\uFFFDn\b/g, "ón")
+    .replace(/\uFFFD\uFFFD\uFFFDa\b/g, "ía")
+    .replace(/\uFFFD\uFFFD\uFFFD/g, "í")
+    .replace(/\u00BF\u00BD[a-záéíóúñ]/g, (m) => "¡" + m.slice(2));
+}
+
 function normalizeTransaction(raw: any, index: number): JournalTransaction | null {
   if (!raw || typeof raw !== "object") return null;
 
@@ -90,7 +125,7 @@ function normalizeTransaction(raw: any, index: number): JournalTransaction | nul
     id,
     date,
     account: account || "gastos-operativos",
-    description: description || "(sin descripción)",
+    description: repairMojibake(description) || "(sin descripción)",
     debit,
     credit,
     reconciled,
@@ -98,9 +133,9 @@ function normalizeTransaction(raw: any, index: number): JournalTransaction | nul
     price: raw.price ?? raw.precio,
     quantity: raw.quantity ?? raw.cantidad,
     calcExpression: raw.calcExpression ?? raw.calc_expression,
-    notes: raw.notes ?? raw.notas,
+    notes: repairMojibake(String(raw.notes ?? raw.notas ?? "")),
     subcategory: raw.subcategory ?? raw.subcategoria,
-    creditor: raw.creditor ?? raw.acreedor,
+    creditor: repairMojibake(String(raw.creditor ?? raw.acreedor ?? "")),
   };
 }
 
@@ -112,7 +147,13 @@ function getStoredTransactions(): JournalTransaction[] {
     try {
       const parsed = JSON.parse(mainData);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        // Reparar mojibake en los campos de texto al cargar
+        return parsed.map((tx) => ({
+          ...tx,
+          description: repairMojibake(String(tx.description ?? "")),
+          creditor: repairMojibake(String(tx.creditor ?? "")),
+          notes: repairMojibake(String(tx.notes ?? "")),
+        }));
       }
     } catch {}
   }
