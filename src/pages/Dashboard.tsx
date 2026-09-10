@@ -10,6 +10,7 @@ import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { QuickExpenseDialog } from "@/components/FloatingQuickExpense";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCategories } from "@/hooks/useCategories";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { useMemo, useState } from "react";
 
 function formatShortDate(date: string): string {
@@ -132,7 +133,12 @@ export default function Dashboard() {
             <SelectContent>
               <SelectItem value="none">Todas las categorías</SelectItem>
               {cats.map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.icon} {c.label}</SelectItem>
+                <SelectItem key={c.id} value={c.id}>
+                  <span className="inline-flex items-center gap-2">
+                    <CategoryIcon id={c.id} icon={c.icon} className="h-3.5 w-3.5" />
+                    {c.label}
+                  </span>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -145,7 +151,12 @@ export default function Dashboard() {
               <SelectContent>
                 <SelectItem value="none">Todas las subcategorías</SelectItem>
                 {activeCat.subcategories.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.icon || "📌"} {s.label}</SelectItem>
+                  <SelectItem key={s.id} value={s.id}>
+                    <span className="inline-flex items-center gap-2">
+                      <CategoryIcon id={s.id} icon={s.icon} className="h-3.5 w-3.5" />
+                      {s.label}
+                    </span>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

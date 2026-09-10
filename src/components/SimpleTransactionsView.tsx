@@ -22,6 +22,7 @@ import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
 import { useCategories } from "@/hooks/useCategories";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import { useSections } from "@/hooks/useSections";
 import { CategorySelector } from "@/components/CategorySelector";
 import { suggestCategory } from "@/hooks/useAutoCategory";
@@ -485,9 +486,10 @@ export function SimpleTransactionsView() {
       return {
         label: sub ? `${cat.label} > ${sub.label}` : cat.label,
         icon: cat.icon,
+        id: sub ? sub.id : cat.id,
       };
     }
-    return { label: categoryId, icon: "📁" };
+    return { label: categoryId, icon: "📁", id: categoryId };
   }, [getCategoryById]);
 
   const filteredTransactions = useMemo(() => {
@@ -814,7 +816,7 @@ export function SimpleTransactionsView() {
                   <SelectItem value="none">Todas las categorías</SelectItem>
                   {incomeCategories.concat(expenseCategories).map(c => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.icon} {c.label}
+                      <span className="inline-flex items-center gap-2"><CategoryIcon id={c.id} icon={c.icon} className="h-3.5 w-3.5" /> {c.label}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -833,7 +835,7 @@ export function SimpleTransactionsView() {
                       if (!cat) return [];
                       return cat.subcategories.map(s => (
                         <SelectItem key={s.id} value={s.id}>
-                          {s.icon || "📌"} {s.label}
+                          <span className="inline-flex items-center gap-2"><CategoryIcon id={s.id} icon={s.icon || "📌"} className="h-3.5 w-3.5" /> {s.label}</span>
                         </SelectItem>
                       ));
                     })()}
@@ -985,7 +987,7 @@ export function SimpleTransactionsView() {
                       className="cursor-pointer text-xs"
                       onClick={() => { setSubcategoryFilter(null); setCategoryFilter(active ? null : catId); }}
                     >
-                      {c.icon} {c.label}
+                      <span className="inline-flex items-center gap-1"><CategoryIcon id={c.id} icon={c.icon} className="h-3 w-3" /> {c.label}</span>
                     </Badge>
                   );
                 })}
@@ -999,7 +1001,7 @@ export function SimpleTransactionsView() {
                       className="cursor-pointer text-xs"
                       onClick={() => { setCategoryFilter(active ? null : catId); setSubcategoryFilter(active ? null : subId); }}
                     >
-                      {c.icon} {c.label}
+                      <span className="inline-flex items-center gap-1"><CategoryIcon id={c.id} icon={c.icon} className="h-3 w-3" /> {c.label}</span>
                     </Badge>
                   );
                 })}
@@ -1036,7 +1038,7 @@ export function SimpleTransactionsView() {
                   const hasUnitInfo = tx.price != null || (tx.quantity != null && tx.quantity !== 1);
                   return (
                     <div key={tx.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
-                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg shrink-0">{cat.icon}</div>
+                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0"><CategoryIcon id={cat.id} icon={cat.icon} className="h-5 w-5" /></div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{renderHighlighted(tx.description)}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">

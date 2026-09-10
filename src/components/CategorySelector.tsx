@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCategories, type Category, type SubCategory } from "@/hooks/useCategories";
+import { CategoryIcon } from "@/components/CategoryIcon";
 
 interface CategorySelectorProps {
   type: "income" | "expense";
@@ -70,7 +71,7 @@ function SubNode({ cat, sub, depth, selected, onSelectSub, onAddChild, onEditSub
         style={{ marginLeft: depth * 14 }}
         onClick={() => onSelectSub(sub.id)}
       >
-        <span className="text-base shrink-0">{sub.icon || "📌"}</span>
+        <span className="text-base shrink-0"><CategoryIcon id={sub.id} icon={sub.icon || "📌"} className="h-4 w-4" /></span>
         <span className="flex-1 truncate">{sub.label}</span>
         <Button
           type="button"
@@ -241,7 +242,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                   onSelect(cat.id, undefined);
                 }}
               >
-                <span className="text-base">{cat.icon}</span>
+                <span className="text-base"><CategoryIcon id={cat.id} icon={cat.icon} className="h-4 w-4" /></span>
                 <span className="flex-1 truncate">{cat.label}</span>
                 <ChevronRight className={cn("h-3.5 w-3.5 transition-transform opacity-60", expandedCat === cat.id && "rotate-90")} />
                 <Button
@@ -315,7 +316,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
 
       {selectedCat && (
         <p className="text-xs text-muted-foreground">
-          Seleccionada: {selectedCat.icon} {selectedCat.label}
+          Seleccionada: <CategoryIcon id={selectedCat.id} icon={selectedCat.icon} className="inline h-3.5 w-3.5" /> {selectedCat.label}
           {selectedPathLabel && ` > ${selectedPathLabel}`}
         </p>
       )}
