@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { useWalletContext } from "@/contexts/WalletContext";
+import { repairMojibake } from "@/lib/repairMojibake";
 
 export interface SubCategory {
   id: string;
@@ -247,11 +248,20 @@ export function useCategories() {
     return findSubcategory(cat.subcategories, subId);
   }, [categories, findSubcategory]);
 
-  const incomeCategories = categories.filter(c => c.type === "income" || c.type === "both");
-  const expenseCategories = categories.filter(c => c.type === "expense" || c.type === "both");
+  // Reparar mojibake en las etiquetas de categorías/subcategorías
+  const repaired = useCallback((cats: Category[]): Category[] => {
+    return cats.map(c => ({
+      ...c,
+      label: repairMojibake(c.label),
+      subcategories: c.subcategories.map(s => ({ ...s, label: repairMojibake(s.label) })),
+    }));
+  }, []);
+
+  const incomeCategories = repaired(categories.filter(c => c.type === "income" || c.type === "both"));
+  const expenseCategories = repaired(categories.filter(c => c.type === "expense" || c.type === "both"));
 
   return {
-    categories,
+    categories: repaired(categories),
     incomeCategories,
     expenseCategories,
     addCategory,

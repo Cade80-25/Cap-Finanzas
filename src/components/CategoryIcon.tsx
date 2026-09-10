@@ -10,6 +10,7 @@ import {
   RefreshCw, CarFront, HeartHandshake, PawPrint, FolderOpen, Coffee, CupSoda,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { repairMojibake } from "@/lib/repairMojibake";
 
 /**
  * Mapeo de id de categoría/subcategoría → ícono SVG de lucide-react.
@@ -118,18 +119,26 @@ export interface CategoryIconProps {
 }
 
 export function CategoryIcon({ icon, id, className = "h-4 w-4" }: CategoryIconProps) {
-  // 1) Si hay un id conocido, usar el ícono SVG.
+  // 1) Si hay un id conocido, usar el ícono SVG de alta calidad.
   const MappedIcon = id ? CATEGORY_ICON_MAP[id] : undefined;
   if (MappedIcon) {
     return <MappedIcon className={className} aria-hidden="true" />;
   }
 
-  // 2) Fallback: renderizar el emoji textual (compatibilidad con datos viejos / custom).
-  if (icon) {
-    return <span className={className} aria-hidden="true">{icon}</span>;
+  // 2) Fallback: emoji textual para categorías personalizadas.
+  //    Reparar mojibake y descartar emojis corruptos (cuadros / secuencias rotas).
+  const sane = icon ? repairMojibake(icon).replace(/^\s+|\s+$/g, "") : "";
+  const looksLikeEmoji =
+    sane.length > 0 &&
+    sane.length <= 8 &&
+    !/[\uFFFD\ufffd]/.test(sane) &&
+    /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE0F}\u200D]|\p{Emoji_Presentation}/u.test(sane);
+
+  if (sane && looksLikeEmoji) {
+    return <span className={className} aria-hidden="true">{sane}</span>;
   }
 
-  // 3) Último recurso.
+  // 3) Último recurso: ícono genérico limpio.
   return <FolderOpen className={className} aria-hidden="true" />;
 }
 
