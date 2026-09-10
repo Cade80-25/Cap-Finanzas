@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { useWalletContext } from "@/contexts/WalletContext";
 
@@ -60,38 +60,46 @@ function asNumber(v: unknown): number {
 }
 
 // Reparación de mojibake: caracteres acentuados corrompidos por doble codificación
-// UTF-8 leído como Latin-1. Corrige "ï¿½" -> vocal acentuada correspondiente.
+// UTF-8 leído como Latin-1. El carácter corrupto es U+FFFD (ef bf bd) — UN solo por vocal.
+// Ejemplos reales: "Devoluci" + U+FFFD + "n" = "Devolución", "Alimentaci" + U+FFFD + "n" = "Alimentación".
 function repairMojibake(input: string): string {
   if (!input) return input;
-  if (input.indexOf("\uFFFD") === -1 && input.indexOf("\u00BF") === -1) return input;
+  if (input.indexOf("\uFFFD") === -1) return input;
 
   let out = input;
-  // Reparaciones de palabras completas (más fiables que reglas sueltas)
+  // Reparaciones de palabras completas (patrón real: UNA U+FFFD por vocal acentuada)
   const words: [string, string][] = [
-    ["Devoluci\uFFFD\uFFFD\uFFFDn", "Devolución"],
-    ["contribuci\uFFFD\uFFFD\uFFFDn", "contribución"],
-    ["Alimentaci\uFFFD\uFFFD\uFFFDn", "Alimentación"],
-    ["Polic\uFFFD\uFFFD\uFFFDa", "Policía"],
-    ["Jos\uFFFD\uFFFD\uFFFD", "José"],
-    ["P\uFFFD\uFFFD\uFFFDrez", "Pérez"],
-    ["R\uFFFD\uFFFD\uFFFDos", "Ríos"],
-    ["Buj\uFFFD\uFFFD\uFFFDa", "Bujía"],
-    ["cient\uFFFD\uFFFD\uFFFDfica", "científica"],
-    ["pr\uFFFD\uFFFD\uFFFDximo", "próximo"],
-    ["pr\uFFFD\uFFFD\uFFFDxim", "próxim"],
-    ["est\uFFFD\uFFFD\uFFFD", "está"],
-    ["\uFFFD\uFFFD\uFFFDltima", "última"],
-    ["\uFFFD\uFFFD\uFFFDBienvenido", "¡Bienvenido"],
+    ["Devoluci\uFFFDn", "Devolución"],
+    ["Contribuci\uFFFDn", "Contribución"],
+    ["contribuci\uFFFDn", "contribución"],
+    ["Alimentaci\uFFFDn", "Alimentación"],
+    ["Iluminaci\uFFFDn", "Iluminación"],
+    ["devoluci\uFFFDn", "devolución"],
+    ["Polic\uFFFDa", "Policía"],
+    ["polic\uFFFDa", "policía"],
+    ["Jos\uFFFD", "José"],
+    ["P\uFFFDrez", "Pérez"],
+    ["R\uFFFDo", "Río"],
+    ["R\uFFFDos", "Ríos"],
+    ["Buj\uFFFDa", "Bujía"],
+    ["cient\uFFFDfica", "científica"],
+    ["pr\uFFFDximo", "próximo"],
+    ["pr\uFFFDxim", "próxim"],
+    ["est\uFFFD", "está"],
+    ["\uFFFDltima", "última"],
+    ["\uFFFDnica", "única"],
+    ["Jefatura de Polic\uFFFDa", "Jefatura de Policía"],
+    ["Corral\uFFFDn", "Corralón"],
   ];
   for (const [bad, good] of words) {
     out = out.split(bad).join(good);
   }
-  // Reglas restantes para casos no cubiertos
+  // Reglas genéricas para patrones restantes (una sola U+FFFD antes de la consonante final)
   return out
-    .replace(/\uFFFD\uFFFD\uFFFDn\b/g, "ón")
-    .replace(/\uFFFD\uFFFD\uFFFDa\b/g, "ía")
-    .replace(/\uFFFD\uFFFD\uFFFD/g, "í")
-    .replace(/\u00BF\u00BD[a-záéíóúñ]/g, (m) => "¡" + m.slice(2));
+    .replace(/([a-záéíóúñ])ci\uFFFDn\b/gi, (m, p1) => `${p1}ción`)
+    .replace(/([a-záéíóúñ])\uFFFDn\b/gi, (m, p1) => `${p1}ón`)
+    .replace(/([a-záéíóúñ])\uFFFDa\b/gi, (m, p1) => `${p1}ía`)
+    .replace(/([a-záéíóúñ])\uFFFD/g, (m, p1) => `${p1}í`);
 }
 
 function normalizeTransaction(raw: any, index: number): JournalTransaction | null {
@@ -229,7 +237,19 @@ export function useJournalTransactionsForWallet(walletId?: string, profileId?: s
     [setTransactionsInternal]
   );
 
-  return { transactions, setTransactions };
+  // Reparar mojibake en cada render, sin importar cómo se cargaron los datos
+  const fixedTransactions = useMemo(
+    () =>
+      transactions.map((tx) => ({
+        ...tx,
+        description: repairMojibake(String(tx.description ?? "")),
+        creditor: repairMojibake(String(tx.creditor ?? "")),
+        notes: repairMojibake(String(tx.notes ?? "")),
+      })),
+    [transactions]
+  );
+
+  return { transactions: fixedTransactions, setTransactions };
 }
 
 export function useJournalTransactions() {
