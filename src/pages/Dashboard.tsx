@@ -8,7 +8,9 @@ import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { useNumberFormat } from "@/hooks/useNumberFormat";
 import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { QuickExpenseDialog } from "@/components/FloatingQuickExpense";
-import { useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCategories } from "@/hooks/useCategories";
+import { useMemo, useState } from "react";
 
 function formatShortDate(date: string): string {
   if (!date) return "—";
@@ -21,20 +23,50 @@ export default function Dashboard() {
   const { isSimpleMode } = useModeFeatures();
   const { formatCurrency } = useNumberFormat();
   const { transactions } = useJournalTransactions();
+  const { incomeCategories, expenseCategories } = useCategories();
   const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
+
+  // Filtros visibles (mes + categoría + subcategoría)
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState<string>(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`);
+  const [catFilter, setCatFilter] = useState<string>("none");
+  const [subFilter, setSubFilter] = useState<string>("none");
 
   const traditionalData = useAccountingData();
   const simpleData = useSimpleAccountingData();
 
   const totales = isSimpleMode ? simpleData.totals : traditionalData.totales;
 
-  // Transacciones reales (con price/quantity) agrupadas por ingresos/gastos
-  const ingresos = transactions.filter((t) => t.credit > 0);
-  const gastos = transactions.filter((t) => t.debit > 0);
+  // Mes seleccionado → rango de fechas
+  const [from, to] = useMemo(() => {
+    const [year, month] = selectedMonth.split("-").map(Number);
+    const lastDay = new Date(year, month, 0).getDate();
+    return [
+      `${year}-${String(month).padStart(2, "0")}-01`,
+      `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`,
+    ];
+  }, [selectedMonth]);
+
+  // Transacciones reales (con price/quantity) agrupadas por ingresos/gastos, filtradas
+  const visibles = useMemo(
+    () =>
+      transactions.filter((t) => {
+        if (t.date < from || t.date > to) return false;
+        if (catFilter !== "none" && t.account !== catFilter) return false;
+        if (subFilter !== "none" && t.subcategory !== subFilter) return false;
+        return true;
+      }),
+    [transactions, from, to, catFilter, subFilter]
+  );
+
+  const ingresos = visibles.filter((t) => t.credit > 0);
+  const gastos = visibles.filter((t) => t.debit > 0);
 
   const sumaIngresos = ingresos.reduce((a, t) => a + t.credit, 0);
   const sumaGastos = gastos.reduce((a, t) => a + t.debit, 0);
 
+  const cats = incomeCategories.concat(expenseCategories);
+  const activeCat = cats.find((c) => c.id === catFilter);
   const addTransactionRoute = isSimpleMode ? "/transacciones" : "/libro-diario";
   const addTransactionLabel = isSimpleMode ? "+ Añadir" : "Ir al Libro Diario";
 
@@ -67,6 +99,59 @@ export default function Dashboard() {
 
       {/* Tabla jerárquica estilo Personal Finances */}
       <Card className="shadow-soft overflow-hidden border-0">
+        {/* Filtros visibles: mes + categoría + subcategoría */}
+        <div className="flex flex-col sm:flex-row gap-2 px-4 py-3 border-b bg-muted/30">
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-full sm:w-[170px]" aria-label="Mes a visualizar">
+              <SelectValue placeholder="Mes actual" />
+            </SelectTrigger>
+            <SelectContent>
+              {(() => {
+                const months: { value: string; label: string }[] = [];
+                const n = new Date();
+                const cy = n.getFullYear();
+                const cm = n.getMonth() + 1;
+                for (let i = -12; i <= 3; i++) {
+                  let m = cm + i;
+                  let y = cy;
+                  while (m < 1) { m += 12; y -= 1; }
+                  while (m > 12) { m -= 12; y += 1; }
+                  months.push({ value: `${y}-${String(m).padStart(2, "0")}`, label: new Date(y, m - 1).toLocaleDateString("es-ES", { month: "long", year: "numeric" }) });
+                }
+                return months.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                ));
+              })()}
+            </SelectContent>
+          </Select>
+
+          <Select value={catFilter} onValueChange={(v) => { setCatFilter(v || "none"); setSubFilter("none"); }}>
+            <SelectTrigger className="w-full sm:w-[190px]" aria-label="Filtrar por categoría">
+              <SelectValue placeholder="Todas las categorías" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Todas las categorías</SelectItem>
+              {cats.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.icon} {c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {activeCat && (
+            <Select value={subFilter} onValueChange={(v) => setSubFilter(v || "none")}>
+              <SelectTrigger className="w-full sm:w-[190px]" aria-label="Filtrar por subcategoría">
+                <SelectValue placeholder="Todas las subcategorías" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Todas las subcategorías</SelectItem>
+                {activeCat.subcategories.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>{s.icon || "📌"} {s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+
         <div className="flex items-center gap-2 px-4 py-3 border-b">
           <h2 className="text-base font-semibold">Transacciones recientes</h2>
           <div className="flex-1" />
