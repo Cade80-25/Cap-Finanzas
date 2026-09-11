@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { useWalletContext } from "@/contexts/WalletContext";
 import { repairMojibake } from "@/lib/repairMojibake";
@@ -17,6 +17,24 @@ export interface Category {
   type: "income" | "expense" | "both";
   subcategories: SubCategory[];
   isCustom?: boolean;
+}
+
+// Repara mojibake recursivamente en una subcategoría.
+function repairSub(s: SubCategory): SubCategory {
+  return {
+    ...s,
+    label: repairMojibake(s.label),
+    children: s.children ? s.children.map(repairSub) : s.children,
+  };
+}
+
+// Repara mojibake recursivamente en toda la lista de categorías.
+function repairCategories(cats: Category[]): Category[] {
+  return cats.map((c) => ({
+    ...c,
+    label: repairMojibake(c.label),
+    subcategories: c.subcategories.map(repairSub),
+  }));
 }
 
 const DEFAULT_CATEGORIES: Category[] = [
@@ -141,10 +159,10 @@ function removeSubFromTree(subs: SubCategory[], id: string): SubCategory[] {
 
 export function useCategories() {
   const { activeProfileId, activeWalletId } = useWalletContext();
-  
+
   const isDefaultProfile = !activeProfileId || activeProfileId === "profile-default";
   const isDefaultWallet = !activeWalletId || activeWalletId === "wallet-default";
-  
+
   let storageKey: string;
   if (isDefaultProfile && isDefaultWallet) {
     storageKey = CATEGORIES_KEY;
@@ -153,6 +171,9 @@ export function useCategories() {
   }
 
   const [categories, setCategories] = useLocalStorage<Category[]>(storageKey, DEFAULT_CATEGORIES);
+
+  // Reparar mojibake en TODAS las etiquetas de forma recursiva, siempre.
+  const repairedCategories = useMemo(() => repairCategories(categories), [categories]);
 
   const addCategory = useCallback((cat: Omit<Category, "isCustom">) => {
     setCategories(prev => [...prev, { ...cat, isCustom: true }]);
@@ -238,30 +259,21 @@ export function useCategories() {
   }, [setCategories, mapSubcategoryTree]);
 
   const getCategoryById = useCallback((id: string) => {
-    return categories.find(c => c.id === id);
-  }, [categories]);
+    return repairedCategories.find(c => c.id === id);
+  }, [repairedCategories]);
 
   // Find a subcategory by id within a given category (deep search).
   const findSubcategoryInCategory = useCallback((categoryId: string, subId: string): SubCategory | null => {
-    const cat = categories.find(c => c.id === categoryId);
+    const cat = repairedCategories.find(c => c.id === categoryId);
     if (!cat) return null;
     return findSubcategory(cat.subcategories, subId);
-  }, [categories, findSubcategory]);
+  }, [repairedCategories, findSubcategory]);
 
-  // Reparar mojibake en las etiquetas de categorías/subcategorías
-  const repaired = useCallback((cats: Category[]): Category[] => {
-    return cats.map(c => ({
-      ...c,
-      label: repairMojibake(c.label),
-      subcategories: c.subcategories.map(s => ({ ...s, label: repairMojibake(s.label) })),
-    }));
-  }, []);
-
-  const incomeCategories = repaired(categories.filter(c => c.type === "income" || c.type === "both"));
-  const expenseCategories = repaired(categories.filter(c => c.type === "expense" || c.type === "both"));
+  const incomeCategories = repairedCategories.filter(c => c.type === "income" || c.type === "both");
+  const expenseCategories = repairedCategories.filter(c => c.type === "expense" || c.type === "both");
 
   return {
-    categories: repaired(categories),
+    categories: repairedCategories,
     incomeCategories,
     expenseCategories,
     addCategory,
