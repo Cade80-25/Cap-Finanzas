@@ -5,13 +5,21 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
+// Guard: si el proyecto Supabase no esta configurado (p.ej. licencias
+// deshabilitadas o proyecto en migracion), crear un cliente inerte en vez de
+// crashear la app entera. La app es 100% offline; las funciones de licencia
+// fallaran limpiamente ("no disponibles") hasta que se configure el nuevo
+// backend, sin romper el arranque de la aplicacion.
+const url = SUPABASE_URL ?? 'https://disabled.invalid';
+const key = SUPABASE_PUBLISHABLE_KEY ?? 'disabled';
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+export const supabase = createClient<Database>(url, key, {
   auth: {
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
   }
 });
+
+// Flag para que el resto de la app sepa si las funciones online estan activas
+export const supabaseConfigurado = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);

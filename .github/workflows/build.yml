@@ -3,7 +3,7 @@ name: Build & Release
 on:
   push:
     tags:
-      - 'v*'  # Se ejecuta al crear un tag como v1.0.0
+      - 'v*'  # Se ejecuta al crear un tag como v1.1.36
 
 permissions:
   contents: write
@@ -49,32 +49,30 @@ jobs:
 
       - name: Build Vite app
         run: npm run build
-        env:
-          VITE_SUPABASE_PROJECT_ID: pcxvnqsoafagnthazoir
-          VITE_SUPABASE_URL: https://pcxvnqsoafagnthazoir.supabase.co
-          VITE_SUPABASE_PUBLISHABLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjeHZucXNvYWZhZ250aGF6b2lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MDkxMTUsImV4cCI6MjA4NTI4NTExNX0.KHQfeM-Jfv1hp8mKZSKXM9gFbCC9AlrgGx68Ee7JJzo"
+        # Sin VITE_SUPABASE_*: el proyecto Supabase de licencias fue retirado.
+        # La app funciona 100% offline; las edge functions se recablearan al
+        # nuevo proyecto Supabase en la Fase 0 y entonces se reinyectan estas vars.
 
-      # Build installers only; release artifacts are uploaded below for debugging
-      - name: Build Electron (Windows)
+      - name: Build Electron + publicar en GitHub Release (Windows)
         if: matrix.platform == 'win'
-        run: npx electron-builder --win
+        run: npx electron-builder --win --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Electron (macOS)
+      - name: Build Electron + publicar en GitHub Release (macOS)
         if: matrix.platform == 'mac'
-        run: npx electron-builder --mac
+        run: npx electron-builder --mac --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
-      - name: Build Electron (Linux)
+      - name: Build Electron + publicar en GitHub Release (Linux)
         if: matrix.platform == 'linux'
-        run: npx electron-builder --linux
+        run: npx electron-builder --linux --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Backup: also keep build artifacts in the workflow run for debugging
+      # Backup: también conservar artifacts en el workflow para debugging
       - name: Upload artifacts (debug)
         if: always()
         uses: actions/upload-artifact@v4
