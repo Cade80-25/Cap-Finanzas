@@ -49,9 +49,10 @@ jobs:
 
       - name: Build Vite app
         run: npm run build
-        # Sin VITE_SUPABASE_*: el proyecto Supabase de licencias fue retirado.
-        # La app funciona 100% offline; las edge functions se recablearan al
-        # nuevo proyecto Supabase en la Fase 0 y entonces se reinyectan estas vars.
+        env:
+          VITE_SUPABASE_URL: https://vpxqgxehmealrwbwmicm.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: "${ secrets.CAPFINANZAS_ANON_KEY }"
+          VITE_SUPABASE_PROJECT_ID: vpxqgxehmealrwbwmicm
 
       - name: Build Electron + publicar en GitHub Release (Windows)
         if: matrix.platform == 'win'
