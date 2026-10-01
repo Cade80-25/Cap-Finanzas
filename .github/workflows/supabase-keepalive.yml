@@ -1,0 +1,65 @@
+name: supabase-keepalive
+
+# Mantiene activos los proyectos Supabase Free de la organizacion
+# (cap-finanzas-backend y academy-nova-backend): Supabase pausa los proyectos
+# Free que pasan ~7 dias sin actividad de base de datos.
+#   Doc: https://supabase.com/docs/guides/platform/free-project-pausing
+# Corre en la nube, asi que protege aunque la PC este apagada; es la capa de
+# respaldo del job pg_cron que vive dentro de cada proyecto.
+# Las claves usadas son las PUBLISHABLE de Supabase (publicas por diseno,
+# pensadas para el cliente). No usar aqui ninguna service_role/secret key.
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Ping a los proyectos Supabase
+        run: |
+          set -uo pipefail
+          fail=0
+          ping() {
+            label="$1"; url="$2"; key="$3"; table="$4"
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
+              "$url/rest/v1/$table?select=*&limit=1" \
+              -H "apikey: $key" -H "Authorization: Bearer $key") || code=000
+            echo "$label -> HTTP $code"
+            case "$code" in
+              200|206|401|403|404) ;;
+              *) echo "::error::$label sin respuesta ($code)"; fail=1 ;;
+            esac
+          }
+          ping "cap-finanzas-backend" "https://vpxqgxehmealrwbwmicm.supabase.co" "sb_publishable__SutQjL_GT6tiL8y5zbH4A_fdhP7taQ" "licenses"
+          ping "academy-nova-backend" "https://silgzccdbqjqkcwpmpao.supabase.co" "sb_publishable_kboFF3yL-MMOsylsPIRaMQ_pgOk5B8G" "email_send_log"
+          exit $fail
+
+      - name: Latido semanal (evita que GitHub desactive el schedule por inactividad)
+        run: |
+          set -uo pipefail
+          if [ -f .keepalive-heartbeat ]; then
+            age=$(( ( $(date +%s) - $(date -r .keepalive-heartbeat +%s) ) / 86400 ))
+          else
+            age=999
+          fi
+          if [ "$age" -ge 6 ]; then
+            date -u +"%Y-%m-%dT%H:%M:%SZ" > .keepalive-heartbeat
+            git config user.name "supabase-keepalive"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .keepalive-heartbeat
+            git commit -m "chore: keepalive heartbeat" || true
+            git push || true
+            echo "latido renovado"
+          else
+            echo "latido al dia ($age dias)"
+          fi
