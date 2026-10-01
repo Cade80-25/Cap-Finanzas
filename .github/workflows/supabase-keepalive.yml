@@ -6,8 +6,9 @@ name: supabase-keepalive
 #   Doc: https://supabase.com/docs/guides/platform/free-project-pausing
 # Corre en la nube, asi que protege aunque la PC este apagada; es la capa de
 # respaldo del job pg_cron que vive dentro de cada proyecto.
-# Las claves usadas son las PUBLISHABLE de Supabase (publicas por diseno,
-# pensadas para el cliente). No usar aqui ninguna service_role/secret key.
+# Las claves viven en GitHub Secrets (SUPABASE_KEY_CAPFINANZAS /
+# SUPABASE_KEY_ACADEMIA) y son las PUBLISHABLE de Supabase (publicas por diseno,
+# pensadas para el cliente). Nunca usar aqui una service_role ni un token admin.
 
 on:
   schedule:
@@ -26,11 +27,15 @@ jobs:
           fetch-depth: 1
 
       - name: Ping a los proyectos Supabase
+        env:
+          KEY_CAPFINANZAS: ${{ secrets.SUPABASE_KEY_CAPFINANZAS }}
+          KEY_ACADEMIA: ${{ secrets.SUPABASE_KEY_ACADEMIA }}
         run: |
           set -uo pipefail
           fail=0
           ping() {
             label="$1"; url="$2"; key="$3"; table="$4"
+            if [ -z "$key" ]; then echo "::error::falta la clave para $label"; fail=1; return; fi
             code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
               "$url/rest/v1/$table?select=*&limit=1" \
               -H "apikey: $key" -H "Authorization: Bearer $key") || code=000
@@ -40,8 +45,8 @@ jobs:
               *) echo "::error::$label sin respuesta ($code)"; fail=1 ;;
             esac
           }
-          ping "cap-finanzas-backend" "https://vpxqgxehmealrwbwmicm.supabase.co" "sb_publishable__SutQjL_GT6tiL8y5zbH4A_fdhP7taQ" "licenses"
-          ping "academy-nova-backend" "https://silgzccdbqjqkcwpmpao.supabase.co" "sb_publishable_kboFF3yL-MMOsylsPIRaMQ_pgOk5B8G" "email_send_log"
+          ping "cap-finanzas-backend" "https://vpxqgxehmealrwbwmicm.supabase.co" "$KEY_CAPFINANZAS" "licenses"
+          ping "academy-nova-backend" "https://silgzccdbqjqkcwpmpao.supabase.co" "$KEY_ACADEMIA" "email_send_log"
           exit $fail
 
       - name: Latido semanal (evita que GitHub desactive el schedule por inactividad)
