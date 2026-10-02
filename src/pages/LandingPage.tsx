@@ -115,11 +115,11 @@ const faqs = [
   },
   {
     question: "¿Necesito una licencia o código?",
-    answer: "No. Cap Finanzas es 100% gratis. No necesitas registrarte, pagar, ni introducir códigos.",
+    answer: "Durante los 30 días de prueba no necesitas nada. Al terminar la prueba, activas una licencia (Simple o Completa) con el código que recibes por correo.",
   },
   {
     question: "¿Hay pagos mensuales o anuales?",
-    answer: "No. Es completamente gratis, sin suscripciones ni costos ocultos.",
+    answer: "No. Es un pago único: compras tu licencia (Simple o Completa) una sola vez, sin suscripciones ni costos ocultos.",
   },
   {
     question: "¿Qué incluye la licencia?",
@@ -210,7 +210,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background">
       <SeoHead
         title="Cap Finanzas — Contabilidad personal offline y privada"
-        description="Software de finanzas personales y contabilidad 100% offline y totalmente gratis. Gastos, libros contables y tutor IA sin costo ni suscripciones."
+        description="Software de finanzas personales y contabilidad 100% offline y privado. Probá 30 días gratis y seguí con una licencia única (Simple o Completa)."
         path="/landing"
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
@@ -381,9 +381,9 @@ export default function LandingPage() {
                 <CardTitle className="text-2xl">Cap Finanzas</CardTitle>
                 <CardDescription>Finanzas personales + Contabilidad profesional</CardDescription>
                 <div className="text-5xl font-bold mt-4 text-primary">
-                  Gratis
+                  30 días gratis
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">Sin costo · Para siempre</p>
+                <p className="text-sm text-muted-foreground mt-1">Después, licencia única (Simple o Completa)</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-2">
@@ -395,7 +395,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <Button className="w-full" size="lg" onClick={() => setPurchaseOpen(true)}>
-                  Empezar gratis <ArrowRight className="h-4 w-4 ml-1" />
+                  Probar 30 días gratis <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </CardContent>
             </Card>

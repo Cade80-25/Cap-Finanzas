@@ -119,13 +119,40 @@ export function useLicense() {
     };
   }, [licenseData.trialStartDate]);
 
-  // App is fully free — everyone gets full access.
-  const status = "active" as LicenseStatus;
+  // Estado real de la licencia: activa (token valido), prueba de 30 dias o expirada.
+  const tokenValid = useMemo(
+    () => isTokenValid(token, installationId),
+    [token, installationId],
+  );
+  const legacyActivated = Boolean(licenseData.isActivated && licenseData.licenseCode);
+
+  const status: LicenseStatus = useMemo(() => {
+    if (tokenValid || legacyActivated) return "active";
+    if (trialInfo.isExpired) return "expired";
+    return "trial";
+  }, [tokenValid, legacyActivated, trialInfo.isExpired]);
+
+  /** Modos que habilitan las licencias compradas, segun el plan del codigo activado. */
+  const purchasedModes = useMemo<LicenseMode[]>(() => {
+    if (status !== "active") return [];
+    const code = (token?.code ?? licenseData.licenseCode ?? "").toUpperCase();
+    if (code.startsWith("CF-SIMPLE") || code.startsWith("CF-SIMP")) return ["simple"];
+    if (code.startsWith("CF-TRAD")) return ["simple", "traditional"];
+    if (code.startsWith("CF-FULL") || code.startsWith("CF-ACCT")) return ["simple", "traditional"];
+    // Codigos propios sin prefijo conocido: acceso completo.
+    return licenseData.purchasedModes?.length
+      ? licenseData.purchasedModes
+      : ["simple", "traditional"];
+  }, [status, token, licenseData.licenseCode, licenseData.purchasedModes]);
 
   const isModeAvailable = useCallback(
-    (_mode: LicenseMode): boolean =>
-      status === "trial" || status === "active",
-    [status],
+    (mode: LicenseMode): boolean => {
+      // Prueba de 30 dias: acceso completo para poder probar la app.
+      if (status === "trial") return true;
+      if (status === "active") return purchasedModes.includes(mode);
+      return false;
+    },
+    [status, purchasedModes],
   );
 
   const setMode = useCallback(
@@ -255,21 +282,22 @@ export function useLicense() {
     };
   }, []);
 
-  const pricing = { full: 0 };
+  // Precio de las licencias (pago unico). El boton de PayPal cobra este monto.
+  const pricing = { simple: 10, full: 10 };
 
   const referralAccountBonus = Math.min(
     parseInt(localStorage.getItem("cap-finanzas-referral-count") || "0", 10),
     5,
   );
   const accountSlots = Math.min(5 + referralAccountBonus, 10);
-  const maxProfiles = ACTIVE_MAX_PROFILES;
+  // La prueba limita los perfiles; la licencia activa los habilita todos.
+  const maxProfiles = status === "trial" ? TRIAL_MAX_PROFILES : ACTIVE_MAX_PROFILES;
 
   return {
     mode: licenseData.mode,
     status,
     trialInfo,
-    purchasedModes:
-      status === "active" ? (["simple", "traditional"] as LicenseMode[]) : [],
+    purchasedModes,
     initializeTrial,
     setMode,
     activateLicense,
