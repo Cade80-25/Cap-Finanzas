@@ -10,6 +10,8 @@ function createWindow() {
     backgroundColor: '#1a1a2e',
     autoHideMenuBar: true,
     webPreferences: {
+      // file:// + ES modules relativos requieren webSecurity desactivado (pantalla blanca si no)
+      webSecurity: false,
       nodeIntegration: false,
       contextIsolation: true,
       backgroundThrottling: false, // Mantiene rendimiento aunque la ventana pierda foco
