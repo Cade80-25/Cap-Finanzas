@@ -1,8 +1,16 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
-// Usar ubicación estándar de Electron (donde están los datos viejos)
-// userData vive en %APPDATA%\Cap Finanzas\
+// ── Carpeta de datos ────────────────────────────────────────────────────────
+// La app se identifica internamente como "Cap-Finanzas" (con guion), pero los
+// datos historicos viven en "%APPDATA%\Cap Finanzas" (con espacio) — ahi estan
+// las transacciones reales del usuario. Se fija explicitamente para que la app
+// abra SIEMPRE esa carpeta y no dependa del nombre del paquete (esto ya causo
+// una perdida aparente de datos: la app abria la carpeta vacia).
+// Se puede sobreescribir con CAPFINANZAS_USERDATA (util para pruebas).
+const carpetaDatos = process.env.CAPFINANZAS_USERDATA
+  || path.join(app.getPath('appData'), 'Cap Finanzas');
+app.setPath('userData', carpetaDatos);
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -12,10 +20,12 @@ function createWindow() {
     backgroundColor: '#1a1a2e',
     autoHideMenuBar: true,
     webPreferences: {
+      // Los ES modules relativos no cargan por file:// con webSecurity activo:
+      // sin esto la ventana queda EN BLANCO en Windows.
+      webSecurity: false,
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: false,
-      webSecurity: true,
       backgroundThrottling: false,
       spellcheck: false,
       preload: path.join(__dirname, 'preload.cjs')
