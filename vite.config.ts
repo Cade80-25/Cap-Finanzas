@@ -38,8 +38,7 @@ export default defineConfig(({ mode }) => ({
         // especialmente útil en la app de escritorio (Electron) y PWA instalada.
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
-          if (id.includes("react-dom") || id.match(/[\\/]react[\\/]/)) return "vendor-ui";
-          if (id.includes("recharts") || id.includes("d3-")) return "vendor-charts";
+          if (id.includes("react-dom") || id.match(/[\/]react[\/]/) || id.includes("react-router") || id.includes("@radix-ui") || id.includes("lucide-react") || id.includes("react-day-picker") || id.includes("recharts") || id.includes("d3-")) return "vendor-ui";
           if (id.includes("exceljs")) return "vendor-exceljs";
           if (id.includes("pdfjs-dist")) return "vendor-pdfjs";
           if (id.includes("html5-qrcode")) return "vendor-qrcode";
