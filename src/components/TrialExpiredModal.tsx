@@ -41,7 +41,14 @@ export function TrialExpiredGate({ children }: { children: React.ReactNode }) {
             </p>
           </DialogContent>
         </Dialog>
-        <PurchaseDialog open={purchaseOpen} onOpenChange={setPurchaseOpen} />
+        <PurchaseDialog
+          open={purchaseOpen}
+          onOpenChange={setPurchaseOpen}
+          onActivate={() => {
+            setPurchaseOpen(false);
+            setActivationOpen(true);
+          }}
+        />
         <ActivationDialog open={activationOpen} onOpenChange={setActivationOpen} />
       </>
     );

@@ -48,7 +48,12 @@ export function ActivationDialog({ open, onOpenChange, onSuccess }: ActivationDi
         setResult(null);
         onOpenChange(false);
         onSuccess?.();
-      }, 2000);
+        // El estado de licencia vive por instancia del hook: sin recargar, la app
+        // seguiria mostrando el aviso de prueba vencida aunque el token ya este
+        // guardado (el usuario activaba y "no pasaba nada"). La recarga hace que
+        // toda la aplicacion relea el token y entre al programa.
+        window.location.reload();
+      }, 1500);
     }
   };
 
