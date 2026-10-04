@@ -34,14 +34,11 @@ export default defineConfig(({ mode }) => ({
     chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
-        // Separación de vendors pesados para mejorar caché y paralelismo de descarga,
+        // FIX vendor-ui (DeepSeek): react+radix+router+icons UNIFICADOS — separados causaban forwardRef undefined.
         // especialmente útil en la app de escritorio (Electron) y PWA instalada.
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
-          if (id.includes("react-dom") || id.match(/[\\/]react[\\/]/)) return "vendor-react";
-          if (id.includes("react-router")) return "vendor-router";
-          if (id.includes("@radix-ui")) return "vendor-radix";
-          if (id.includes("lucide-react")) return "vendor-icons";
+          if (id.includes("react-dom") || id.match(/[\\/]react[\\/]/)) return "vendor-ui";
           if (id.includes("recharts") || id.includes("d3-")) return "vendor-charts";
           if (id.includes("exceljs")) return "vendor-exceljs";
           if (id.includes("pdfjs-dist")) return "vendor-pdfjs";
