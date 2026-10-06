@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useJournalTransactions, JournalTransaction } from "./useJournalTransactions";
 import { useLicense } from "./useLicense";
 import { repairMojibake } from "@/lib/repairMojibake";
+import { accountToSimple, isAccount } from "@/lib/accounting-map";
 
 /**
  * Simplified accounting data for "Simple Finance" mode
@@ -89,7 +90,8 @@ export function useSimpleAccountingData() {
           amount,
           type: isIncome ? "income" as const : "expense" as const,
           date: tx.date,
-          category: tx.account,
+          // Traducir cuenta contable → categoría simple para el modo Simple
+          category: isAccount(tx.account) ? accountToSimple(tx.account) : tx.account,
         };
       });
   }, [transactions]);
@@ -99,7 +101,10 @@ export function useSimpleAccountingData() {
     const categoryTotals: Record<string, { gastos: number; ingresos: number; count: number }> = {};
 
     transactions.forEach((tx) => {
-      const cat = tx.account || "sin-categoria";
+      // Agrupar por categoría simple; si la tx usa cuenta contable, traducirla
+      const cat = tx.account
+        ? (isAccount(tx.account) ? accountToSimple(tx.account) : tx.account)
+        : "sin-categoria";
       if (!categoryTotals[cat]) {
         categoryTotals[cat] = { gastos: 0, ingresos: 0, count: 0 };
       }

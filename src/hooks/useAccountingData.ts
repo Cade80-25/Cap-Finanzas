@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useJournalTransactions } from "./useJournalTransactions";
 import { repairMojibake } from "@/lib/repairMojibake";
+import { simpleToAccount } from "@/lib/accounting-map";
 
 // Tipo de transacción del Libro Diario
 export type Transaction = {
@@ -46,9 +47,14 @@ export function useAccountingData() {
       balance: number;
     }> = {};
 
-    transactions.forEach((tx) => {
+    transactions.forEach((rawTx) => {
+      // Traducir categoría simple a cuenta contable si es necesario
+      const tx = {
+        ...rawTx,
+        account: simpleToAccount(rawTx.account),
+      };
       if (!accountsMap[tx.account]) {
-        const category = ACCOUNT_CATEGORIES[tx.account];
+        const category = ACCOUNT_CATEGORIES[simpleToAccount(tx.account)];
         accountsMap[tx.account] = {
           name: tx.account,
           label: repairMojibake(category?.label || tx.account),
@@ -153,7 +159,7 @@ export function useAccountingData() {
         monthlyData[month] = { ingresos: 0, gastos: 0 };
       }
 
-      const category = ACCOUNT_CATEGORIES[tx.account];
+      const category = ACCOUNT_CATEGORIES[simpleToAccount(tx.account)];
       if (category?.type === "ingreso") {
         monthlyData[month].ingresos += tx.credit - tx.debit;
       } else if (category?.type === "gasto") {
@@ -231,7 +237,7 @@ export function useAccountingData() {
       .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 5)
       .map((tx) => {
-        const category = ACCOUNT_CATEGORIES[tx.account];
+        const category = ACCOUNT_CATEGORIES[simpleToAccount(tx.account)];
         const isIngreso = category?.type === "ingreso";
         const isGasto = category?.type === "gasto";
         
@@ -269,7 +275,7 @@ export function useAccountingData() {
 
     transactions.forEach((tx) => {
       if (tx.date.startsWith(currentMonth)) {
-        const category = ACCOUNT_CATEGORIES[tx.account];
+        const category = ACCOUNT_CATEGORIES[simpleToAccount(tx.account)];
         if (category?.type === "ingreso") {
           ingresosDelMes += tx.credit - tx.debit;
         } else if (category?.type === "gasto") {
