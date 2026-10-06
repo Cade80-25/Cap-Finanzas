@@ -24,3 +24,10 @@ Cap Finanzas funciona localmente en el dispositivo del usuario (los datos nunca 
 
 - Pago único: $10 USD lifetime vía PayPal.
 - Sin telemetría, sin anuncios, sin suscripciones.
+
+## Artículos
+
+- [Cómo llevar contabilidad personal sin Excel](https://capfinanzas.com/aprender/articulos/contabilidad-personal-sin-excel)
+- [Partida doble explicada simple](https://capfinanzas.com/aprender/articulos/partida-doble-explicada-simple)
+- [Diferencia entre finanzas personales y contabilidad](https://capfinanzas.com/aprender/articulos/finanzas-vs-contabilidad)
+- [Comparativa vs Fintonic, Mobills, Monefy y Excel](https://capfinanzas.com/comparativa)

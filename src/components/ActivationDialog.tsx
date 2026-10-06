@@ -117,7 +117,7 @@ export function ActivationDialog({ open, onOpenChange, onSuccess }: ActivationDi
 
         <div className="mt-4 text-center">
           <p className="text-xs text-muted-foreground">
-            ¿No tienes un código? Adquiere tu licencia por $10 USD y recibirás el código por correo.
+            ¿No tienes un código? Compra tu licencia (Simple o Completa) y la recibes por correo electrónico.
           </p>
         </div>
       </DialogContent>

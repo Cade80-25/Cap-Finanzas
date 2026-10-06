@@ -1,6 +1,11 @@
 appId: com.capfinanzas.app
 productName: Cap Finanzas
-artifactName: ${name}-${version}-${os}-${arch}.${ext}
+# NOTA: NO sobreescribir artifactName. Los nombres por defecto de electron-builder
+# producen los mismos archivos que ya están publicados en releases anteriores:
+#   Windows (NSIS): "Cap.Finanzas.Setup.${version}.exe"
+#   macOS  (DMG):   "Cap.Finanzas-${version}-${arch}.dmg"
+#   Linux  (AppIm): "Cap.Finanzas-${version}.AppImage"
+# La página /instalar depende de este patrón.
 directories:
   output: release
 files:

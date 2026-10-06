@@ -23,4 +23,14 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom"],
   },
+  esbuild: {
+    // Acelera la carga eliminando logs y depuración en producción
+    drop: mode === "production" ? ["console", "debugger"] : [],
+  },
+  build: {
+    target: "es2020",
+    cssCodeSplit: true,
+    sourcemap: false,
+    chunkSizeWarningLimit: 1200,
+  },
 }));

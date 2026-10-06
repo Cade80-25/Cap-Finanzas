@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
@@ -21,6 +22,8 @@ import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
 import { useCategories } from "@/hooks/useCategories";
+import { CategoryIcon } from "@/components/CategoryIcon";
+import { useSections } from "@/hooks/useSections";
 import { CategorySelector } from "@/components/CategorySelector";
 import { suggestCategory } from "@/hooks/useAutoCategory";
 import { toast } from "sonner";
@@ -28,6 +31,11 @@ import QRReceiptScanner from "@/components/QRReceiptScanner";
 import { exportToCSV, exportToExcel, exportToPDF, type ExportTransaction } from "@/lib/export-transactions";
 import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
 import { repairMojibake } from "@/lib/repairMojibake";
+import { FullCalculator } from "@/components/FullCalculator";
+import { QuickExpenseDialog } from "@/components/FloatingQuickExpense";
+import { QuickIncomeDialog } from "@/components/QuickIncomeDialog";
+import { StatCard } from "@/components/StatCard";
+import { Wallet, TrendingUp, TrendingDown } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -44,6 +52,11 @@ interface EditingTransaction {
   quantity?: number;
   creditor?: string;
   notes?: string;
+  calcExpression?: string;
+  customField1?: string;
+  customField2?: boolean;
+  customField3?: string;
+  section?: string;
 }
 
 interface QRPrefillData {
@@ -74,6 +87,13 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
   const [date, setDate] = useState(editing?.date ?? qrPrefill?.date ?? new Date().toISOString().split("T")[0]);
   const [creditor, setCreditor] = useState(editing?.creditor ?? qrPrefill?.description ?? "");
   const [notes, setNotes] = useState(editing?.notes ?? "");
+  const [calcExpression, setCalcExpression] = useState<string>(editing?.calcExpression ?? "");
+  const [customField1, setCustomField1] = useState(editing?.customField1 ?? "");
+  const [customField2, setCustomField2] = useState(editing?.customField2 ?? false);
+  const [customField3, setCustomField3] = useState(editing?.customField3 ?? "");
+  const [section, setSection] = useState(editing?.section ?? "none");
+
+  const { sections } = useSections();
 
   const sum = useMemo(() => {
     if (useCalculator) {
@@ -126,6 +146,11 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
               quantity: useCalculator && parsedQuantity !== 1 ? parsedQuantity : undefined,
               creditor: creditor || undefined,
               notes: notes || undefined,
+              calcExpression: calcExpression || undefined,
+              customField1: customField1 || undefined,
+              customField2: customField2 || undefined,
+              customField3: customField3 || undefined,
+              section: section === "none" ? undefined : section,
             }
           : tx
       ));
@@ -140,6 +165,11 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         quantity: useCalculator && parsedQuantity !== 1 ? parsedQuantity : undefined,
         creditor: creditor || undefined,
         notes: notes || undefined,
+        calcExpression: calcExpression || undefined,
+        customField1: customField1 || undefined,
+        customField2: customField2 || undefined,
+        customField3: customField3 || undefined,
+        section: section === "none" ? undefined : section,
       };
       setTransactions([...transactions, newTransaction]);
       toast.success(type === "income" ? "Ingreso registrado" : "Gasto registrado");
@@ -182,51 +212,47 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         </div>
 
         {useCalculator ? (
-          <div className="space-y-2 border rounded-md p-3 bg-muted/30">
-            <div className="grid grid-cols-[1fr,auto,60px,auto,1fr] items-center gap-2">
-              <div>
-                <Label className="text-xs text-muted-foreground">Precio</Label>
-                <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
-                  <Input
-                    type="text" inputMode="decimal" autoComplete="off"
-                    value={price} onChange={e => setPrice(e.target.value)}
-                    placeholder="0.00" className="pl-6" autoFocus
-                  />
-                </div>
-              </div>
-              <span className="text-muted-foreground font-bold mt-5">×</span>
-              <div>
-                <Label className="text-xs text-muted-foreground">Cant.</Label>
-                <Input
-                  type="text" inputMode="decimal" autoComplete="off"
-                  value={quantity} onChange={e => setQuantity(e.target.value)}
-                  placeholder="1"
-                />
-              </div>
-              <span className="text-muted-foreground font-bold mt-5">=</span>
-              <div>
-                <Label className="text-xs text-muted-foreground">Total</Label>
-                <div className="h-10 flex items-center px-3 rounded-md border bg-muted/50 font-bold text-lg">
-                  ${sum.toFixed(2)}
-                </div>
-              </div>
-            </div>
-            {parseFlexibleNumber(quantity, 1) !== 1 && parseFlexibleNumber(quantity, 1) > 0 && (
-              <p className="text-xs text-muted-foreground">
-                💡 {quantity} unid. × ${parseFlexibleNumber(price).toFixed(2)} = ${sum.toFixed(2)}
-              </p>
-            )}
-          </div>
+          <FullCalculator
+            initialValue={amount || (price ? String(parseFlexibleNumber(price) * parseFlexibleNumber(quantity, 1)) : "")}
+            onChange={(v) => {
+              setPrice(String(v));
+              setQuantity("1");
+              setAmount(String(v));
+            }}
+            onApply={(v, expr) => {
+              setAmount(String(v));
+              setPrice(String(v));
+              setQuantity("1");
+              setCalcExpression(expr || "");
+              setUseCalculator(false);
+              toast.success(
+                expr ? `Importe aplicado: ${expr}` : `Importe aplicado: $${v.toFixed(2)}`
+              );
+            }}
+            applyLabel="Usar este importe"
+          />
         ) : (
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
             <Input
               type="text" inputMode="decimal" autoComplete="off"
-              value={amount} onChange={e => setAmount(e.target.value)}
+              value={amount}
+              onChange={e => { setAmount(e.target.value); if (calcExpression) setCalcExpression(""); }}
               placeholder="0.00" className="pl-7 text-lg font-semibold h-12" autoFocus
             />
           </div>
+        )}
+        {calcExpression && (
+          <p className="text-xs text-muted-foreground">
+            Cálculo guardado: <span className="font-mono">{calcExpression}</span>
+            <button
+              type="button"
+              className="ml-2 underline hover:text-foreground"
+              onClick={() => setCalcExpression("")}
+            >
+              quitar
+            </button>
+          </p>
         )}
       </div>
 
@@ -265,6 +291,57 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         <Textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notas adicionales..." rows={2} />
       </div>
 
+      {/* Campos personalizados */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="customField1">Campo personalizado 1</Label>
+          <Input
+            id="customField1"
+            value={customField1}
+            onChange={e => setCustomField1(e.target.value)}
+            placeholder="Texto libre..."
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="customField3">Campo personalizado 3</Label>
+          <Input
+            id="customField3"
+            value={customField3}
+            onChange={e => setCustomField3(e.target.value)}
+            placeholder="Texto libre..."
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="customField2"
+          checked={customField2}
+          onCheckedChange={(checked) => setCustomField2(checked === true)}
+        />
+        <Label htmlFor="customField2" className="cursor-pointer">
+          Campo personalizado 2
+        </Label>
+      </div>
+
+      {/* Sección */}
+      <div className="space-y-2">
+        <Label htmlFor="section">Sección</Label>
+        <Select value={section} onValueChange={setSection}>
+          <SelectTrigger id="section">
+            <SelectValue placeholder="Sin sección" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Sin sección</SelectItem>
+            {sections.map(s => (
+              <SelectItem key={s.id} value={s.id}>
+                {s.icon && <span className="mr-1">{s.icon}</span>}
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Date */}
       <div className="space-y-2">
         <Label htmlFor="date">Fecha</Label>
@@ -290,8 +367,10 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
 export function SimpleTransactionsView() {
   const { transactions, setTransactions } = useJournalTransactions();
   const { totals } = useSimpleAccountingData();
-  const { getCategoryById } = useCategories();
+  const { getCategoryById, incomeCategories, expenseCategories } = useCategories();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
+  const [quickIncomeOpen, setQuickIncomeOpen] = useState(false);
   const [defaultType, setDefaultType] = useState<"income" | "expense">("expense");
   const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
   const [search, setSearch] = useState("");
@@ -310,6 +389,15 @@ export function SimpleTransactionsView() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [sortBy, setSortBy] = useLocalStorage<"date-desc" | "date-asc" | "amount-desc" | "amount-asc" | "net-desc" | "net-asc">(`simple-tx-sortBy:${filter}`, "date-desc");
+
+  // Mes seleccionado (default: mes actual; cambia automáticamente al pasar el mes real)
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+  const [selectedMonth, setSelectedMonth] = useState<string>(`${currentYear}-${String(currentMonth).padStart(2, "0")}`);
+
+  // Filtro explícito por categoría/subcategoría
+  const [catFilterExplicit, setCatFilterExplicit] = useState<string>("none");
+  const [subFilterExplicit, setSubFilterExplicit] = useState<string>("none");
 
   const hasCustomPreferences = groupBy !== "none" || sortBy !== "date-desc";
 
@@ -386,6 +474,7 @@ export function SimpleTransactionsView() {
         amount: tx.credit > 0 ? tx.credit : tx.debit,
         price: tx.price, quantity: tx.quantity,
         creditor: tx.creditor, notes: tx.notes,
+        calcExpression: tx.calcExpression,
       }))
       .sort((a, b) => b.date.localeCompare(a.date)),
     [transactions]
@@ -399,19 +488,33 @@ export function SimpleTransactionsView() {
       return {
         label: repairMojibake(rawLabel),
         icon: cat.icon,
+        id: sub ? sub.id : cat.id,
       };
     }
-    return { label: repairMojibake(categoryId), icon: "📁" };
+    return { label: repairMojibake(categoryId), icon: "📁", id: categoryId };
   }, [getCategoryById]);
 
   const filteredTransactions = useMemo(() => {
     const q = search.trim().toLowerCase();
     const min = parseFlexibleNumber(minAmount, 0);
     const max = parseFlexibleNumber(maxAmount, 0);
-    const from = dateFrom ? dateFrom : null;
-    const to = dateTo ? dateTo : null;
+    
+    // Mes seleccionado: si hay un mes elegido y NO hay rango manual, usamos ese mes
+    let from = dateFrom ? dateFrom : null;
+    let to = dateTo ? dateTo : null;
+    if (!dateFrom && !dateTo && selectedMonth) {
+      const [year, month] = selectedMonth.split("-").map(Number);
+      from = `${year}-${String(month).padStart(2, "0")}-01`;
+      const lastDay = new Date(year, month, 0).getDate(); // month is 1-indexed here
+      to = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    }
+
     const result = allTransactions.filter(t => {
       if (filter !== "all" && t.type !== filter) return false;
+      // Filtro explícito por categoría/subcategoría
+      if (catFilterExplicit !== "none" && t.category !== catFilterExplicit) return false;
+      if (subFilterExplicit !== "none" && t.subcategory !== subFilterExplicit) return false;
+      // Filtros legacy (quick filters)
       if (categoryFilter && t.category !== categoryFilter) return false;
       if (subcategoryFilter && t.subcategory !== subcategoryFilter) return false;
       if (!amountRangeInvalid && min > 0 && t.amount < min) return false;
@@ -421,7 +524,7 @@ export function SimpleTransactionsView() {
       if (!q) return true;
       const cat = getCategoryLabel(t.category, t.subcategory);
       const haystack = [
-        t.description, t.creditor, t.notes, t.date,
+        t.description, t.creditor, t.notes, t.date, t.calcExpression,
         cat.label, String(t.amount), String(t.price ?? ""), String(t.quantity ?? ""),
       ].filter(Boolean).join(" ").toLowerCase();
       return haystack.includes(q);
@@ -435,7 +538,7 @@ export function SimpleTransactionsView() {
         default: return b.date.localeCompare(a.date);
       }
     });
-  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter, minAmount, maxAmount, dateFrom, dateTo, sortBy, amountRangeInvalid]);
+  }, [allTransactions, filter, search, getCategoryLabel, categoryFilter, subcategoryFilter, catFilterExplicit, subFilterExplicit, minAmount, maxAmount, dateFrom, dateTo, selectedMonth, sortBy, amountRangeInvalid]);
 
   // Quick-filter suggestions: top categories/subcategories + recent keywords
   const quickFilters = useMemo(() => {
@@ -604,6 +707,18 @@ export function SimpleTransactionsView() {
         </Card>
       </div>
 
+      {/* Barra de acciones rápidas (un solo paso) */}
+      <div className="flex flex-wrap gap-2">
+        <Button variant="default" size="sm" onClick={() => setQuickIncomeOpen(true)}>
+          <TrendingUp className="h-4 w-4 mr-1" />
+          Ingreso Rápido
+        </Button>
+        <Button variant="default" size="sm" onClick={() => setQuickExpenseOpen(true)}>
+          <TrendingDown className="h-4 w-4 mr-1" />
+          Gasto Rápido
+        </Button>
+      </div>
+
       {/* QR Scanner Banner */}
       <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 hover:border-primary/40 transition-colors">
         <CardContent className="flex items-center gap-4 p-4">
@@ -628,22 +743,24 @@ export function SimpleTransactionsView() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Balance</CardTitle></CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${totals.balance >= 0 ? "text-success" : "text-destructive"}`}>
-              ${totals.balance.toFixed(2)}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Ingresos del Mes</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-success">+${totals.ingresosDelMes.toFixed(2)}</div></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Gastos del Mes</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-destructive">-${totals.gastosDelMes.toFixed(2)}</div></CardContent>
-        </Card>
+        <StatCard
+          title="Balance"
+          value={`$${totals.balance.toFixed(2)}`}
+          icon={Wallet}
+          variant={totals.balance >= 0 ? "default" : "destructive"}
+        />
+        <StatCard
+          title="Ingresos del Mes"
+          value={`+$${totals.ingresosDelMes.toFixed(2)}`}
+          icon={TrendingUp}
+          variant="success"
+        />
+        <StatCard
+          title="Gastos del Mes"
+          value={`-$${totals.gastosDelMes.toFixed(2)}`}
+          icon={TrendingDown}
+          variant="destructive"
+        />
       </div>
 
       {/* Transactions list with grouping */}
@@ -664,6 +781,70 @@ export function SimpleTransactionsView() {
               </Tabs>
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
+              {/* Selector de mes visible */}
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-full sm:w-[160px]" aria-label="Mes a visualizar">
+                  <SelectValue placeholder="Mes actual" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(() => {
+                    const months = [];
+                    const now = new Date();
+                    const curYear = now.getFullYear();
+                    const curMonth = now.getMonth() + 1;
+                    // Últimos 12 meses + próximos 3 meses
+                    for (let i = -12; i <= 3; i++) {
+                      let m = curMonth + i;
+                      let y = curYear;
+                      while (m < 1) { m += 12; y -= 1; }
+                      while (m > 12) { m -= 12; y += 1; }
+                      months.push({ value: `${y}-${String(m).padStart(2, "0")}`, label: new Date(y, m - 1).toLocaleDateString("es-ES", { month: "long", year: "numeric" }) });
+                    }
+                    return months.map(m => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.label}
+                      </SelectItem>
+                    ));
+                  })()}
+                </SelectContent>
+              </Select>
+
+              {/* Filtro de categoría visible */}
+              <Select value={catFilterExplicit} onValueChange={v => { setCatFilterExplicit(v || "none"); setSubFilterExplicit("none"); }}>
+                <SelectTrigger className="w-full sm:w-[160px]" aria-label="Filtrar por categoría">
+                  <SelectValue placeholder="Todas las categorías" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Todas las categorías</SelectItem>
+                  {incomeCategories.concat(expenseCategories).map(c => (
+                    <SelectItem key={c.id} value={c.id}>
+                      <span className="inline-flex items-center gap-2"><CategoryIcon id={c.id} icon={c.icon} className="h-3.5 w-3.5" /> {c.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Filtro de subcategoría visible */}
+              {(catFilterExplicit !== "none" || subFilterExplicit !== "none") && (
+                <Select value={subFilterExplicit} onValueChange={v => setSubFilterExplicit(v || "none")}>
+                  <SelectTrigger className="w-full sm:w-[160px]" aria-label="Filtrar por subcategoría">
+                    <SelectValue placeholder="Todas las subcategorías" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Todas las subcategorías</SelectItem>
+                    {(() => {
+                      const cat = incomeCategories.concat(expenseCategories).find(c => c.id === catFilterExplicit);
+                      if (!cat) return [];
+                      return cat.subcategories.map(s => (
+                        <SelectItem key={s.id} value={s.id}>
+                          <span className="inline-flex items-center gap-2"><CategoryIcon id={s.id} icon={s.icon || "📌"} className="h-3.5 w-3.5" /> {s.label}</span>
+                        </SelectItem>
+                      ));
+                    })()}
+                  </SelectContent>
+                </Select>
+              )}
+
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -808,7 +989,7 @@ export function SimpleTransactionsView() {
                       className="cursor-pointer text-xs"
                       onClick={() => { setSubcategoryFilter(null); setCategoryFilter(active ? null : catId); }}
                     >
-                      {c.icon} {c.label}
+                      <span className="inline-flex items-center gap-1"><CategoryIcon id={c.id} icon={c.icon} className="h-3 w-3" /> {c.label}</span>
                     </Badge>
                   );
                 })}
@@ -822,7 +1003,7 @@ export function SimpleTransactionsView() {
                       className="cursor-pointer text-xs"
                       onClick={() => { setCategoryFilter(active ? null : catId); setSubcategoryFilter(active ? null : subId); }}
                     >
-                      {c.icon} {c.label}
+                      <span className="inline-flex items-center gap-1"><CategoryIcon id={c.id} icon={c.icon} className="h-3 w-3" /> {c.label}</span>
                     </Badge>
                   );
                 })}
@@ -856,9 +1037,10 @@ export function SimpleTransactionsView() {
               {(() => {
                 const renderRow = (tx: typeof filteredTransactions[number]) => {
                   const cat = getCategoryLabel(tx.category, tx.subcategory);
+                  const hasUnitInfo = tx.price != null || (tx.quantity != null && tx.quantity !== 1);
                   return (
                     <div key={tx.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
-                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg shrink-0">{cat.icon}</div>
+                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0"><CategoryIcon id={cat.id} icon={cat.icon} className="h-5 w-5" /></div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{renderHighlighted(tx.description)}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
@@ -868,14 +1050,21 @@ export function SimpleTransactionsView() {
                           {tx.creditor && (<span className="text-muted-foreground">• {renderHighlighted(tx.creditor)}</span>)}
                         </div>
                         {tx.notes && (<p className="text-xs text-muted-foreground mt-0.5 truncate italic">📝 {renderHighlighted(tx.notes)}</p>)}
+                        {tx.calcExpression && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5 truncate font-mono" title={tx.calcExpression}>
+                            🧮 {renderHighlighted(tx.calcExpression)}
+                          </p>
+                        )}
+                        {hasUnitInfo && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">
+                            {tx.price != null ? `P. unit.: $${tx.price.toFixed(2)}` : ''}{tx.price != null && tx.quantity && tx.quantity !== 1 ? ' × ' : ''}{tx.quantity && tx.quantity !== 1 ? `${tx.quantity}` : ''}
+                          </p>
+                        )}
                       </div>
                       <div className="text-right shrink-0">
                         <p className={`font-bold ${tx.type === "income" ? "text-success" : "text-destructive"}`}>
                           {tx.type === "income" ? "+" : "-"}${tx.amount.toFixed(2)}
                         </p>
-                        {tx.price && tx.quantity && tx.quantity !== 1 && (
-                          <p className="text-[10px] text-muted-foreground">${tx.price.toFixed(2)} × {tx.quantity}</p>
-                        )}
                       </div>
                       <div className="flex gap-1 shrink-0">
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary"
@@ -1034,6 +1223,10 @@ export function SimpleTransactionsView() {
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {resetAnnouncement}
       </div>
+
+      {/* Diálogos rápidos */}
+      <QuickIncomeDialog open={quickIncomeOpen} onOpenChange={setQuickIncomeOpen} />
+      <QuickExpenseDialog open={quickExpenseOpen} onOpenChange={setQuickExpenseOpen} />
     </div>
   );
 }

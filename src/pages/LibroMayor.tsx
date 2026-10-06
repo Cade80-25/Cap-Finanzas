@@ -59,6 +59,8 @@ export default function LibroMayor() {
                       <TableRow>
                         <TableHead>Fecha</TableHead>
                         <TableHead>Descripción</TableHead>
+                        <TableHead className="text-right">Cant.</TableHead>
+                        <TableHead className="text-right">P. Unit.</TableHead>
                         <TableHead className="text-right">Debe</TableHead>
                         <TableHead className="text-right">Haber</TableHead>
                         <TableHead className="text-right">Saldo</TableHead>
@@ -69,6 +71,8 @@ export default function LibroMayor() {
                         <TableRow key={idx} className="hover:bg-muted/50">
                           <TableCell className="font-medium">{transaction.date}</TableCell>
                           <TableCell>{transaction.description}</TableCell>
+                          <TableCell className="text-right tabular-nums">{transaction.quantity ?? "—"}</TableCell>
+                          <TableCell className="text-right tabular-nums">{transaction.price != null ? `$${transaction.price.toFixed(2)}` : "—"}</TableCell>
                           <TableCell className="text-right font-medium text-success">
                             {transaction.debit > 0 ? `$${transaction.debit.toFixed(2)}` : "-"}
                           </TableCell>

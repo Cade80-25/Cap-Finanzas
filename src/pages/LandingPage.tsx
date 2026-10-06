@@ -31,7 +31,8 @@ import {
 } from "lucide-react";
 import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { ActivationDialog } from "@/components/ActivationDialog";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+
 
 const features = [
   {
@@ -113,12 +114,12 @@ const faqs = [
     answer: "La prueba de 30 días incluye acceso completo a todas las funciones: ambos modos, Tutor Educativo, Chat Financiero y Bolsas en Vivo.",
   },
   {
-    question: "¿Cómo recibo mi código de licencia?",
-    answer: "Después de completar tu pago de $10 USD por PayPal, recibirás tu código automáticamente por correo. También puedes recuperarlo desde la app.",
+    question: "¿Necesito una licencia o código?",
+    answer: "Durante los 30 días de prueba no necesitas nada. Al terminar la prueba, activas una licencia (Simple o Completa) con el código que recibes por correo.",
   },
   {
     question: "¿Hay pagos mensuales o anuales?",
-    answer: "No. Es un pago único de $10 USD de por vida. Sin suscripciones ni costos ocultos.",
+    answer: "No. Es un pago único: compras tu licencia (Simple o Completa) una sola vez, sin suscripciones ni costos ocultos.",
   },
   {
     question: "¿Qué incluye la licencia?",
@@ -195,13 +196,25 @@ export default function LandingPage() {
     return () => observer.disconnect();
   }, []);
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SeoHead
         title="Cap Finanzas — Contabilidad personal offline y privada"
-        description="Software de finanzas personales y contabilidad 100% offline. Gastos, libros contables y tutor IA. Pago único $10 USD. Prueba gratis 30 días."
+        description="Software de finanzas personales y contabilidad 100% offline y privado. Probá 30 días gratis y seguí con una licencia única (Simple o Completa)."
         path="/landing"
       />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+
       {/* Hero Section - Bold & Engaging */}
       <section className="relative overflow-hidden min-h-[85vh] flex items-center">
         {/* Animated background */}
@@ -242,12 +255,17 @@ export default function LandingPage() {
                 size="lg"
                 variant="outline"
                 className="gap-2 text-base h-14 px-8"
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/?demo=1")}
               >
-                <Eye className="h-5 w-5" />
-                Probar en el Navegador
+                <Play className="h-5 w-5" />
+                Probar con datos de ejemplo
               </Button>
             </div>
+            <p className="text-sm">
+              <Link to="/comparativa" className="text-primary hover:underline">
+                Ver comparativa con Fintonic, Mobills, Monefy y Excel →
+              </Link>
+            </p>
 
             <p className="text-sm text-muted-foreground mb-12">
               Windows 10/11 · Sin dependencias · También disponible como webapp
@@ -363,9 +381,9 @@ export default function LandingPage() {
                 <CardTitle className="text-2xl">Cap Finanzas</CardTitle>
                 <CardDescription>Finanzas personales + Contabilidad profesional</CardDescription>
                 <div className="text-5xl font-bold mt-4 text-primary">
-                  $10 <span className="text-lg font-normal text-muted-foreground">USD</span>
+                  30 días gratis
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">Pago único · Para siempre</p>
+                <p className="text-sm text-muted-foreground mt-1">Después, licencia única (Simple o Completa)</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-2">
@@ -377,7 +395,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <Button className="w-full" size="lg" onClick={() => setPurchaseOpen(true)}>
-                  Comprar por $10 USD <ArrowRight className="h-4 w-4 ml-1" />
+                  Probar 30 días gratis <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </CardContent>
             </Card>

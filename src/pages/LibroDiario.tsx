@@ -44,6 +44,9 @@ import {
 } from "@/components/ui/select";
 import { ContextualHelp, AccountSelectionHelp } from "@/components/ContextualHelp";
 import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
+import { isValidNumericInput, sanitizeNumericInput, roundMoney } from "@/lib/numeric-input";
+import { FullCalculator } from "@/components/FullCalculator";
+import { ArrowUpDown } from "lucide-react";
 
 type Transaction = JournalTransaction;
 
@@ -118,7 +121,13 @@ export default function LibroDiario() {
   const [quantity, setQuantity] = useState<string>("1");
   const [creditor, setCreditor] = useState("");
   const [txNotes, setTxNotes] = useState("");
+  const [calcExpression, setCalcExpression] = useState<string>("");
   const [showExtraFields, setShowExtraFields] = useState(false);
+  const [qtyError, setQtyError] = useState<string>("");
+  const [priceError, setPriceError] = useState<string>("");
+  const [minAmount, setMinAmount] = useState<string>("");
+  const [maxAmount, setMaxAmount] = useState<string>("");
+  const [totalSort, setTotalSort] = useState<"none" | "asc" | "desc">("none");
   const [validationSuggestions, setValidationSuggestions] = useState<
     Array<{
       message: string;
@@ -138,8 +147,11 @@ export default function LibroDiario() {
     setCredit(0);
     setPrice("");
     setQuantity("1");
+    setQtyError("");
+    setPriceError("");
     setCreditor("");
     setTxNotes("");
+    setCalcExpression("");
     setShowExtraFields(false);
     setDate("");
     setEditingTransaction(null);
@@ -168,6 +180,7 @@ export default function LibroDiario() {
     setQuantity(transaction.quantity ? String(transaction.quantity) : "1");
     setCreditor(transaction.creditor || "");
     setTxNotes(transaction.notes || "");
+    setCalcExpression(transaction.calcExpression || "");
     setShowExtraFields(!!(transaction.creditor || transaction.notes));
     setOpen(true);
   };
@@ -200,6 +213,10 @@ export default function LibroDiario() {
       toast.error("Escribe una descripción");
       return;
     }
+    if (qtyError || priceError) {
+      toast.error("Corrige Cantidad o Precio unitario antes de guardar");
+      return;
+    }
     if (hasBlockingError(debit, credit)) {
       toast.error(
         debit > 0 && credit > 0
@@ -209,18 +226,23 @@ export default function LibroDiario() {
       return;
     }
 
+    const priceNum = roundMoney(parseFlexibleNumber(price, 0));
+    const qtyNum = parseFlexibleNumber(quantity, 0);
+    const roundedDebit = roundMoney(debit);
+    const roundedCredit = roundMoney(credit);
     const extraFields = {
-      price: parseFloat(price) || undefined,
-      quantity: parseFloat(quantity) !== 1 ? parseFloat(quantity) : undefined,
+      price: priceNum > 0 ? priceNum : undefined,
+      quantity: qtyNum > 0 ? qtyNum : undefined,
       creditor: creditor || undefined,
       notes: txNotes || undefined,
+      calcExpression: calcExpression || undefined,
     };
 
     if (editingTransaction) {
       setTransactions((prev) =>
         prev.map((t) =>
           t.id === editingTransaction.id
-            ? { ...t, date, account: selectedAccount, description: description.trim(), debit, credit, ...extraFields }
+            ? { ...t, date, account: selectedAccount, description: description.trim(), debit: roundedDebit, credit: roundedCredit, ...extraFields }
             : t
         ).sort((a, b) => a.date.localeCompare(b.date))
       );
@@ -228,7 +250,7 @@ export default function LibroDiario() {
     } else {
       const newTx: Transaction = {
         id: Date.now(), date, account: selectedAccount,
-        description: description.trim(), debit, credit, ...extraFields,
+        description: description.trim(), debit: roundedDebit, credit: roundedCredit, ...extraFields,
       };
       setTransactions((prev) =>
         [...prev, newTx].sort((a, b) => a.date.localeCompare(b.date))
@@ -239,6 +261,23 @@ export default function LibroDiario() {
     setOpen(false);
     resetForm();
   };
+
+  // Compute filtered + sorted view for the table
+  const displayedTransactions = (() => {
+    const min = minAmount.trim() ? parseFlexibleNumber(minAmount, Number.NEGATIVE_INFINITY) : Number.NEGATIVE_INFINITY;
+    const max = maxAmount.trim() ? parseFlexibleNumber(maxAmount, Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
+    const withTotal = transactions.map((t) => {
+      const total = t.quantity && t.price
+        ? roundMoney(t.quantity * t.price)
+        : Math.max(t.debit || 0, t.credit || 0);
+      return { t, total };
+    });
+    const filtered = withTotal.filter(({ total }) => total >= min && total <= max);
+    if (totalSort !== "none") {
+      filtered.sort((a, b) => totalSort === "asc" ? a.total - b.total : b.total - a.total);
+    }
+    return filtered;
+  })();
 
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
@@ -327,46 +366,108 @@ export default function LibroDiario() {
                   }}
                 />
               </div>
-              {/* Price × Quantity Calculator */}
-              <div className="space-y-2 border rounded-md p-3 bg-muted/30">
+              {/* Full Calculator (+, −, ×, ÷) */}
+              <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Calculator className="h-4 w-4 text-muted-foreground" />
-                  Calculadora de Importe (opcional)
+                  Calculadora (opcional)
                 </div>
-                <div className="grid grid-cols-[1fr,auto,60px,auto,1fr] items-end gap-2">
-                  <div>
-                    <Label className="text-xs">Precio</Label>
-                    <Input type="text" inputMode="decimal" autoComplete="off" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" />
-                  </div>
-                  <span className="text-muted-foreground font-bold pb-2">×</span>
-                  <div>
-                    <Label className="text-xs">Cant.</Label>
-                    <Input type="text" inputMode="decimal" autoComplete="off" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="1" />
-                  </div>
-                  <span className="text-muted-foreground font-bold pb-2">=</span>
-                  <div>
-                    <Label className="text-xs">Suma</Label>
-                    <div className="h-10 flex items-center px-3 rounded-md border bg-background font-bold">
-                      ${(parseFlexibleNumber(price) * parseFlexibleNumber(quantity, 1)).toFixed(2)}
-                    </div>
-                  </div>
-                </div>
-                {parseFlexibleNumber(price) > 0 && (
-                  <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => {
-                    const sum = parseFlexibleNumber(price) * parseFlexibleNumber(quantity, 1);
+                <FullCalculator
+                  initialValue={debit || credit || ""}
+                  onApply={(v, expr) => {
                     if (debit === 0 && credit === 0) {
-                      setDebit(sum);
+                      setDebit(v);
                     } else if (debit > 0) {
-                      setDebit(sum);
+                      setDebit(v);
                     } else {
-                      setCredit(sum);
+                      setCredit(v);
                     }
-                    toast.success("Importe aplicado");
-                  }}>
-                    Aplicar al {debit > 0 || (debit === 0 && credit === 0) ? "Debe" : "Haber"}
-                  </Button>
+                    setCalcExpression(expr || "");
+                    toast.success(
+                      expr
+                        ? `Importe aplicado: ${expr}`
+                        : `Importe aplicado: $${v.toFixed(2)}`
+                    );
+                  }}
+                  applyLabel={debit > 0 || (debit === 0 && credit === 0) ? "Aplicar al Debe" : "Aplicar al Haber"}
+                />
+                {calcExpression && (
+                  <p className="text-xs text-muted-foreground">
+                    Cálculo guardado: <span className="font-mono">{calcExpression}</span>
+                  </p>
                 )}
               </div>
+
+              {/* Cantidad × Precio unitario = Total */}
+              <div className="rounded-md border bg-muted/30 p-3 space-y-2">
+                <div className="text-sm font-medium">Detalle del producto / servicio</div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="grid gap-1">
+                    <Label htmlFor="quantity" className="text-xs">Cantidad</Label>
+                    <Input
+                      id="quantity" type="text" inputMode="decimal" autoComplete="off" placeholder="1"
+                      value={quantity}
+                      aria-invalid={!!qtyError}
+                      onChange={(e) => {
+                        const raw = sanitizeNumericInput(e.target.value);
+                        setQuantity(raw);
+                        const ok = isValidNumericInput(raw);
+                        setQtyError(ok ? "" : "Número inválido");
+                        if (!ok) return;
+                        const qn = parseFlexibleNumber(raw, 0);
+                        const pn = parseFlexibleNumber(price, 0);
+                        if (qn > 0 && pn > 0) {
+                          const total = roundMoney(qn * pn);
+                          if (credit > 0) setCredit(total); else setDebit(total);
+                          setCalcExpression(`${qn} × ${pn} = ${total.toFixed(2)}`);
+                        }
+                      }}
+                    />
+                    {qtyError && <p className="text-[11px] text-destructive">{qtyError}</p>}
+                  </div>
+                  <div className="grid gap-1">
+                    <Label htmlFor="price" className="text-xs">Precio unitario ($)</Label>
+                    <Input
+                      id="price" type="text" inputMode="decimal" autoComplete="off" placeholder="0.00"
+                      value={price}
+                      aria-invalid={!!priceError}
+                      onChange={(e) => {
+                        const raw = sanitizeNumericInput(e.target.value);
+                        setPrice(raw);
+                        const ok = isValidNumericInput(raw);
+                        setPriceError(ok ? "" : "Número inválido");
+                        if (!ok) return;
+                        const qn = parseFlexibleNumber(quantity, 0);
+                        const pn = parseFlexibleNumber(raw, 0);
+                        if (qn > 0 && pn > 0) {
+                          const total = roundMoney(qn * pn);
+                          if (credit > 0) setCredit(total); else setDebit(total);
+                          setCalcExpression(`${qn} × ${pn} = ${total.toFixed(2)}`);
+                        }
+                      }}
+                    />
+                    {priceError && <p className="text-[11px] text-destructive">{priceError}</p>}
+                  </div>
+                  <div className="grid gap-1">
+                    <Label className="text-xs">Total ($)</Label>
+                    <Input
+                      readOnly
+                      className="bg-background font-semibold"
+                      value={(() => {
+                        if (qtyError || priceError) return "";
+                        const qn = parseFlexibleNumber(quantity, 0);
+                        const pn = parseFlexibleNumber(price, 0);
+                        return qn > 0 && pn > 0 ? roundMoney(qn * pn).toFixed(2) : "";
+                      })()}
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  El total se aplica automáticamente al Debe o Haber de abajo.
+                </p>
+              </div>
+
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -488,55 +589,117 @@ export default function LibroDiario() {
         </CardHeader>
         <CardContent>
           {transactions.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Cuenta</TableHead>
-                  <TableHead>Descripción</TableHead>
-                  <TableHead data-tutorial="diario-debe-haber" className="text-right">Debe</TableHead>
-                  <TableHead className="text-right">Haber</TableHead>
-                  <TableHead className="text-right w-24">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transactions.map((transaction) => (
-                  <TableRow key={transaction.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium">{transaction.date}</TableCell>
-                    <TableCell>{transaction.account}</TableCell>
-                    <TableCell>{transaction.description}</TableCell>
-                    <TableCell className="text-right font-medium text-success">
-                      {transaction.debit > 0 ? `$${transaction.debit.toFixed(2)}` : "-"}
-                    </TableCell>
-                    <TableCell className="text-right font-medium text-destructive">
-                      {transaction.credit > 0 ? `$${transaction.credit.toFixed(2)}` : "-"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => handleEdit(transaction)}
-                          title="Editar"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => handleDelete(transaction)}
-                          title="Eliminar"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            <>
+              {/* Filtros por Total */}
+              <div className="flex flex-wrap items-end gap-2 mb-4">
+                <div className="grid gap-1">
+                  <Label htmlFor="minAmount" className="text-xs">Total mín. ($)</Label>
+                  <Input
+                    id="minAmount" type="text" inputMode="decimal" className="w-32"
+                    placeholder="0.00"
+                    value={minAmount}
+                    onChange={(e) => setMinAmount(sanitizeNumericInput(e.target.value))}
+                  />
+                </div>
+                <div className="grid gap-1">
+                  <Label htmlFor="maxAmount" className="text-xs">Total máx. ($)</Label>
+                  <Input
+                    id="maxAmount" type="text" inputMode="decimal" className="w-32"
+                    placeholder="Sin límite"
+                    value={maxAmount}
+                    onChange={(e) => setMaxAmount(sanitizeNumericInput(e.target.value))}
+                  />
+                </div>
+                {(minAmount || maxAmount || totalSort !== "none") && (
+                  <Button variant="ghost" size="sm" onClick={() => { setMinAmount(""); setMaxAmount(""); setTotalSort("none"); }}>
+                    Limpiar
+                  </Button>
+                )}
+                <div className="ml-auto text-xs text-muted-foreground self-center">
+                  Mostrando {displayedTransactions.length} de {transactions.length}
+                </div>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Cuenta</TableHead>
+                    <TableHead>Descripción</TableHead>
+                    <TableHead className="text-right">Cant.</TableHead>
+                    <TableHead className="text-right">P. Unit.</TableHead>
+                    <TableHead className="text-right">
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                        onClick={() => setTotalSort(totalSort === "desc" ? "asc" : totalSort === "asc" ? "none" : "desc")}
+                        aria-label={`Ordenar por Total (${totalSort === "asc" ? "ascendente" : totalSort === "desc" ? "descendente" : "sin orden"})`}
+                      >
+                        Total
+                        <ArrowUpDown className="h-3 w-3" />
+                        {totalSort !== "none" && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {totalSort === "asc" ? "↑" : "↓"}
+                          </span>
+                        )}
+                      </button>
+                    </TableHead>
+                    <TableHead data-tutorial="diario-debe-haber" className="text-right">Debe</TableHead>
+                    <TableHead className="text-right">Haber</TableHead>
+                    <TableHead className="text-right w-24">Acciones</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {displayedTransactions.map(({ t: transaction, total }) => {
+                    const q = transaction.quantity;
+                    const p = transaction.price;
+                    const hasProduct = q && p;
+                    return (
+                    <TableRow key={transaction.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">{transaction.date}</TableCell>
+                      <TableCell>{transaction.account}</TableCell>
+                      <TableCell>
+                        {transaction.description}
+                        {transaction.calcExpression && (
+                          <div className="text-[11px] font-mono text-muted-foreground">{transaction.calcExpression}</div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">{q ?? "—"}</TableCell>
+                      <TableCell className="text-right tabular-nums">{p != null ? `$${p.toFixed(2)}` : "—"}</TableCell>
+                      <TableCell className="text-right tabular-nums font-medium">{hasProduct ? `$${roundMoney(q! * p!).toFixed(2)}` : `$${total.toFixed(2)}`}</TableCell>
+                      <TableCell className="text-right font-medium text-success">
+                        {transaction.debit > 0 ? `$${transaction.debit.toFixed(2)}` : "-"}
+                      </TableCell>
+                      <TableCell className="text-right font-medium text-destructive">
+                        {transaction.credit > 0 ? `$${transaction.credit.toFixed(2)}` : "-"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleEdit(transaction)}
+                            title="Editar"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => handleDelete(transaction)}
+                            title="Eliminar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </>
           ) : (
             <div className="flex items-center justify-center h-[200px] text-muted-foreground">
               No hay transacciones registradas. Agrega tu primera transacción.

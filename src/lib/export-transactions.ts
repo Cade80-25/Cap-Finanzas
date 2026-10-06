@@ -13,10 +13,10 @@ export function exportToCSV(transactions: ExportTransaction[], filename?: string
   if (transactions.length === 0) return;
   const headers = ["Fecha", "Descripción", "Categoría", "Tipo", "Monto"];
   const rows = transactions.map((t) => [
-    t.fecha,
-    `"${t.descripcion.replace(/"/g, '""')}"`,
-    `"${t.categoria.replace(/"/g, '""')}"`,
-    t.tipo,
+    csvSafe(t.fecha),
+    `"${csvSafe(t.descripcion).replace(/"/g, '""')}"`,
+    `"${csvSafe(t.categoria).replace(/"/g, '""')}"`,
+    csvSafe(t.tipo),
     t.monto.toFixed(2),
   ]);
   const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
@@ -69,7 +69,7 @@ export async function exportToExcel(transactions: ExportTransaction[], filename?
   let totalGastos = 0;
 
   transactions.forEach((t) => {
-    const row = ws.addRow([t.fecha, t.descripcion, t.categoria, t.tipo, t.monto]);
+    const row = ws.addRow([csvSafe(t.fecha), csvSafe(t.descripcion), csvSafe(t.categoria), csvSafe(t.tipo), t.monto]);
     const montoCell = row.getCell(5);
     montoCell.numFmt = '#,##0.00';
 
@@ -139,11 +139,11 @@ export function exportToPDF(transactions: ExportTransaction[], filename?: string
     .map(
       (t, i) => `
     <tr style="background:${i % 2 === 0 ? "#fff" : "#f8f9fa"}">
-      <td style="padding:8px;border-bottom:1px solid #eee">${t.fecha}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(t.fecha)}</td>
       <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(t.descripcion)}</td>
       <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(t.categoria)}</td>
       <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">
-        <span style="padding:2px 8px;border-radius:12px;font-size:12px;background:${t.tipo === "Ingreso" ? "#dcfce7" : t.tipo === "Gasto" ? "#fee2e2" : "#f3f4f6"};color:${t.tipo === "Ingreso" ? "#16a34a" : t.tipo === "Gasto" ? "#dc2626" : "#333"}">${t.tipo}</span>
+        <span style="padding:2px 8px;border-radius:12px;font-size:12px;background:${t.tipo === "Ingreso" ? "#dcfce7" : t.tipo === "Gasto" ? "#fee2e2" : "#f3f4f6"};color:${t.tipo === "Ingreso" ? "#16a34a" : t.tipo === "Gasto" ? "#dc2626" : "#333"}">${escapeHtml(t.tipo)}</span>
       </td>
       <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;font-weight:600;color:${t.monto >= 0 ? "#16a34a" : "#dc2626"}">${t.monto >= 0 ? "+" : ""}$${Math.abs(t.monto).toFixed(2)}</td>
     </tr>`
@@ -200,4 +200,10 @@ function downloadBlob(blob: Blob, filename: string) {
 
 function escapeHtml(str: string) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Prevent CSV/Excel formula injection by prefixing dangerous leading chars.
+function csvSafe(val: unknown): string {
+  const s = String(val ?? "");
+  return /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
 }

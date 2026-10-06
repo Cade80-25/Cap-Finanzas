@@ -23,6 +23,7 @@ import { FloatingAddAccount } from "@/components/FloatingAddAccount";
 import { FirstVisitTooltip } from "@/components/FirstVisitTooltip";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { prefetchHandlers } from "@/lib/route-prefetch";
 
 type NavItem = {
   name: string;
@@ -122,6 +123,7 @@ export default function Layout() {
                     <Link
                       key={item.name}
                       to={item.href}
+                      {...prefetchHandlers(item.href)}
                       className={cn(
                         "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                         isActive
@@ -139,8 +141,16 @@ export default function Layout() {
           )}
 
           {/* Main Content */}
-          <main className={cn("flex-1 overflow-auto", isMobile && "pb-14")}>
-            <Outlet />
+          <main className={cn("flex-1 overflow-auto flex flex-col", isMobile && "pb-14")}>
+            <div className="flex-1">
+              <Outlet />
+            </div>
+            <footer className="border-t border-border/50 px-4 py-3 text-xs text-muted-foreground flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+              <span>© {new Date().getFullYear()} Cap Finanzas</span>
+              <Link to="/privacidad" className="hover:text-foreground hover:underline">Privacidad</Link>
+              <Link to="/terminos" className="hover:text-foreground hover:underline">Términos</Link>
+              <a href="mailto:pierresshop48@gmail.com" className="hover:text-foreground hover:underline">Contacto</a>
+            </footer>
           </main>
 
           <FloatingAddAccount />
@@ -151,3 +161,4 @@ export default function Layout() {
     </LicenseGate>
   );
 }
+

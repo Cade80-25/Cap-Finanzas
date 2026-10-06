@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useModeFeatures } from "@/hooks/useModeFeatures";
+import { prefetchHandlers } from "@/lib/route-prefetch";
 
 const navItems = [
   { name: "Inicio", href: "/", icon: Home },
@@ -29,6 +30,7 @@ export function MobileBottomNav() {
             <button
               key={item.href}
               onClick={() => navigate(item.href)}
+              {...prefetchHandlers(item.href)}
               className={cn(
                 "relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors",
                 isActive

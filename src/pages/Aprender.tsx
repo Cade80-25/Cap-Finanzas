@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GraduationCap, BookOpen, Sparkles, Book } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { GraduationCap, BookOpen, Sparkles, Book, FileText, ArrowRight } from "lucide-react";
 import Enciclopedia from "./Enciclopedia";
 import Manual from "./Manual";
 import Recomendaciones from "./Recomendaciones";
 import { SeoHead } from "@/components/SeoHead";
+import { ARTICLES } from "@/lib/articles";
 
 export default function Aprender() {
   const [params, setParams] = useSearchParams();
@@ -61,9 +63,38 @@ export default function Aprender() {
           <Recomendaciones />
         </TabsContent>
         <TabsContent value="enciclopedia" className="mt-4 -mx-3 sm:-mx-6 lg:-mx-8">
+
           <Enciclopedia />
         </TabsContent>
       </Tabs>
+
+      <section className="mt-10 space-y-4">
+        <div className="flex items-center gap-2">
+          <FileText className="h-5 w-5 text-primary" />
+          <h2 className="text-xl sm:text-2xl font-semibold">Artículos</h2>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Guías rápidas para llevar tus finanzas y entender conceptos contables clave.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {ARTICLES.map((a) => (
+            <Link key={a.slug} to={`/aprender/articulos/${a.slug}`} className="group">
+              <Card className="h-full transition-all hover:shadow-md hover:border-primary/40">
+                <CardHeader>
+                  <CardTitle className="text-base group-hover:text-primary transition-colors">
+                    {a.title}
+                  </CardTitle>
+                  <CardDescription className="line-clamp-3">{a.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="text-xs text-muted-foreground flex items-center gap-2">
+                  <span>{a.readingMinutes} min de lectura</span>
+                  <ArrowRight className="h-3.5 w-3.5 ml-auto group-hover:translate-x-1 transition-transform" />
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
