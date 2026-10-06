@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useJournalTransactions, JournalTransaction } from "./useJournalTransactions";
 import { useLicense } from "./useLicense";
+import { repairMojibake } from "@/lib/repairMojibake";
 
 /**
  * Simplified accounting data for "Simple Finance" mode
@@ -84,7 +85,7 @@ export function useSimpleAccountingData() {
 
         return {
           id: tx.id,
-          description: tx.description,
+          description: repairMojibake(tx.description),
           amount,
           type: isIncome ? "income" as const : "expense" as const,
           date: tx.date,

@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import QRReceiptScanner from "@/components/QRReceiptScanner";
 import { exportToCSV, exportToExcel, exportToPDF, type ExportTransaction } from "@/lib/export-transactions";
 import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
+import { repairMojibake } from "@/lib/repairMojibake";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -394,12 +395,13 @@ export function SimpleTransactionsView() {
     const cat = getCategoryById(categoryId);
     if (cat) {
       const sub = subcategoryId ? cat.subcategories.find(s => s.id === subcategoryId) : null;
+      const rawLabel = sub ? `${cat.label} > ${sub.label}` : cat.label;
       return {
-        label: sub ? `${cat.label} > ${sub.label}` : cat.label,
+        label: repairMojibake(rawLabel),
         icon: cat.icon,
       };
     }
-    return { label: categoryId, icon: "📁" };
+    return { label: repairMojibake(categoryId), icon: "📁" };
   }, [getCategoryById]);
 
   const filteredTransactions = useMemo(() => {
@@ -531,7 +533,7 @@ export function SimpleTransactionsView() {
 
   const exportData = (): ExportTransaction[] => allTransactions.map(t => ({
     fecha: t.date,
-    descripcion: t.description,
+    descripcion: repairMojibake(t.description),
     categoria: getCategoryLabel(t.category, t.subcategory).label,
     tipo: t.type === "income" ? "Ingreso" : "Gasto",
     monto: t.type === "income" ? t.amount : -t.amount,

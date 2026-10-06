@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { useWalletContext } from "@/contexts/WalletContext";
+import { repairMojibake } from "@/lib/repairMojibake";
 
 export type JournalTransaction = {
   id: number;
@@ -66,7 +67,7 @@ function normalizeTransaction(raw: any, index: number): JournalTransaction | nul
     id,
     date,
     account: account || "gastos-operativos",
-    description: description || "(sin descripción)",
+    description: repairMojibake(description || "(sin descripción)"),
     debit,
     credit,
   };

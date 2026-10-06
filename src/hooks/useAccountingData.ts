@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useJournalTransactions } from "./useJournalTransactions";
+import { repairMojibake } from "@/lib/repairMojibake";
 
 // Tipo de transacción del Libro Diario
 export type Transaction = {
@@ -50,7 +51,7 @@ export function useAccountingData() {
         const category = ACCOUNT_CATEGORIES[tx.account];
         accountsMap[tx.account] = {
           name: tx.account,
-          label: category?.label || tx.account,
+          label: repairMojibake(category?.label || tx.account),
           transactions: [],
           totalDebit: 0,
           totalCredit: 0,
@@ -250,7 +251,7 @@ export function useAccountingData() {
 
         return {
           id: tx.id,
-          description: tx.description,
+          description: repairMojibake(tx.description),
           amount,
           type,
           date: tx.date,

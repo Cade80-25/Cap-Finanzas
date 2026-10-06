@@ -31,6 +31,7 @@ import { SimpleTransactionsView } from "@/components/SimpleTransactionsView";
 import { useNavigate } from "react-router-dom";
 import { exportToCSV, exportToExcel, exportToPDF, type ExportTransaction } from "@/lib/export-transactions";
 import { toast } from "sonner";
+import { repairMojibake } from "@/lib/repairMojibake";
 
 // Traditional view component
 function TraditionalTransactionsView() {
@@ -63,8 +64,8 @@ function TraditionalTransactionsView() {
     return {
       id: tx.id,
       fecha: tx.date,
-      descripcion: tx.description,
-      categoria: category?.label || tx.account,
+      descripcion: repairMojibake(tx.description),
+      categoria: repairMojibake(category?.label || tx.account),
       tipo,
       monto,
       cuenta: tx.account,
