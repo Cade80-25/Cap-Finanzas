@@ -48,6 +48,56 @@ El campo `exp` depende del **tipo de licencia**:
 
 ---
 
+## Protección anti-abuso
+
+Tres controles, todos verificados:
+
+### 1. Reactivación permitida (hasta 5 equipos)
+
+El código **no** queda atado a una sola computadora. Un cliente puede formatear
+su PC o comprar una nueva, instalar el programa y activar con el mismo código.
+
+| Control | Valor |
+|---|---|
+| Activaciones por código | **5** |
+| Al agotarlas | `activation_limit_reached` → escribir a soporte |
+
+**Antes**: el código se ataba a la primera máquina para siempre. Quien cambiaba
+de equipo recibía `code_used_elsewhere` y no podía reactivar — un cliente que
+había pagado quedaba fuera.
+
+### 2. Prueba registrada en el servidor
+
+La prueba de 30 días se registra por máquina en la tabla `trial_registrations`
+(edge function `register-trial`). La app envía un `machine_id` estable.
+
+| Fuente del `machine_id` | Sobrevive a |
+|---|---|
+| Huella de hardware (hostname + plataforma + CPU) | Reinstalar la app |
+| ID aleatorio en carpeta aparte (`%APPDATA%/.capfinanzas-id`) | Reinstalar la app |
+
+**Antes**: la prueba vivía solo en `localStorage`. Borrar los datos de la app
+daba 30 días nuevos, sin límite.
+
+Si no hay conexión, la app permite la prueba (no se bloquea a un cliente legítimo
+sin internet).
+
+### 3. Guardia de rutas por plan
+
+El menú ocultaba las secciones del plan Empresarial, pero las rutas seguían
+accesibles escribiendo la URL. El componente `PlanGuard` protege:
+
+`/contabilidad` · `/categorias` · `/libro-diario` · `/libro-mayor` ·
+`/balance` · `/resultados` · `/consolidado`
+
+Si el plan no alcanza, muestra un aviso con el correo de soporte.
+
+> **Límite honesto**: ninguna traba es infalible — el programa corre en la
+> computadora del cliente. Estos controles evitan el abuso casual (borrar datos,
+> escribir una URL), que es lo que ocurre en la práctica.
+
+---
+
 ## Plataformas
 
 **Tres sistemas operativos, mismo precio para los tres.** El binario es el mismo; lo que
