@@ -13,7 +13,18 @@ const BodySchema = z.object({
   installation_id: z.string().min(8).max(128),
 });
 
-const TOKEN_TTL_DAYS = 90;
+// Vigencia del token segun el plan (ver PLAN.md en la raiz del repo).
+// - simple:      permanente (100 anios, efectivamente sin vencimiento)
+// - traditional/full/account: semestral (180 dias), renovable
+const PERPETUAL_DAYS = 36500;
+const SEMESTRAL_DAYS = 180;
+
+function ttlDaysFor(licenseType: string | null | undefined): number {
+  const t = (licenseType ?? "").toLowerCase();
+  if (t === "simple") return PERPETUAL_DAYS;
+  // traditional, full, account y cualquier otro: semestral
+  return SEMESTRAL_DAYS;
+}
 
 function b64url(bytes: Uint8Array): string {
   let s = btoa(String.fromCharCode(...bytes));
@@ -70,7 +81,7 @@ Deno.serve(async (req) => {
 
     const { data: license, error } = await supabase
       .from("licenses")
-      .select("id, code, is_used, revoked, installation_id, activated_at")
+      .select("id, code, is_used, revoked, installation_id, activated_at, license_type")
       .eq("code", code)
       .maybeSingle();
 
@@ -125,9 +136,11 @@ Deno.serve(async (req) => {
     }
 
     const iat = Math.floor(Date.now() / 1000);
-    const exp = iat + TOKEN_TTL_DAYS * 24 * 60 * 60;
+    // La vigencia depende del plan, no de un TTL fijo.
+    const ttlDays = ttlDaysFor(license.license_type);
+    const exp = iat + ttlDays * 24 * 60 * 60;
     const token = await signToken(
-      { code, installation_id, activated_at, iat, exp },
+      { code, installation_id, activated_at, iat, exp, license_type: license.license_type ?? null },
       secret,
     );
 

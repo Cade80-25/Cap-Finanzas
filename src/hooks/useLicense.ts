@@ -282,8 +282,10 @@ export function useLicense() {
     };
   }, []);
 
-  // Precio de las licencias (pago unico). El boton de PayPal cobra este monto.
-  const pricing = { simple: 10, full: 10 };
+  // Precios oficiales (ver PLAN.md en la raiz del repo).
+  //   simple: pago unico, licencia permanente.
+  //   full:   Empresarial, renovable cada 6 meses.
+  const pricing = { simple: 20, full: 100 };
 
   const referralAccountBonus = Math.min(
     parseInt(localStorage.getItem("cap-finanzas-referral-count") || "0", 10),

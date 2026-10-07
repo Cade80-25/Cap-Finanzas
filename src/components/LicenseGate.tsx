@@ -3,7 +3,7 @@ import { useLicense } from "@/hooks/useLicense";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Key, ShoppingCart, AlertTriangle, Sparkles, Check } from "lucide-react";
+import { Key, ShoppingCart, AlertTriangle, Check, Wallet, Building2 } from "lucide-react";
 import { PurchaseDialog } from "./PurchaseDialog";
 import { ActivationDialog } from "./ActivationDialog";
 
@@ -45,18 +45,45 @@ export function LicenseGate({ children }: LicenseGateProps) {
             <Progress value={100} className="h-2" />
           </div>
 
-          {/* Single plan highlight */}
-          <div className="border-2 border-primary rounded-lg p-6 text-center space-y-3">
-            <Sparkles className="h-6 w-6 text-primary mx-auto" />
-            <div className="text-4xl font-bold text-primary">${pricing.full} <span className="text-lg font-normal text-muted-foreground">USD</span></div>
-            <p className="text-sm font-medium">Pago único · Acceso completo · Para siempre</p>
-            <ul className="text-sm text-muted-foreground space-y-1 text-left max-w-xs mx-auto">
-              {["Ambos modos de operación", "Hasta 5 cuentas base (+extras con referidos)", "Hasta 50 perfiles por instalación", "Tutor IA y Chat Financiero", "Actualizaciones de por vida"].map((f, i) => (
-                <li key={i} className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-primary flex-shrink-0" /> {f}
-                </li>
-              ))}
-            </ul>
+          {/* Dos planes: Simples (permanente) y Empresarial (semestral) */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Plan Simples */}
+            <div className="border rounded-lg p-5 space-y-3">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-primary" />
+                <span className="font-semibold">Simples</span>
+              </div>
+              <div className="text-3xl font-bold text-primary">
+                ${pricing.simple} <span className="text-base font-normal text-muted-foreground">USD</span>
+              </div>
+              <p className="text-xs font-medium text-muted-foreground">Pago único · Permanente</p>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                {["Finanzas personales", "Presupuestos y calendario", "Múltiples monedas", "Tutor IA"].map((f, i) => (
+                  <li key={i} className="flex items-center gap-1.5">
+                    <Check className="h-3 w-3 text-primary flex-shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Plan Empresarial */}
+            <div className="border-2 border-primary rounded-lg p-5 space-y-3 relative">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-primary" />
+                <span className="font-semibold">Empresarial</span>
+              </div>
+              <div className="text-3xl font-bold text-primary">
+                ${pricing.full} <span className="text-base font-normal text-muted-foreground">USD</span>
+              </div>
+              <p className="text-xs font-medium text-muted-foreground">Cada 6 meses · Renovable</p>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                {["Todo lo del plan Simples", "Libro Diario y Mayor", "Balance y Estado de Resultados", "Enciclopedia contable", "Chat IA y Bolsas en Vivo"].map((f, i) => (
+                  <li key={i} className="flex items-center gap-1.5">
+                    <Check className="h-3 w-3 text-primary flex-shrink-0" /> {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -66,7 +93,7 @@ export function LicenseGate({ children }: LicenseGateProps) {
               onClick={() => setPurchaseOpen(true)}
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
-              Comprar por ${pricing.full} USD
+              Comprar licencia
             </Button>
             <Button 
               variant="outline" 
@@ -79,7 +106,7 @@ export function LicenseGate({ children }: LicenseGateProps) {
           </div>
 
           <p className="text-xs text-center text-muted-foreground">
-            Pago único vía PayPal. Recibirás tu código de licencia por correo electrónico.
+            Pago vía PayPal. Recibirás tu código de licencia por correo electrónico.
           </p>
         </CardContent>
       </Card>

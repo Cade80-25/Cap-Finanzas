@@ -48,7 +48,7 @@ const benefits = [
   {
     icon: Sparkles,
     title: "Pago único",
-    desc: "USD 10 de por vida. Sin suscripciones ni cargos recurrentes.",
+    desc: "Plan Simples USD 20 (permanente) o Empresarial USD 100 cada 6 meses.",
   },
 ];
 

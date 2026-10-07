@@ -5,7 +5,7 @@
 <h1 align="center">Cap Finanzas</h1>
 
 <p align="center">
-  <strong>Software de contabilidad personal y finanzas — 100% offline, privado y sin suscripciones.</strong>
+  <strong>Software de contabilidad personal y finanzas — 100% offline y privado.</strong>
 </p>
 
 <p align="center">
@@ -16,7 +16,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Plataforma-Windows%2010%2F11-blue?logo=windows" alt="Windows" />
+  <img src="https://img.shields.io/badge/Windows-10%2F11-blue?logo=windows" alt="Windows" />
+  <img src="https://img.shields.io/badge/macOS-Apple%20Silicon-black?logo=apple" alt="macOS" />
+  <img src="https://img.shields.io/badge/Linux-AppImage-yellow?logo=linux" alt="Linux" />
   <img src="https://img.shields.io/badge/Licencia-Pago%20Único-green" alt="Licencia" />
   <img src="https://img.shields.io/badge/Prueba-30%20días%20gratis-orange" alt="Prueba gratuita" />
   <img src="https://img.shields.io/badge/Privacidad-100%25%20Offline-purple" alt="Offline" />
@@ -69,31 +71,30 @@ Ideal para:
 
 ## 💰 Planes y Precios
 
-**Pago único de por vida. Sin suscripciones.**
+**Prueba gratuita de 30 días con acceso completo. No se requiere tarjeta de crédito.**
 
-| Característica | Simples ($8) | Tradicional ($11) | Completa ($13) |
-|---|:---:|:---:|:---:|
-| Registro de ingresos y gastos | ✅ | ✅ | ✅ |
-| Categorías y presupuestos | ✅ | ✅ | ✅ |
-| Calendario financiero | ✅ | ✅ | ✅ |
-| Resumen con gráficos | ✅ | ✅ | ✅ |
-| Múltiples monedas | ✅ | ✅ | ✅ |
-| Tutor Educativo (IA) | ✅ | ✅ | ✅ |
-| Libro Diario (partida doble) | ❌ | ✅ | ✅ |
-| Libro Mayor | ❌ | ✅ | ✅ |
-| Balance General | ❌ | ✅ | ✅ |
-| Estado de Resultados | ❌ | ✅ | ✅ |
-| Enciclopedia contable | ❌ | ✅ | ✅ |
-| Chat Financiero (IA) | ❌ | ✅ | ✅ |
-| Bolsas en Vivo | ❌ | ❌ | ✅ |
-| Cambio libre entre modos | ❌ | ❌ | ✅ |
-
-> 💡 **Prueba gratuita de 30 días** con acceso completo a todas las funciones. No se requiere tarjeta de crédito.
+| Característica | Simples | Empresarial |
+|---|:---:|:---:|
+| **Precio** | **$20 USD** | **$100 USD** |
+| **Vigencia** | Permanente | 6 meses (renovable) |
+| Registro de ingresos y gastos | ✅ | ✅ |
+| Categorías y presupuestos | ✅ | ✅ |
+| Calendario financiero | ✅ | ✅ |
+| Resumen con gráficos | ✅ | ✅ |
+| Múltiples monedas | ✅ | ✅ |
+| Tutor Educativo (IA) | ✅ | ✅ |
+| Libro Diario (partida doble) | ❌ | ✅ |
+| Libro Mayor | ❌ | ✅ |
+| Balance General | ❌ | ✅ |
+| Estado de Resultados | ❌ | ✅ |
+| Enciclopedia contable | ❌ | ✅ |
+| Chat Financiero (IA) | ❌ | ✅ |
+| Bolsas en Vivo | ❌ | ✅ |
 
 ### Mejoras de plan (upgrades)
-- Simples → Tradicional: **$4 USD**
-- Simples → Completa: **$6 USD**
-- Tradicional → Completa: **$3 USD**
+- Simples → Empresarial: **$80 USD** (diferencia)
+
+> 📋 El modelo de negocio completo está documentado en **[PLAN.md](PLAN.md)** — es la fuente de verdad.
 
 ---
 
@@ -104,7 +105,8 @@ Ideal para:
 3. ¡Listo! La app se abrirá automáticamente
 
 **Requisitos:**
-- Windows 10 o Windows 11
+- Windows 10 u 11 · macOS (Apple Silicon) · Linux (AppImage)
+- Mismo precio en las tres plataformas
 - ~50 MB de espacio en disco
 - No requiere dependencias adicionales
 

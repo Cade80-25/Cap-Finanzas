@@ -115,15 +115,15 @@ const faqs = [
   },
   {
     question: "¿Necesito una licencia o código?",
-    answer: "Durante los 30 días de prueba no necesitas nada. Al terminar la prueba, activas una licencia (Simple o Completa) con el código que recibes por correo.",
+    answer: "Durante los 30 días de prueba no necesitas nada. Al terminar la prueba, activas una licencia (Simples o Empresarial) con el código que recibes por correo.",
   },
   {
     question: "¿Hay pagos mensuales o anuales?",
-    answer: "No. Es un pago único: compras tu licencia (Simple o Completa) una sola vez, sin suscripciones ni costos ocultos.",
+    answer: "Depende del plan: la licencia Simples es un pago único permanente ($20 USD). La Empresarial cuesta $100 USD y se renueva cada 6 meses.",
   },
   {
     question: "¿Qué incluye la licencia?",
-    answer: "Todo: Finanzas Simples, Contabilidad Tradicional con partida doble, Tutor IA, Chat Financiero, Bolsas en Vivo, hasta 5 cuentas base (+extras por referidos), hasta 50 perfiles y actualizaciones de por vida.",
+    answer: "Todo: Finanzas Simples, Contabilidad con partida doble, Tutor IA, Chat Financiero, Bolsas en Vivo, hasta 5 cuentas base (+extras por referidos) y hasta 50 perfiles por instalación.",
   },
 ];
 
@@ -367,7 +367,7 @@ export default function LandingPage() {
             <Badge variant="outline" className="mb-4">Precios</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Pago Único, Tuyo Para Siempre</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Sin suscripciones ni costos ocultos. Incluye actualizaciones gratuitas de por vida.
+              Prueba de 30 días con acceso completo. Plan Simples $20 permanente, Empresarial $100 cada 6 meses.
             </p>
           </div>
 

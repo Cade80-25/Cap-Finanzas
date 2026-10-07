@@ -35,9 +35,17 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
   } | null>(null);
   const [showCheck, setShowCheck] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  // Plan elegido: define que boton de PayPal se usa.
+  const [plan, setPlan] = useState<"simple" | "full">("full");
 
-  const paypalButtonId = "KZXBA5QRWVQV2";
+  // Un boton de PayPal por plan (crear ambos en paypal.com/ncp).
+  // TODO(Fernando): reemplazar SIMPLE_PAYPAL_ID por el ID del boton de $20.
+  const SIMPLE_PAYPAL_ID = "KZXBA5QRWVQV2"; // $20 - Simples (permanente)
+  const FULL_PAYPAL_ID = "KZXBA5QRWVQV2";   // $100 - Empresarial (6 meses)
+  const paypalButtonId = plan === "simple" ? SIMPLE_PAYPAL_ID : FULL_PAYPAL_ID;
   const paypalUrl = `https://www.paypal.com/ncp/payment/${paypalButtonId}`;
+  const planLabel = plan === "simple" ? "Simples" : "Empresarial";
+  const planPrice = plan === "simple" ? pricing.simple : pricing.full;
 
   const handleCheckLicense = async () => {
     if (!checkEmail.trim()) return;
@@ -69,17 +77,24 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const allFeatures = [
+  // Planes oficiales (ver PLAN.md en la raiz del repo).
+  const simpleFeatures = [
     "Registro de ingresos y gastos",
     "Categorías y presupuestos",
     "Calendario financiero con recordatorios",
+    "Múltiples monedas",
+    "Tutor Educativo (IA)",
+    "Hasta 5 cuentas base (+extras con referidos)",
+    "Licencia permanente",
+  ];
+  const fullFeatures = [
+    "Todo lo del plan Simples",
     "Contabilidad de partida doble",
     "Libro Diario, Mayor, Balance y Estado de Resultados",
-    "Tutor Educativo y Chat Financiero (IA)",
+    "Enciclopedia contable integrada",
+    "Chat Financiero (IA)",
     "Bolsas en Vivo",
-    "Hasta 5 cuentas base (+extras con referidos)",
-    "Hasta 50 perfiles por instalación",
-    "Actualizaciones gratuitas de por vida",
+    "Vigencia de 6 meses, renovable",
   ];
 
   return (
@@ -92,31 +107,61 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
           </DialogDescription>
         </DialogHeader>
 
-        {/* Single Plan Card */}
-        <Card className="border-primary shadow-lg shadow-primary/10 mt-4">
-          <CardContent className="pt-6 space-y-4">
-            <div className="text-center">
-              <Badge className="mb-3">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Acceso Completo
-              </Badge>
-              <div className="text-5xl font-bold text-primary">
-                ${pricing.full}
-                <span className="text-lg font-normal text-muted-foreground"> USD</span>
+        {/* Dos planes oficiales */}
+        <div className="grid gap-4 sm:grid-cols-2 mt-4">
+          {/* Simples */}
+          <Card
+            onClick={() => setPlan("simple")}
+            className={`cursor-pointer transition-all ${plan === "simple" ? "border-primary ring-2 ring-primary/30" : "hover:border-primary/40"}`}
+          >
+            <CardContent className="pt-6 space-y-3">
+              <div className="text-center">
+                <Badge variant="outline" className="mb-2">Simples</Badge>
+                <div className="text-4xl font-bold text-primary">
+                  ${pricing.simple}
+                  <span className="text-base font-normal text-muted-foreground"> USD</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Pago único · Permanente</p>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">Pago único · Sin suscripciones</p>
-            </div>
+              <ul className="space-y-1.5">
+                {simpleFeatures.map((feature, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs">
+                    <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
 
-            <ul className="space-y-2">
-              {allFeatures.map((feature, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm">
-                  <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+          {/* Empresarial */}
+          <Card
+            onClick={() => setPlan("full")}
+            className={`cursor-pointer transition-all ${plan === "full" ? "border-primary ring-2 ring-primary/30 shadow-lg shadow-primary/10" : "hover:border-primary/40"}`}
+          >
+            <CardContent className="pt-6 space-y-3">
+              <div className="text-center">
+                <Badge className="mb-2">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  Empresarial
+                </Badge>
+                <div className="text-4xl font-bold text-primary">
+                  ${pricing.full}
+                  <span className="text-base font-normal text-muted-foreground"> USD</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Cada 6 meses · Renovable</p>
+              </div>
+              <ul className="space-y-1.5">
+                {fullFeatures.map((feature, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs">
+                    <Check className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Payment Section */}
         <Card className="bg-muted/50">
@@ -142,7 +187,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
               onClick={() => window.open(paypalUrl, "_blank")}
             >
               <ArrowRight className="h-4 w-4" />
-              Pagar con PayPal (${pricing.full} USD)
+              Pagar con PayPal — {planLabel} (${planPrice} USD)
             </Button>
 
             <div className="border-t pt-4 space-y-3">
