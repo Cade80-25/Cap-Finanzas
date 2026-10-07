@@ -2,6 +2,13 @@ const { app, BrowserWindow, ipcMain, session } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 
+// userData canónico: SIEMPRE "Cap Finanzas" (espacio), ANTES de que Chromium
+// inicialice el storage. Esto alinea TODOS los launchers (exe directo, accesos
+// directos, instalador) a la misma carpeta con los datos del usuario, sin
+// importar el name/productName del package.json ni la carpeta de instalación.
+// Evita la divergencia espacio/guion que ocultaba transacciones.
+app.setPath('userData', path.join(app.getPath('appData'), 'Cap Finanzas'));
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1400,

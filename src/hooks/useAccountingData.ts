@@ -34,7 +34,18 @@ const ACCOUNT_CATEGORIES: Record<string, { type: "activo" | "pasivo" | "patrimon
 };
 
 export function useAccountingData() {
-  const { transactions } = useJournalTransactions();
+  const { transactions: rawTransactions } = useJournalTransactions();
+
+  // Traducir UNA sola vez las categorías simples → cuentas contables.
+  // Todos los consumidores del hook reciben transacciones ya en el espacio
+  // contable, sin re-traducir ni usar cuentas crudas del journal.
+  const transactions = useMemo(
+    () => rawTransactions.map((rawTx) => ({
+      ...rawTx,
+      account: simpleToAccount(rawTx.account),
+    })),
+    [rawTransactions]
+  );
 
   // Libro Mayor: agrupar transacciones por cuenta
   const libroMayor = useMemo(() => {
@@ -47,14 +58,9 @@ export function useAccountingData() {
       balance: number;
     }> = {};
 
-    transactions.forEach((rawTx) => {
-      // Traducir categoría simple a cuenta contable si es necesario
-      const tx = {
-        ...rawTx,
-        account: simpleToAccount(rawTx.account),
-      };
+    transactions.forEach((tx) => {
       if (!accountsMap[tx.account]) {
-        const category = ACCOUNT_CATEGORIES[simpleToAccount(tx.account)];
+        const category = ACCOUNT_CATEGORIES[tx.account];
         accountsMap[tx.account] = {
           name: tx.account,
           label: repairMojibake(category?.label || tx.account),
@@ -159,7 +165,7 @@ export function useAccountingData() {
         monthlyData[month] = { ingresos: 0, gastos: 0 };
       }
 
-      const category = ACCOUNT_CATEGORIES[simpleToAccount(tx.account)];
+      const category = ACCOUNT_CATEGORIES[tx.account];
       if (category?.type === "ingreso") {
         monthlyData[month].ingresos += tx.credit - tx.debit;
       } else if (category?.type === "gasto") {
@@ -237,7 +243,7 @@ export function useAccountingData() {
       .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 5)
       .map((tx) => {
-        const category = ACCOUNT_CATEGORIES[simpleToAccount(tx.account)];
+        const category = ACCOUNT_CATEGORIES[tx.account];
         const isIngreso = category?.type === "ingreso";
         const isGasto = category?.type === "gasto";
         
@@ -275,7 +281,7 @@ export function useAccountingData() {
 
     transactions.forEach((tx) => {
       if (tx.date.startsWith(currentMonth)) {
-        const category = ACCOUNT_CATEGORIES[simpleToAccount(tx.account)];
+        const category = ACCOUNT_CATEGORIES[tx.account];
         if (category?.type === "ingreso") {
           ingresosDelMes += tx.credit - tx.debit;
         } else if (category?.type === "gasto") {

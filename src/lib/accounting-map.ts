@@ -1,14 +1,21 @@
 /**
  * Mapeo bidireccional entre categorías simples y cuentas contables.
- * 
+ *
  * Las categorías simples (modo Simple) se traducen a cuentas contables (modo Completo)
  * según las normas contables:
  * - Ingresos → cuenta "ingresos" (crédito)
  * - Gastos → cuenta "gastos-operativos" (débito)
  * - Ahorros → cuenta "activo-corriente" (débito, es un activo)
- * 
+ *
  * Y viceversa: las cuentas contables se traducen a categorías simples legibles.
+ *
+ * El lookup es TOLERANTE: acepta mayúsculas/minúsculas, mojibake (Alimentaci뿯½n),
+ * acentos (Alimentación → alimentacion) y la forma "Categoría / Subcategoría"
+ * (busca primero la parte padre). Las categorías personalizadas del usuario que
+ * no tienen mapeo se devuelven SIN CAMBIAR (identidad) — nunca se fuerzan a
+ * "gastos-operativos", porque eso convertiría ingresos custom en gastos negativos.
  */
+import { repairMojibake } from "./repairMojibake";
 
 // Mapeo de categoría simple → cuenta contable
 export const SIMPLE_TO_ACCOUNT: Record<string, string> = {
@@ -20,7 +27,7 @@ export const SIMPLE_TO_ACCOUNT: Record<string, string> = {
   "regalo": "ingresos",
   "devolucion": "ingresos",
   "otros-ingresos": "ingresos",
-  
+
   // Gastos
   "alimentacion": "gastos-operativos",
   "transporte": "gastos-operativos",
@@ -79,19 +86,55 @@ export const ACCOUNT_TO_TYPE: Record<string, "income" | "expense"> = {
 };
 
 /**
+ * Normaliza un nombre de categoría para lookup tolerante:
+ * repara mojibake, recorta espacios, minúsculas, sin acentos, espacios→guiones.
+ */
+function normalizeSlug(name: string): string {
+  return repairMojibake(name)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-");
+}
+
+// Índice normalizado para lookup tolerante (claves normalizadas → cuenta contable)
+const SIMPLE_LOOKUP: Record<string, string> = {};
+for (const [key, value] of Object.entries(SIMPLE_TO_ACCOUNT)) {
+  SIMPLE_LOOKUP[normalizeSlug(key)] = value;
+}
+
+/**
  * Traduce una categoría simple a su cuenta contable correspondiente.
- * Si no existe mapeo, devuelve "gastos-operativos" como default.
+ *
+ * Cadena de lookup: exacto → partes de "Categoría / Subcategoría" (padre primero)
+ * → heurística de ahorros → IDENTIDAD (categoría personalizada sin mapeo).
  */
 export function simpleToAccount(categoryId: string): string {
-  return SIMPLE_TO_ACCOUNT[categoryId] || "gastos-operativos";
+  if (!categoryId) return "gastos-operativos";
+  const direct = SIMPLE_TO_ACCOUNT[categoryId];
+  if (direct) return direct;
+
+  // "Categoría / Subcategoría" → intentar la parte padre primero
+  const parts = categoryId.split("/").map((p) => p.trim()).filter(Boolean);
+  for (const part of parts) {
+    const hit = SIMPLE_LOOKUP[normalizeSlug(part)];
+    if (hit) return hit;
+  }
+
+  // Heurística: cuentas de ahorro personalizadas ("Ahorro Vacaciones") son activos
+  if (normalizeSlug(categoryId).startsWith("ahorro")) return "activo-corriente";
+
+  // Identidad: no forzar categorías personalizadas a gastos-operativos
+  return categoryId;
 }
 
 /**
  * Traduce una cuenta contable a su categoría simple correspondiente.
- * Si no existe mapeo, devuelve "otros-gastos" como default.
+ * Si no existe mapeo, devuelve la cuenta original (identidad).
  */
 export function accountToSimple(accountId: string): string {
-  return ACCOUNT_TO_SIMPLE[accountId] || "otros-gastos";
+  return ACCOUNT_TO_SIMPLE[accountId] || accountId;
 }
 
 /**
@@ -103,10 +146,12 @@ export function accountToType(accountId: string): "income" | "expense" {
 }
 
 /**
- * Verifica si una categoría simple existe en el mapeo.
+ * Verifica si una categoría simple existe en el mapeo
+ * (incluye las variantes tolerantes: mayúsculas, mojibake, acentos).
  */
 export function isSimpleCategory(categoryId: string): boolean {
-  return categoryId in SIMPLE_TO_ACCOUNT;
+  if (!categoryId) return false;
+  return simpleToAccount(categoryId) !== categoryId;
 }
 
 /**
