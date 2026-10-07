@@ -27,8 +27,7 @@ import {
   Play,
   Calendar,
   PiggyBank,
-  Eye,
-} from "lucide-react";
+  Eye, Apple, Terminal} from "lucide-react";
 import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { ActivationDialog } from "@/components/ActivationDialog";
 import { useNavigate, Link } from "react-router-dom";
@@ -175,7 +174,16 @@ export default function LandingPage() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const navigate = useNavigate();
 
-  const downloadUrl = "https://github.com/Cade80-25/Cap-Finanzas/releases/latest/download/Cap-Finanzas-Setup-1.1.0.exe";
+  // Enlaces de descarga (ver PLAN.md).
+  // Mientras R2 no este configurado, apuntan a los binarios alojados.
+  // El nombre del archivo es FIJO (sin version) para que el enlace no se rompa
+  // al publicar una version nueva. El CI los sube con ese nombre.
+  const DL_BASE = "https://downloads.capfinanzas.com";
+  const downloads = {
+    windows: `${DL_BASE}/Cap-Finanzas-Setup.exe`,
+    mac: `${DL_BASE}/Cap-Finanzas-arm64.dmg`,
+    linux: `${DL_BASE}/Cap-Finanzas.AppImage`,
+  };
 
   // Animated stats
   const users = useAnimatedNumber(500, 1500);
@@ -246,9 +254,21 @@ export default function LandingPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
               <Button size="lg" className="gap-2 text-base h-14 px-8 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all" asChild>
-                <a href={downloadUrl} target="_blank" rel="noopener noreferrer">
+                <a href={downloads.windows} target="_blank" rel="noopener noreferrer">
                   <Download className="h-5 w-5" />
-                  Descargar Gratis para Windows
+                  Descargar para Windows
+                </a>
+              </Button>
+              <Button size="lg" variant="outline" className="gap-2 text-base h-14 px-8" asChild>
+                <a href={downloads.mac} target="_blank" rel="noopener noreferrer">
+                  <Apple className="h-5 w-5" />
+                  Mac
+                </a>
+              </Button>
+              <Button size="lg" variant="outline" className="gap-2 text-base h-14 px-8" asChild>
+                <a href={downloads.linux} target="_blank" rel="noopener noreferrer">
+                  <Terminal className="h-5 w-5" />
+                  Linux
                 </a>
               </Button>
               <Button
@@ -523,9 +543,21 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="gap-2 h-14 px-8 shadow-lg shadow-primary/20" asChild>
-              <a href={downloadUrl} target="_blank" rel="noopener noreferrer">
+              <a href={downloads.windows} target="_blank" rel="noopener noreferrer">
                 <Download className="h-5 w-5" />
                 Descargar para Windows
+              </a>
+            </Button>
+            <Button size="lg" variant="outline" className="gap-2 h-14 px-8" asChild>
+              <a href={downloads.mac} target="_blank" rel="noopener noreferrer">
+                <Apple className="h-5 w-5" />
+                Mac
+              </a>
+            </Button>
+            <Button size="lg" variant="outline" className="gap-2 h-14 px-8" asChild>
+              <a href={downloads.linux} target="_blank" rel="noopener noreferrer">
+                <Terminal className="h-5 w-5" />
+                Linux
               </a>
             </Button>
             <Button size="lg" variant="outline" className="gap-2 h-14 px-8" asChild>
