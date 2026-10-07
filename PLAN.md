@@ -79,7 +79,7 @@ ya tiene.
 
 ### Página pública
 `capfinanzas.com` (repo `capfinanzas-web`, público — solo la landing, sin secretos).
-El botón de descarga apunta a los binarios alojados en **Cloudflare R2**.
+El botón de descarga apunta al **Worker de descargas** (ver abajo).
 
 ### Comprador
 Recibe por email:
@@ -101,6 +101,7 @@ El código determina el plan; el binario es el mismo para todos.
 | Generador de licencias (admin) | `src/pages/LicenseGenerator.tsx` + `supabase/functions/admin-dashboard/` |
 | Email al comprador | `supabase/functions/send-license-email/index.ts` |
 | Compilación multiplataforma | `.github/workflows/build.yml` |
+| Proxy de descargas | `worker/` (Cloudflare Worker `capfinanzas-downloads`) |
 | Este documento | `PLAN.md` |
 
 ---

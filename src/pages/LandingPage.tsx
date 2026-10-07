@@ -178,7 +178,7 @@ export default function LandingPage() {
   // Mientras R2 no este configurado, apuntan a los binarios alojados.
   // El nombre del archivo es FIJO (sin version) para que el enlace no se rompa
   // al publicar una version nueva. El CI los sube con ese nombre.
-  const DL_BASE = "https://downloads.capfinanzas.com";
+  const DL_BASE = "https://capfinanzas-downloads.capfinanzas.workers.dev";
   const downloads = {
     windows: `${DL_BASE}/Cap-Finanzas-Setup.exe`,
     mac: `${DL_BASE}/Cap-Finanzas-arm64.dmg`,

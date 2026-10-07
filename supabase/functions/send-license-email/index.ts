@@ -11,7 +11,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Enlaces de descarga (ver PLAN.md). Los binarios viven en Cloudflare R2.
 // Se pueden sobreescribir por variable de entorno sin tocar el codigo.
 const DL_BASE = Deno.env.get("DOWNLOAD_BASE_URL") ??
-  "https://downloads.capfinanzas.com";
+  "https://capfinanzas-downloads.capfinanzas.workers.dev";
 const DOWNLOADS = {
   windows: `${DL_BASE}/Cap-Finanzas-Setup.exe`,
   mac: `${DL_BASE}/Cap-Finanzas-arm64.dmg`,
