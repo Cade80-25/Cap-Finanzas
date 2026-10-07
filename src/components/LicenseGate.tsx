@@ -17,7 +17,9 @@ export function LicenseGate({ children }: LicenseGateProps) {
   const [activationOpen, setActivationOpen] = useState(false);
 
   useEffect(() => {
-    initializeTrial();
+    // initializeTrial es asincrono (consulta al servidor); se ignora el
+    // resultado para no bloquear el render.
+    void initializeTrial();
   }, [initializeTrial]);
 
   if (status === "active" || status === "trial") {

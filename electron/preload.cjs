@@ -5,6 +5,9 @@ contextBridge.exposeInMainWorld('electron', {
   platform: process.platform,
   isElectron: true,
 
+  // Identificador de maquina (control de la prueba gratuita)
+  getMachineId: () => ipcRenderer.invoke('get-machine-id'),
+
   // Native menu (File/Edit/View/...)
   setNativeMenuVisible: (visible) => ipcRenderer.send('set-native-menu-visible', visible),
   toggleNativeMenu: () => ipcRenderer.send('toggle-native-menu'),

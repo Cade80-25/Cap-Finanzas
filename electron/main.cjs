@@ -1,6 +1,9 @@
 const { app, BrowserWindow, ipcMain, session } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
+const crypto = require('crypto');
 
 // userData canónico: SIEMPRE "Cap Finanzas" (espacio), ANTES de que Chromium
 // inicialice el storage. Esto alinea TODOS los launchers (exe directo, accesos
@@ -51,6 +54,56 @@ function createWindow() {
 
   return win;
 }
+
+/**
+ * Identificador estable de la maquina, para controlar la prueba gratuita.
+ *
+ * Se combinan dos fuentes:
+ *  1. Una huella del hardware (hostname + plataforma + CPU). Sobrevive a
+ *     reinstalar la app, y cambia solo si cambian piezas importantes.
+ *  2. Un id aleatorio guardado en una carpeta aparte de los datos de la app
+ *     (no se borra al reinstalar, solo al formatear).
+ *
+ * El servidor recuerda cualquiera de los dos. Asi un cliente legitimo que
+ * cambia una pieza no queda bloqueado, pero borrar los datos no reinicia
+ * la prueba.
+ */
+function obtenerMachineId() {
+  // --- 1. huella de hardware ---
+  let huella = '';
+  try {
+    const cpu = os.cpus()?.[0]?.model ?? '';
+    huella = crypto
+      .createHash('sha256')
+      .update([os.hostname(), os.platform(), os.arch(), cpu].join('|'))
+      .digest('hex')
+      .slice(0, 32);
+  } catch (_) {
+    huella = '';
+  }
+
+  // --- 2. id persistente fuera de los datos de la app ---
+  let idGuardado = '';
+  try {
+    const carpeta = path.join(app.getPath('appData'), '.capfinanzas-id');
+    const archivo = path.join(carpeta, 'machine.id');
+    if (fs.existsSync(archivo)) {
+      idGuardado = fs.readFileSync(archivo, 'utf8').trim();
+    }
+    if (!idGuardado) {
+      idGuardado = crypto.randomBytes(16).toString('hex');
+      fs.mkdirSync(carpeta, { recursive: true });
+      fs.writeFileSync(archivo, idGuardado, { mode: 0o600 });
+    }
+  } catch (_) {
+    idGuardado = '';
+  }
+
+  // Se expone la huella como principal; el servidor guarda ambas.
+  return huella || idGuardado;
+}
+
+ipcMain.handle('get-machine-id', () => obtenerMachineId());
 
 app.whenReady().then(() => {
   createWindow();

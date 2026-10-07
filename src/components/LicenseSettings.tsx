@@ -11,8 +11,7 @@ import {
   CheckCircle2, 
   Wallet, 
   BookOpen,
-  Sparkles
-} from "lucide-react";
+  Sparkles, MonitorSmartphone} from "lucide-react";
 import { PurchaseDialog } from "./PurchaseDialog";
 import { ActivationDialog } from "./ActivationDialog";
 import { cn } from "@/lib/utils";
@@ -75,6 +74,25 @@ export function LicenseSettings() {
               <div className="flex items-center gap-2 text-emerald-600">
                 <CheckCircle2 className="h-5 w-5" />
                 <span className="font-medium">Licencia verificada — Acceso completo</span>
+              </div>
+              <div className="rounded-lg border bg-muted/40 p-3 space-y-1.5">
+                <p className="text-xs font-medium flex items-center gap-1.5">
+                  <MonitorSmartphone className="h-3.5 w-3.5" />
+                  ¿Cambiaste de computadora?
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Tu código funciona en cualquier equipo nuevo: instala el programa
+                  y actívalo con el mismo código. Cada licencia permite hasta
+                  <strong> 5 activaciones</strong> (por ejemplo, al formatear la PC
+                  o comprar una nueva).
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Si ya las usaste todas, escríbenos a{" "}
+                  <a href="mailto:soporte@capfinanzas.com" className="text-primary underline">
+                    soporte@capfinanzas.com
+                  </a>{" "}
+                  y lo resolvemos.
+                </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="outline" className="gap-1">

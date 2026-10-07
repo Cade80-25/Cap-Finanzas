@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+import { PlanGuard } from "@/components/PlanGuard";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -96,19 +97,19 @@ const App = () => (
                   <Route path="calendario" element={<Calendario />} />
                   <Route path="presupuesto" element={<Presupuesto />} />
                   <Route path="monedas" element={<Monedas />} />
-                  <Route path="categorias" element={<Categorias />} />
+                  <Route path="categorias" element={<PlanGuard feature="categories"><Categorias /></PlanGuard>} />
                   <Route path="resumen" element={<Resumen />} />
-                  <Route path="contabilidad" element={<Contabilidad />} />
+                  <Route path="contabilidad" element={<PlanGuard feature="accounting"><Contabilidad /></PlanGuard>} />
                   <Route path="aprender" element={<Aprender />} />
                   <Route path="notificaciones" element={<Notificaciones />} />
                   <Route path="ajustes" element={<Ajustes />} />
                   <Route path="instalar" element={<Instalar />} />
                   {/* Redirecciones legacy: rutas antiguas → nuevas agrupadas */}
-                  <Route path="consolidado" element={<Resumen />} />
-                  <Route path="libro-diario" element={<Contabilidad />} />
-                  <Route path="libro-mayor" element={<Contabilidad />} />
-                  <Route path="balance" element={<Contabilidad />} />
-                  <Route path="resultados" element={<Contabilidad />} />
+                  <Route path="consolidado" element={<PlanGuard feature="consolidated"><Resumen /></PlanGuard>} />
+                  <Route path="libro-diario" element={<PlanGuard feature="journal"><Contabilidad /></PlanGuard>} />
+                  <Route path="libro-mayor" element={<PlanGuard feature="ledger"><Contabilidad /></PlanGuard>} />
+                  <Route path="balance" element={<PlanGuard feature="balance"><Contabilidad /></PlanGuard>} />
+                  <Route path="resultados" element={<PlanGuard feature="incomeStatement"><Contabilidad /></PlanGuard>} />
                   <Route path="enciclopedia" element={<Aprender />} />
                   <Route path="recomendaciones" element={<Aprender />} />
                   <Route path="manual" element={<Aprender />} />

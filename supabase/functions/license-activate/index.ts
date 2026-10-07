@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
 
     const { data: license, error } = await supabase
       .from("licenses")
-      .select("id, code, is_used, revoked, installation_id, activated_at, license_type")
+      .select("id, code, is_used, revoked, installation_id, activated_at, license_type, activation_count")
       .eq("code", code)
       .maybeSingle();
 
@@ -107,11 +107,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (license.is_used && license.installation_id && license.installation_id !== installation_id) {
-      return new Response(JSON.stringify({ error: "code_used_elsewhere" }), {
-        status: 409,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Reactivacion permitida: el cliente puede cambiar de computadora o
+    // reinstalar Windows. Se limita el numero total de activaciones para
+    // evitar que un codigo se reparta entre muchas personas.
+    const MAX_ACTIVATIONS = 5;
+    const usadas = license.activation_count ?? 0;
+    const esNuevaInstalacion =
+      !license.installation_id || license.installation_id !== installation_id;
+
+    if (esNuevaInstalacion && usadas >= MAX_ACTIVATIONS) {
+      return new Response(
+        JSON.stringify({
+          error: "activation_limit_reached",
+          max: MAX_ACTIVATIONS,
+          usadas,
+        }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     const nowIso = new Date().toISOString();
@@ -122,6 +134,8 @@ Deno.serve(async (req) => {
       .update({
         is_used: true,
         installation_id,
+        activation_count: esNuevaInstalacion ? usadas + 1 : usadas,
+        last_activation_at: new Date().toISOString(),
         activated_at,
         last_seen_at: nowIso,
       })

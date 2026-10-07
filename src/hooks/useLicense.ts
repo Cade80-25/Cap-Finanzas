@@ -87,15 +87,49 @@ export function useLicense() {
   const installationId = useMemo(() => getInstallationId(), []);
   const [token, setTokenState] = useState<LicenseTokenData | null>(() => readToken());
 
-  // Initialize trial on first use
-  const initializeTrial = useCallback(() => {
-    if (!licenseData.trialStartDate) {
-      setLicenseData((prev) => ({
-        ...prev,
-        trialStartDate: new Date().toISOString(),
-      }));
+  /**
+   * Inicia la prueba gratuita, consultando primero al servidor.
+   *
+   * El servidor recuerda que maquina ya uso su prueba. Asi, borrar los datos
+   * de la app (o reinstalar) NO reinicia los 30 dias. Si el servidor no
+   * responde (sin internet), se permite la prueba con el registro local para
+   * no bloquear a un cliente legitimo sin conexion.
+   */
+  const initializeTrial = useCallback(async () => {
+    if (licenseData.trialStartDate) return;
+
+    // Obtener el identificador de maquina (Electron) o el de respaldo (web)
+    let machineId = installationId;
+    try {
+      const api = (window as any).electron;
+      if (api?.getMachineId) {
+        const id = await api.getMachineId();
+        if (id) machineId = id;
+      }
+    } catch {
+      // sin Electron: usar el id local
     }
-  }, [licenseData.trialStartDate, setLicenseData]);
+
+    let fechaInicio = new Date().toISOString();
+    try {
+      const { data, error } = await supabase.functions.invoke("register-trial", {
+        body: { machine_id: machineId },
+      });
+      if (!error && data) {
+        if (data.allowed === false && data.trial_started_at) {
+          // Ya uso la prueba en esta maquina: respetar la fecha original
+          fechaInicio = data.trial_started_at;
+        } else if (data.trial_started_at) {
+          fechaInicio = data.trial_started_at;
+        }
+      }
+      // Si hay error de red, se sigue con la fecha local (no bloquear)
+    } catch {
+      // sin conexion: continuar con la fecha local
+    }
+
+    setLicenseData((prev) => ({ ...prev, trialStartDate: fechaInicio }));
+  }, [licenseData.trialStartDate, setLicenseData, installationId]);
 
   // Trial info (includes referral bonus days)
   const trialInfo = useMemo(() => {
@@ -321,6 +355,8 @@ function humanizeError(err: string): string {
       return "Esta licencia fue revocada. Contacta a soporte.";
     case "code_used_elsewhere":
       return "Este código ya fue activado en otra instalación.";
+    case "activation_limit_reached":
+      return "Este código alcanzó el límite de 5 activaciones. Si cambiaste de computadora y necesitas reactivarlo, escríbenos a soporte@capfinanzas.com.";
     case "invalid_input":
       return "Código con formato inválido.";
     case "network_error":
