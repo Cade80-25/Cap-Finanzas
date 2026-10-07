@@ -8,6 +8,16 @@ const corsHeaders = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Enlaces de descarga (ver PLAN.md). Los binarios viven en Cloudflare R2.
+// Se pueden sobreescribir por variable de entorno sin tocar el codigo.
+const DL_BASE = Deno.env.get("DOWNLOAD_BASE_URL") ??
+  "https://downloads.capfinanzas.com";
+const DOWNLOADS = {
+  windows: `${DL_BASE}/Cap-Finanzas-Setup.exe`,
+  mac: `${DL_BASE}/Cap-Finanzas-arm64.dmg`,
+  linux: `${DL_BASE}/Cap-Finanzas.AppImage`,
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -32,6 +42,14 @@ Deno.serve(async (req) => {
 
     const normalizedEmail = email.toLowerCase().trim();
     const normalizedCode = licenseCode.trim().toUpperCase();
+
+    // Nombre del plan y vigencia, para que el correo diga la verdad.
+    const planRaw = String(licenseType ?? "full").toLowerCase();
+    const isSimple = planRaw === "simple";
+    const planName = isSimple ? "Simples" : "Empresarial";
+    const planVigencia = isSimple
+      ? "Licencia permanente (pago único)"
+      : "Vigencia de 6 meses, renovable";
 
     // Verify code actually exists and belongs to this email (prevents spam relay)
     const supabase = createClient(
@@ -69,7 +87,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: "Cap Finanzas <noreply@capfinanzas.com>",
         to: [normalizedEmail],
-        subject: "Tu licencia de Cap Finanzas — Acceso Completo",
+        subject: `Tu licencia de Cap Finanzas — Plan ${planName}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h1 style="color: #2563eb; text-align: center;">¡Gracias por tu compra!</h1>
@@ -79,8 +97,27 @@ Deno.serve(async (req) => {
                 ${normalizedCode}
               </p>
               <p style="margin: 12px 0 0; color: #64748b; font-size: 14px;">
-                Acceso Completo — Cap Finanzas
+                Plan ${planName} — Cap Finanzas
               </p>
+              <p style="margin: 4px 0 0; color: #94a3b8; font-size: 13px;">
+                ${planVigencia}
+              </p>
+            </div>
+
+            <h2 style="color: #1e293b;">Descarga el programa</h2>
+            <p style="color: #475569; line-height: 1.6;">
+              Elige la versión para tu sistema operativo:
+            </p>
+            <div style="text-align: center; margin: 16px 0;">
+              <a href="${DOWNLOADS.windows}" style="display: inline-block; background: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; margin: 4px;">
+                Descargar para Windows
+              </a>
+              <a href="${DOWNLOADS.mac}" style="display: inline-block; background: #1e293b; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; margin: 4px;">
+                Descargar para Mac
+              </a>
+              <a href="${DOWNLOADS.linux}" style="display: inline-block; background: #475569; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; margin: 4px;">
+                Descargar para Linux
+              </a>
             </div>
             <h2 style="color: #1e293b;">¿Cómo activar?</h2>
             <ol style="color: #475569; line-height: 1.8;">
