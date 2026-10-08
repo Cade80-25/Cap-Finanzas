@@ -6,39 +6,23 @@ const os = require('os');
 const crypto = require('crypto');
 
 // ─── Proxy de Yahoo Finance (evita CORS desde el renderer) ───
-const https = require('https');
-
-function yahooFetch(url) {
-  return new Promise((resolve, reject) => {
-    const req = https.get(url, {
+// Usa fetch nativo de Node.js 18+ (disponible en Electron)
+ipcMain.handle('yahoo-finance', async (event, url) => {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const res = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': 'application/json',
-      }
-    }, (res) => {
-      let data = '';
-      res.on('data', (chunk) => data += chunk);
-      res.on('end', () => {
-        try {
-          resolve(JSON.parse(data));
-        } catch (e) {
-          reject(new Error('Invalid JSON'));
-        }
-      });
+      },
+      signal: controller.signal,
     });
-    req.on('error', reject);
-    req.setTimeout(15000, () => {
-      req.destroy();
-      reject(new Error('Timeout'));
-    });
-  });
-}
-
-ipcMain.handle('yahoo-finance', async (event, url) => {
-  try {
-    return await yahooFetch(url);
+    clearTimeout(timeout);
+    if (!res.ok) return { error: 'HTTP ' + res.status };
+    return await res.json();
   } catch (e) {
-    return { error: e.message };
+    return { error: e.message || 'Unknown error' };
   }
 });
 
