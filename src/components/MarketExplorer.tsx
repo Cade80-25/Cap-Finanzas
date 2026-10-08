@@ -52,14 +52,23 @@ interface NewsItem {
   date: number;
 }
 
+// ─── Fetch vía proxy de Electron (evita CORS) ───
+async function yfFetch(url: string): Promise<any> {
+  // Si estamos en Electron, usar el proxy del proceso principal
+  if (typeof window !== 'undefined' && (window as any).electron?.yahooFinance) {
+    return (window as any).electron.yahooFinance(url);
+  }
+  // Fallback: fetch directo (desarrollo web)
+  const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+  return res.json();
+}
+
 // ─── API de Yahoo Finance ───
 async function fetchQuote(symbol: string): Promise<QuoteData | null> {
   try {
-    const res = await fetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`,
-      { headers: { "User-Agent": "Mozilla/5.0" } }
+    const data = await yfFetch(
+      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`
     );
-    const data = await res.json();
     const result = data?.chart?.result?.[0];
     if (!result) return null;
     const meta = result.meta;
@@ -83,11 +92,9 @@ async function fetchQuote(symbol: string): Promise<QuoteData | null> {
 
 async function fetchChart(symbol: string): Promise<ChartData | null> {
   try {
-    const res = await fetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=3mo`,
-      { headers: { "User-Agent": "Mozilla/5.0" } }
+    const data = await yfFetch(
+      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=3mo`
     );
-    const data = await res.json();
     const result = data?.chart?.result?.[0];
     if (!result) return null;
     return {
@@ -105,11 +112,9 @@ async function fetchChart(symbol: string): Promise<ChartData | null> {
 
 async function fetchNews(symbol: string): Promise<NewsItem[]> {
   try {
-    const res = await fetch(
-      `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(symbol)}&newsCount=8&quotesCount=0`,
-      { headers: { "User-Agent": "Mozilla/5.0" } }
+    const data = await yfFetch(
+      `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(symbol)}&newsCount=8&quotesCount=0`
     );
-    const data = await res.json();
     return (data?.news || []).map((n: any) => ({
       title: n.title || "",
       publisher: n.publisher || "",
@@ -123,11 +128,9 @@ async function fetchNews(symbol: string): Promise<NewsItem[]> {
 
 async function searchSymbol(query: string): Promise<string | null> {
   try {
-    const res = await fetch(
-      `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=1&newsCount=0`,
-      { headers: { "User-Agent": "Mozilla/5.0" } }
+    const data = await yfFetch(
+      `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=1&newsCount=0`
     );
-    const data = await res.json();
     const quotes = data?.quotes || [];
     if (quotes.length > 0) {
       return quotes[0].symbol;
