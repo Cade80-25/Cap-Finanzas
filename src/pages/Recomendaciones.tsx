@@ -25,7 +25,7 @@ export default function Recomendaciones() {
 
   // Determine access level based on license
   const hasFullLicense = useMemo(() => {
-    return status === "active" || (purchasedModes.includes("simple") && purchasedModes.includes("traditional"));
+    return status === "active" && purchasedModes.includes("simple") && purchasedModes.includes("traditional");
   }, [status, purchasedModes]);
 
   const hasChatAccess = useMemo(() => {
