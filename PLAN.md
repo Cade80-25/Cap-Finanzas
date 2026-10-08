@@ -57,7 +57,7 @@ El campo `exp` depende del **tipo de licencia**:
 | Calendario · Presupuesto · Monedas · Resumen | varias | Ambos |
 | Categorías | `/categorias` | Empresarial |
 | Contabilidad (Diario, Mayor, Balance, Resultados) | `/contabilidad` | Empresarial |
-| **Bolsas en Vivo** | `/bolsas` | Ambos (datos requieren internet) |
+| **Bolsas en Vivo** | `/bolsas` | Empresarial (datos requieren internet) |
 | Aprender · Recomendaciones · Manual | `/aprender` | Ambos |
 | Enciclopedia | `/aprender?tab=enciclopedia` | Empresarial |
 | Ajustes | `/ajustes` | Ambos |
