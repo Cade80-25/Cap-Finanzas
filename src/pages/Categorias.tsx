@@ -14,6 +14,7 @@ import { useAccountingData } from "@/hooks/useAccountingData";
 import { useSimpleAccountingData } from "@/hooks/useSimpleAccountingData";
 import { useModeFeatures } from "@/hooks/useModeFeatures";
 import { useNavigate } from "react-router-dom";
+import { CategoryIcon } from "@/components/CategoryIcon";
 
 // Categoría icons for simple mode
 const CATEGORY_ICONS: Record<string, string> = {
@@ -162,7 +163,7 @@ export default function Categorias() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <div className={`w-12 h-12 rounded-lg ${categoria.color} flex items-center justify-center text-2xl text-white`}>
-                          {categoria.icono}
+                          <CategoryIcon id={categoria.id} icon={categoria.icono} className="h-6 w-6" />
                         </div>
                         <div>
                           <h3 className="font-semibold">{categoria.nombre}</h3>

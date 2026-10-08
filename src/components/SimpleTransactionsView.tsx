@@ -334,8 +334,10 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
             <SelectItem value="none">Sin sección</SelectItem>
             {sections.map(s => (
               <SelectItem key={s.id} value={s.id}>
-                {s.icon && <span className="mr-1">{s.icon}</span>}
-                {s.label}
+                <span className="inline-flex items-center gap-1.5">
+                  <CategoryIcon icon={s.icon} className="h-3.5 w-3.5" />
+                  {s.label}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>

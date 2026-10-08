@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCategories, type Category, type SubCategory } from "@/hooks/useCategories";
+import { CategoryIcon } from "@/components/CategoryIcon";
+import { IconPicker } from "@/components/IconPicker";
 
 interface CategorySelectorProps {
   type: "income" | "expense";
@@ -46,6 +48,9 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
   const [editing, setEditing] = useState<EditState | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ categoryId: string; sub: SubCategory } | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  // A que estado escribe la biblioteca de iconos: nueva categoria / nueva sub / editar.
+  const [pickerTarget, setPickerTarget] = useState<"cat" | "sub" | "edit">("cat");
 
   const categories = type === "income" ? incomeCategories : expenseCategories;
   const filtered = search
@@ -131,7 +136,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                   onSelect(cat.id, undefined);
                 }}
               >
-                <span className="text-base">{cat.icon}</span>
+                <span className="text-base"><CategoryIcon id={cat.id} icon={cat.icon} className="h-4 w-4" /></span>
                 <span className="flex-1 truncate">{cat.label}</span>
                 <ChevronRight className={cn("h-3.5 w-3.5 transition-transform opacity-60", expandedCat === cat.id && "rotate-90")} />
                 <Button
@@ -184,7 +189,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                       )}
                       onClick={() => onSelect(cat.id, sub.id)}
                     >
-                      <span className="text-base">{sub.icon || "📌"}</span>
+                      <span className="text-base"><CategoryIcon id={cat.id} icon={sub.icon || "📌"} className="h-4 w-4" /></span>
                       <span className="flex-1 truncate">{sub.label}</span>
                       <Button
                         type="button"
@@ -227,7 +232,7 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
 
       {selectedCat && (
         <p className="text-xs text-muted-foreground">
-          Seleccionada: {selectedCat.icon} {selectedCat.label}
+          Seleccionada: <CategoryIcon id={selectedCat.id} icon={selectedCat.icon} className="inline h-3.5 w-3.5" /> {selectedCat.label}
           {subcategoryValue && ` > ${selectedCat.subcategories.find(s => s.id === subcategoryValue)?.label || subcategoryValue}`}
         </p>
       )}
@@ -245,8 +250,18 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
               <Input value={newCatLabel} onChange={e => setNewCatLabel(e.target.value)} placeholder="Ej: Gimnasio" />
             </div>
             <div>
-              <Label>Icono (emoji)</Label>
-              <Input value={newCatIcon} onChange={e => setNewCatIcon(e.target.value)} className="w-20 text-center text-xl" />
+              <Label>Icono</Label>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-2 flex-1 justify-start"
+                  onClick={() => { setPickerTarget("cat"); setPickerOpen(true); }}
+                >
+                  <CategoryIcon icon={newCatIcon} className="h-4 w-4" />
+                  <span className="text-sm text-muted-foreground">Elegir de la biblioteca…</span>
+                </Button>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -268,8 +283,16 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
               <Input value={newSubLabel} onChange={e => setNewSubLabel(e.target.value)} placeholder="Ej: Nafta Premium" />
             </div>
             <div>
-              <Label>Icono (emoji)</Label>
-              <Input value={newSubIcon} onChange={e => setNewSubIcon(e.target.value)} className="w-20 text-center text-xl" />
+              <Label>Icono</Label>
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2 w-full justify-start"
+                onClick={() => { setPickerTarget("sub"); setPickerOpen(true); }}
+              >
+                <CategoryIcon icon={newSubIcon} className="h-4 w-4" />
+                <span className="text-sm text-muted-foreground">Elegir de la biblioteca…</span>
+              </Button>
             </div>
           </div>
           <DialogFooter>
@@ -298,12 +321,16 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
                 />
               </div>
               <div>
-                <Label>Icono (emoji)</Label>
-                <Input
-                  value={editing.icon}
-                  onChange={e => setEditing({ ...editing, icon: e.target.value })}
-                  className="w-20 text-center text-xl"
-                />
+                <Label>Icono</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-2 w-full justify-start"
+                  onClick={() => { setPickerTarget("edit"); setPickerOpen(true); }}
+                >
+                  <CategoryIcon icon={editing.icon} className="h-4 w-4" />
+                  <span className="text-sm text-muted-foreground">Elegir de la biblioteca…</span>
+                </Button>
               </div>
             </div>
           )}
@@ -331,6 +358,22 @@ export function CategorySelector({ type, value, subcategoryValue, onSelect }: Ca
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Biblioteca de iconos (compartida por los 3 dialogos) */}
+      <IconPicker
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        value={
+          pickerTarget === "cat" ? newCatIcon
+          : pickerTarget === "sub" ? newSubIcon
+          : editing?.icon
+        }
+        onSelect={(name) => {
+          if (pickerTarget === "cat") setNewCatIcon(name);
+          else if (pickerTarget === "sub") setNewSubIcon(name);
+          else if (editing) setEditing({ ...editing, icon: name });
+        }}
+      />
     </div>
   );
 }

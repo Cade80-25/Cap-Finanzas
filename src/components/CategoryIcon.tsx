@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { repairMojibake } from "@/lib/repairMojibake";
+import { NAME_ICON_MAP } from "@/lib/icon-library";
 
 /**
  * Mapeo de id de categoría/subcategoría → ícono SVG de lucide-react.
@@ -119,13 +120,20 @@ export interface CategoryIconProps {
 }
 
 export function CategoryIcon({ icon, id, className = "h-4 w-4" }: CategoryIconProps) {
-  // 1) Si hay un id conocido, usar el ícono SVG de alta calidad.
+  // 1) id conocido (categorías por defecto) -> ícono SVG de alta calidad.
   const MappedIcon = id ? CATEGORY_ICON_MAP[id] : undefined;
   if (MappedIcon) {
     return <MappedIcon className={className} aria-hidden="true" />;
   }
 
-  // 2) Fallback: emoji textual para categorías personalizadas.
+  // 2) icon = name de la biblioteca (p.ej. "utensils"), elegido en IconPicker
+  //    al crear/editar -> SVG nítido.
+  const ByName = icon ? NAME_ICON_MAP[icon] : undefined;
+  if (ByName) {
+    return <ByName className={className} aria-hidden="true" />;
+  }
+
+  // 3) Fallback: emoji textual para categorías viejas.
   //    Reparar mojibake y descartar emojis corruptos (cuadros / secuencias rotas).
   const sane = icon ? repairMojibake(icon).replace(/^\s+|\s+$/g, "") : "";
   const looksLikeEmoji =
@@ -138,7 +146,7 @@ export function CategoryIcon({ icon, id, className = "h-4 w-4" }: CategoryIconPr
     return <span className={className} aria-hidden="true">{sane}</span>;
   }
 
-  // 3) Último recurso: ícono genérico limpio.
+  // 4) Último recurso: ícono genérico limpio.
   return <FolderOpen className={className} aria-hidden="true" />;
 }
 
