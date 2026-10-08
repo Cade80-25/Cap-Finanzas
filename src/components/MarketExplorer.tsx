@@ -271,9 +271,26 @@ const TradingViewNews = memo(({ symbol }: { symbol: string }) => {
 });
 TradingViewNews.displayName = "TradingViewNews";
 
+// Buscar simbolo en la API de TradingView
+async function searchSymbol(query: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://symbol-search.tradingview.com/symbol_search/?text=${encodeURIComponent(query)}&lang=es`,
+      { headers: { 'Origin': 'https://www.tradingview.com' } }
+    );
+    const data = await res.json();
+    if (data && data.length > 0) {
+      const r = data[0];
+      return `${r.exchange}:${r.symbol}`;
+    }
+  } catch {}
+  return null;
+}
+
 export default function MarketExplorer() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searching, setSearching] = useState(false);
   const [activeSymbol, setActiveSymbol] = useState<string | null>(() => {
     try {
       return localStorage.getItem("market-last-symbol") || null;
@@ -297,10 +314,24 @@ export default function MarketExplorer() {
     }
   }, [activeSymbol]);
 
-  const handleSearch = () => {
-    if (searchTerm.trim()) {
-      setActiveSymbol(searchTerm.trim().toUpperCase());
+  const handleSearch = async () => {
+    const q = searchTerm.trim();
+    if (!q) return;
+    setSearching(true);
+    // Si ya tiene exchange, usar directo
+    if (q.includes(':')) {
+      setActiveSymbol(q.toUpperCase());
+      return;
     }
+    // Buscar en TradingView
+    const found = await searchSymbol(q);
+    if (found) {
+      setActiveSymbol(found);
+    } else {
+      // Si no se encuentra, intentar con el texto original
+      setActiveSymbol(q.toUpperCase());
+    }
+    setSearching(false);
   };
 
   const selectSymbol = (symbol: string) => {
@@ -324,14 +355,14 @@ export default function MarketExplorer() {
       {/* Search */}
       <div className="flex gap-2">
         <Input
-          placeholder="Buscar símbolo (ej: AAPL, MSFT, BTCUSDT)..."
+          placeholder="Buscar símbolo (ej: AAPL, Bitcoin, Oro)..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           disabled={!isOnline}
         />
-        <Button onClick={handleSearch} disabled={!isOnline || !searchTerm.trim()}>
-          <Search className="h-4 w-4" />
+        <Button onClick={handleSearch} disabled={!isOnline || !searchTerm.trim() || searching}>
+          {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
         </Button>
       </div>
 
