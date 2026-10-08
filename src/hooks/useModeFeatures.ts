@@ -53,7 +53,7 @@ const FEATURE_CONFIG: FeatureConfig[] = [
   { key: "learn", route: "/aprender", label: "Aprender", simpleMode: true, traditionalMode: true },
   { key: "encyclopedia", route: "/aprender?tab=enciclopedia", label: "Enciclopedia", simpleMode: false, traditionalMode: true },
   { key: "recommendations", route: "/aprender?tab=recomendaciones", label: "Recomendaciones", simpleMode: true, traditionalMode: true },
-  { key: "markets", route: "/bolsas", label: "Bolsas en Vivo", simpleMode: true, traditionalMode: true },
+  { key: "markets", route: "/bolsas", label: "Bolsas en Vivo", simpleMode: false, traditionalMode: true },
   { key: "manual", route: "/aprender?tab=manual", label: "Manual de Usuario", simpleMode: true, traditionalMode: true },
   { key: "notifications", route: "/notificaciones", label: "Notificaciones", simpleMode: true, traditionalMode: true },
   { key: "settings", route: "/ajustes", label: "Ajustes", simpleMode: true, traditionalMode: true },
