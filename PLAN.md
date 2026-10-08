@@ -48,6 +48,32 @@ El campo `exp` depende del **tipo de licencia**:
 
 ---
 
+## Secciones de la aplicación
+
+| Sección | Ruta | Plan |
+|---|---|---|
+| Panel Principal | `/` | Ambos |
+| Transacciones | `/transacciones` | Ambos |
+| Calendario · Presupuesto · Monedas · Resumen | varias | Ambos |
+| Categorías | `/categorias` | Empresarial |
+| Contabilidad (Diario, Mayor, Balance, Resultados) | `/contabilidad` | Empresarial |
+| **Bolsas en Vivo** | `/bolsas` | Ambos (datos requieren internet) |
+| Aprender · Recomendaciones · Manual | `/aprender` | Ambos |
+| Enciclopedia | `/aprender?tab=enciclopedia` | Empresarial |
+| Ajustes | `/ajustes` | Ambos |
+
+### Bolsas en Vivo
+
+Cotizaciones mundiales vía widgets de **TradingView** (no requiere API key propia).
+
+Incluye: resumen de mercados (Acciones, Índices, Crypto, Latinoamérica, Commodities),
+gráfico en tiempo real, análisis técnico, perfil de empresa y **noticias por activo**.
+
+> Antes vivía escondida en Aprender → Recomendaciones → pestaña "Bolsas en Vivo"
+> (tres niveles). Se le dio sección propia en el menú principal.
+
+---
+
 ## Protección anti-abuso
 
 Tres controles, todos verificados:
