@@ -56,9 +56,13 @@ interface NewsItem {
 async function yfFetch(url: string): Promise<any> {
   // Si estamos en Electron, usar el proxy del proceso principal
   if (typeof window !== 'undefined' && (window as any).electron?.yahooFinance) {
-    return (window as any).electron.yahooFinance(url);
+    try {
+      const result = await (window as any).electron.yahooFinance(url);
+      if (result && !result.error) return result;
+      // Si el proxy devuelve error, intentar fetch directo como fallback
+    } catch {}
   }
-  // Fallback: fetch directo (desarrollo web)
+  // Fallback: fetch directo (desarrollo web o si IPC falla)
   const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
   return res.json();
 }
