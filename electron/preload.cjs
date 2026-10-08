@@ -12,6 +12,9 @@ contextBridge.exposeInMainWorld('electron', {
   setNativeMenuVisible: (visible) => ipcRenderer.send('set-native-menu-visible', visible),
   toggleNativeMenu: () => ipcRenderer.send('toggle-native-menu'),
 
+  // Yahoo Finance proxy (evita CORS desde el renderer)
+  yahooFinance: (url) => ipcRenderer.invoke('yahoo-finance', url),
+
   // Auto-updater API
   checkForUpdates: () => ipcRenderer.send('check-for-updates'),
   downloadUpdate: () => ipcRenderer.send('download-update'),
