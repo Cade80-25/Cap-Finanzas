@@ -1,4 +1,6 @@
 const { app, BrowserWindow, ipcMain, session } = require('electron');
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
@@ -12,6 +14,7 @@ const https = require('https');
 function yahooFetch(url) {
   return new Promise((resolve) => {
     const req = https.get(url, {
+      family: 4,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': 'application/json',
