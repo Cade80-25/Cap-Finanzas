@@ -8,20 +8,20 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const popularSymbols = [
-  { symbol: "AAPL", name: "Apple" },
-  { symbol: "MSFT", name: "Microsoft" },
-  { symbol: "GOOGL", name: "Google" },
-  { symbol: "AMZN", name: "Amazon" },
-  { symbol: "TSLA", name: "Tesla" },
-  { symbol: "META", name: "Meta" },
-  { symbol: "NVDA", name: "Nvidia" },
-  { symbol: "NFLX", name: "Netflix" },
-  { symbol: "JPM", name: "JPMorgan" },
-  { symbol: "BTC", name: "Bitcoin" },
-  { symbol: "ETH", name: "Ethereum" },
-  { symbol: "SPX", name: "S&P 500" },
-  { symbol: "GOLD", name: "Oro" },
-  { symbol: "EURUSD", name: "Euro/Dólar" },
+  { symbol: "NASDAQ:AAPL", name: "Apple" },
+  { symbol: "NASDAQ:MSFT", name: "Microsoft" },
+  { symbol: "NASDAQ:GOOGL", name: "Google" },
+  { symbol: "NASDAQ:AMZN", name: "Amazon" },
+  { symbol: "NASDAQ:TSLA", name: "Tesla" },
+  { symbol: "NASDAQ:META", name: "Meta" },
+  { symbol: "NASDAQ:NVDA", name: "Nvidia" },
+  { symbol: "NASDAQ:NFLX", name: "Netflix" },
+  { symbol: "NYSE:JPM", name: "JPMorgan" },
+  { symbol: "BINANCE:BTCUSDT", name: "Bitcoin" },
+  { symbol: "BINANCE:ETHUSDT", name: "Ethereum" },
+  { symbol: "SP:SPX", name: "S&P 500" },
+  { symbol: "TVC:GOLD", name: "Oro" },
+  { symbol: "OANDA:EURUSD", name: "Euro/Dólar" },
 ];
 
 // TradingView Chart Widget
