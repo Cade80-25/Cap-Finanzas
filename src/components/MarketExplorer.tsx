@@ -59,11 +59,10 @@ async function yfFetch(url: string): Promise<any> {
     try {
       const result = await (window as any).electron.yahooFinance(url);
       if (result && !result.error) return result;
-      // Si el proxy devuelve error, intentar fetch directo como fallback
     } catch {}
   }
-  // Fallback: fetch directo (desarrollo web o si IPC falla)
-  const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+  // Fallback: fetch directo sin User-Agent (Yahoo lo rechaza)
+  const res = await fetch(url);
   return res.json();
 }
 
