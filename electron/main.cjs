@@ -5,6 +5,43 @@ const fs = require('fs');
 const os = require('os');
 const crypto = require('crypto');
 
+// ─── Proxy de Yahoo Finance (evita CORS desde el renderer) ───
+const https = require('https');
+
+function yahooFetch(url) {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/json',
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          reject(new Error('Invalid JSON'));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(15000, () => {
+      req.destroy();
+      reject(new Error('Timeout'));
+    });
+  });
+}
+
+ipcMain.handle('yahoo-finance', async (event, url) => {
+  try {
+    return await yahooFetch(url);
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+
 // userData canónico: SIEMPRE "Cap Finanzas" (espacio), ANTES de que Chromium
 // inicialice el storage. Esto alinea TODOS los launchers (exe directo, accesos
 // directos, instalador) a la misma carpeta con los datos del usuario, sin
