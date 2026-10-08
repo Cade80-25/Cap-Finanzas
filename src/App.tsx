@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { PlanGuard } from "@/components/PlanGuard";
+import Bolsas from "@/pages/Bolsas";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -100,6 +101,7 @@ const App = () => (
                   <Route path="categorias" element={<PlanGuard feature="categories"><Categorias /></PlanGuard>} />
                   <Route path="resumen" element={<Resumen />} />
                   <Route path="contabilidad" element={<PlanGuard feature="accounting"><Contabilidad /></PlanGuard>} />
+                  <Route path="bolsas" element={<PlanGuard feature="markets"><Bolsas /></PlanGuard>} />
                   <Route path="aprender" element={<Aprender />} />
                   <Route path="notificaciones" element={<Notificaciones />} />
                   <Route path="ajustes" element={<Ajustes />} />

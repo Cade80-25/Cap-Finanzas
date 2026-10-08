@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, memo } from "react";
-import { Search, Wifi, WifiOff, TrendingUp, BarChart3, Globe, Loader2 } from "lucide-react";
+import { Search, Wifi, WifiOff, TrendingUp, BarChart3, Globe, Loader2, Newspaper } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,9 @@ const popularSymbols = [
   { symbol: "JPM", name: "JPMorgan" },
   { symbol: "BTC", name: "Bitcoin" },
   { symbol: "ETH", name: "Ethereum" },
+  { symbol: "SPX", name: "S&P 500" },
+  { symbol: "GOLD", name: "Oro" },
+  { symbol: "EURUSD", name: "Euro/Dólar" },
 ];
 
 // TradingView Chart Widget
@@ -207,6 +210,14 @@ const TradingViewOverview = memo(() => {
           ],
         },
         {
+          title: "Latinoamérica",
+          symbols: [
+            { s: "BMFBOVESPA:IBOV", d: "Bovespa (Brasil)" },
+            { s: "SP:IMV", d: "Merval (Argentina)" },
+            { s: "BMV:ME", d: "IPC (México)" },
+          ],
+        },
+        {
           title: "Commodities",
           symbols: [
             { s: "TVC:GOLD", d: "Oro" },
@@ -227,6 +238,38 @@ const TradingViewOverview = memo(() => {
   );
 });
 TradingViewOverview.displayName = "TradingViewOverview";
+
+// Noticias del activo (TradingView Timeline)
+const TradingViewNews = memo(({ symbol }: { symbol: string }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = "";
+
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-timeline.js";
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      feedMode: "symbol",
+      symbol: symbol,
+      isTransparent: true,
+      displayMode: "regular",
+      width: "100%",
+      height: 460,
+      colorTheme: "light",
+      locale: "es",
+    });
+    containerRef.current.appendChild(script);
+  }, [symbol]);
+
+  return (
+    <div className="tradingview-widget-container" ref={containerRef} style={{ height: 460 }}>
+      <div className="tradingview-widget-container__widget" />
+    </div>
+  );
+});
+TradingViewNews.displayName = "TradingViewNews";
 
 export default function MarketExplorer() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -326,6 +369,22 @@ export default function MarketExplorer() {
             </CardHeader>
             <CardContent>
               <TradingViewChart symbol={activeSymbol} />
+            </CardContent>
+          </Card>
+
+          {/* Noticias del activo */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Newspaper className="h-4 w-4 text-primary" />
+                Noticias y Análisis de {activeSymbol}
+              </CardTitle>
+              <CardDescription>
+                Cobertura periodística del activo, actualizada en tiempo real
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TradingViewNews symbol={activeSymbol} />
             </CardContent>
           </Card>
 

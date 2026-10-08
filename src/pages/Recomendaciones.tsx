@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Sparkles, TrendingUp, BookOpen, Target, MessageCircle, Send, LineChart, DollarSign, AlertTriangle, LucideIcon, ShieldAlert, Info, BarChart3, Lock } from "lucide-react";
 import { useLicense } from "@/hooks/useLicense";
-import MarketExplorer from "@/components/MarketExplorer";
 import { RecommendationDetailDialog } from "@/components/RecommendationDetailDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -299,7 +298,7 @@ export default function Recomendaciones() {
                     </p>
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-xs font-medium">
                       <TrendingUp className="h-3.5 w-3.5" />
-                      Disponible con prueba activa o Licencia Única ($10)
+                      Disponible con prueba activa o plan Empresarial
                     </div>
                   </CardContent>
                 </Card>
@@ -397,12 +396,25 @@ export default function Recomendaciones() {
                     </p>
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted text-xs font-medium">
                       <BarChart3 className="h-3.5 w-3.5" />
-                      Disponible con prueba activa o Licencia Única ($10)
+                      Disponible con prueba activa o plan Empresarial
                     </div>
                   </CardContent>
                 </Card>
               ) : (
-                <MarketExplorer />
+                <Card className="border-dashed">
+                  <CardContent className="pt-6 text-center space-y-4">
+                    <BarChart3 className="h-12 w-12 mx-auto text-primary" />
+                    <h3 className="font-semibold text-lg">Bolsas en Vivo</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Ahora tiene su propia sección en el menú, con cotizaciones,
+                      gráficos, análisis técnico y noticias de los mercados mundiales.
+                    </p>
+                    <Button onClick={() => (window.location.hash = "#/bolsas")}>
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                      Ir a Bolsas en Vivo
+                    </Button>
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
           </Tabs>
