@@ -52,18 +52,39 @@ interface NewsItem {
   date: number;
 }
 
+// ─── Debug ───
+function addDebug(msg: string) {
+  setDebugInfo(prev => [...prev.slice(-4), msg]);
+}
+
 // ─── Fetch vía proxy de Electron (evita CORS) ───
 async function yfFetch(url: string): Promise<any> {
-  // Si estamos en Electron, usar el proxy del proceso principal
-  if (typeof window !== 'undefined' && (window as any).electron?.yahooFinance) {
+  const hasElectron = typeof window !== 'undefined' && (window as any).electron;
+  const hasProxy = hasElectron && (window as any).electron?.yahooFinance;
+  addDebug('electron: ' + hasElectron + ', proxy: ' + hasProxy);
+  
+  if (hasProxy) {
     try {
+      addDebug('calling proxy...');
       const result = await (window as any).electron.yahooFinance(url);
+      addDebug('proxy result: ' + JSON.stringify(result).slice(0, 100));
       if (result && !result.error) return result;
-    } catch {}
+      addDebug('proxy error: ' + (result?.error || 'unknown'));
+    } catch (e: any) {
+      addDebug('proxy exception: ' + e.message);
+    }
   }
+  
   // Fallback: fetch directo sin User-Agent (Yahoo lo rechaza)
-  const res = await fetch(url);
-  return res.json();
+  addDebug('trying direct fetch...');
+  try {
+    const res = await fetch(url);
+    addDebug('direct fetch status: ' + res.status);
+    return res.json();
+  } catch (e: any) {
+    addDebug('direct fetch error: ' + e.message);
+    throw e;
+  }
 }
 
 // ─── API de Yahoo Finance ───
@@ -518,6 +539,7 @@ export default function MarketExplorer() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -571,6 +593,15 @@ export default function MarketExplorer() {
 
   return (
     <div className="space-y-4">
+      {/* Debug overlay */}
+      <div className="fixed bottom-4 right-4 bg-black/80 text-green-400 text-xs p-3 rounded-lg max-w-md z-50 font-mono">
+        <div className="font-bold text-yellow-400 mb-1">DEBUG</div>
+        {debugInfo.map((msg, i) => (
+          <div key={i}>{msg}</div>
+        ))}
+        {debugInfo.length === 0 && <div>waiting...</div>}
+      </div>
+
       {!isOnline && (
         <Alert variant="destructive">
           <WifiOff className="h-4 w-4" />
