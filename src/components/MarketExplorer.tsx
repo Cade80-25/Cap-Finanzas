@@ -955,7 +955,7 @@ const MarketsBoard = memo(({ onSymbolClick }: { onSymbolClick: (s: string) => vo
           MERCADOS EN VIVO
         </span>
         <span>
-          {lastUpdate ? `Actualizado ${lastUpdate.toLocaleTimeString("es-UY", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : ""}
+          {lastUpdate ? `Actualizado ${lastUpdate.toLocaleTimeString("es-UY", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}` : ""}
           {countdown ? ` · ${countdown}` : ""}
         </span>
       </div>
@@ -1259,7 +1259,7 @@ export default function MarketExplorer() {
               </span>
               <span className="font-medium text-emerald-600 dark:text-emerald-400">EN VIVO</span>
             </span>
-            {lastUpdate && <span>· Actualizado: {lastUpdate.toLocaleTimeString("es-UY")}</span>}
+            {lastUpdate && <span>· Actualizado: {lastUpdate.toLocaleTimeString("es-UY", { hour12: false })}</span>}
             <span>· Se actualiza solo cada 30 s</span>
             <Button
               variant="ghost"

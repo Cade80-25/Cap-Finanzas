@@ -51,7 +51,9 @@ ipcMain.handle('yahoo-finance', async (event, url) => {
 // directos, instalador) a la misma carpeta con los datos del usuario, sin
 // importar el name/productName del package.json ni la carpeta de instalación.
 // Evita la divergencia espacio/guion que ocultaba transacciones.
-app.setPath('userData', path.join(app.getPath('appData'), 'Cap Finanzas'));
+app.setPath('userData', process.env.CAPFINANZAS_USERDATA
+  ? path.resolve(process.env.CAPFINANZAS_USERDATA)
+  : path.join(app.getPath('appData'), 'Cap Finanzas'));
 
 function createWindow() {
   const win = new BrowserWindow({
