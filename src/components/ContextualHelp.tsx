@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Lightbulb, X, ChevronDown, ChevronUp, EyeOff } from "lucide-react";
+import { Lightbulb, X, ChevronDown, ChevronUp, EyeOff, Sparkles } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useHelpPreferences } from "@/hooks/useHelpPreferences";
@@ -94,6 +94,8 @@ type EmptyStateHelpProps = {
   tips?: string[];
   actionLabel?: string;
   onAction?: () => void;
+  secondaryLabel?: string;
+  onSecondaryAction?: () => void;
   icon?: React.ReactNode;
 };
 
@@ -103,6 +105,8 @@ export function EmptyStateHelp({
   tips,
   actionLabel,
   onAction,
+  secondaryLabel,
+  onSecondaryAction,
   icon,
 }: EmptyStateHelpProps) {
   const { showEmptyStateHelp, disableAllHelp } = useHelpPreferences();
@@ -133,6 +137,12 @@ export function EmptyStateHelp({
       <div className="flex flex-col sm:flex-row gap-2">
         {actionLabel && onAction && (
           <Button onClick={onAction}>{actionLabel}</Button>
+        )}
+        {secondaryLabel && onSecondaryAction && (
+          <Button variant="outline" onClick={onSecondaryAction}>
+            <Sparkles className="h-4 w-4 mr-2" />
+            {secondaryLabel}
+          </Button>
         )}
         {showEmptyStateHelp && (
           <Button

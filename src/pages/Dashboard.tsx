@@ -134,6 +134,8 @@ export default function Dashboard() {
           ]}
           actionLabel={addTransactionLabel}
           onAction={() => navigate(addTransactionRoute)}
+          secondaryLabel="Probar con datos de ejemplo"
+          onSecondaryAction={() => navigate("/?demo=1")}
         />
       )}
 

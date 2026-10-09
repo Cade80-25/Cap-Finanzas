@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sparkles, X } from "lucide-react";
-import { isDemoActive, loadDemoData, clearDemoData } from "@/lib/demo-data";
+import { isDemoActive, loadDemoData, clearDemoData, purgeDemoData } from "@/lib/demo-data";
 import { useToast } from "@/hooks/use-toast";
 
 export function DemoModeBanner() {
@@ -30,7 +30,13 @@ export function DemoModeBanner() {
 
   const handleClear = () => {
     clearDemoData();
-    toast({ title: "Datos demo eliminados", description: "Tu app quedó vacía y lista." });
+    toast({ title: "Volviste a tus datos", description: "Tus transacciones reales fueron restauradas." });
+    setTimeout(() => window.location.reload(), 400);
+  };
+
+  const handlePurge = () => {
+    purgeDemoData();
+    toast({ title: "Datos demo eliminados", description: "La app quedó vacía y lista para tus datos." });
     setTimeout(() => window.location.reload(), 400);
   };
 
@@ -42,14 +48,23 @@ export function DemoModeBanner() {
           <strong>Modo demo:</strong> estás viendo datos de ejemplo, no son tuyos.
         </span>
       </div>
-      <Button
-        size="sm"
-        variant="outline"
-        className="flex-shrink-0 h-7 text-xs"
-        onClick={handleClear}
-      >
-        <X className="h-3 w-3 mr-1" /> Borrar datos demo
-      </Button>
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        <Button
+          size="sm"
+          onClick={handleClear}
+          className="h-7 text-xs"
+        >
+          Volver a mis datos
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 text-xs"
+          onClick={handlePurge}
+        >
+          <X className="h-3 w-3 mr-1" /> Empezar de cero
+        </Button>
+      </div>
     </div>
   );
 }

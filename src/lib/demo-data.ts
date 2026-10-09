@@ -128,3 +128,14 @@ export function clearDemoData() {
   localStorage.removeItem(DEMO_BACKUP_KEY);
   localStorage.removeItem(DEMO_FLAG_KEY);
 }
+
+/**
+ * Sale del demo SIN restaurar nada: borra journal+budgets por completo.
+ * Para usuarios nuevos que terminaron el tour y quieren empezar de cero.
+ */
+export function purgeDemoData() {
+  localStorage.removeItem(JOURNAL_KEY);
+  localStorage.removeItem(BUDGETS_KEY);
+  localStorage.removeItem(DEMO_BACKUP_KEY);
+  localStorage.removeItem(DEMO_FLAG_KEY);
+}
