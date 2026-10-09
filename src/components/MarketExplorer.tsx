@@ -548,7 +548,7 @@ export default function MarketExplorer() {
   const [dataLoading, setDataLoading] = useState(false);
 
   // Debug: suscribirse al buffer de módulo (addDebug vive fuera del componente)
-  const [debugInfo, setDebugInfo] = useState<string[]>([...debugBuf]);
+  const [, setDebugInfo] = useState<string[]>([]);
   useEffect(() => {
     const fn = (msgs: string[]) => setDebugInfo(msgs);
     debugListeners.add(fn);
