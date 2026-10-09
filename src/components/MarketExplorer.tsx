@@ -731,67 +731,333 @@ const CompanyProfile = memo(({ quote }: { quote: QuoteData | null }) => {
 });
 CompanyProfile.displayName = "CompanyProfile";
 
-// ─── Resumen de mercados ───
-const MarketOverview = memo(() => {
-  const [quotes, setQuotes] = useState<QuoteData[]>([]);
+// ─── Tablero global de mercados (réplica de finance.yahoo.com/markets) ───
+
+// Batches de máx 20 símbolos (límite verificado del endpoint spark)
+async function fetchSparkBatch(symbols: string[]): Promise<Map<string, TickerItem & { closes: number[] }>> {
+  const out = new Map<string, TickerItem & { closes: number[] }>();
+  if (symbols.length === 0) return out;
+  try {
+    const data = await yfFetch(
+      `https://query1.finance.yahoo.com/v7/finance/spark?symbols=${encodeURIComponent(symbols.join(","))}&range=1d&interval=5m`
+    );
+    for (const r of data?.spark?.result || []) {
+      const resp = r?.response?.[0];
+      const m = resp?.meta || {};
+      const closes: number[] = (resp?.indicators?.quote?.[0]?.close || []).filter((v: number | null) => v != null);
+      const price = m.regularMarketPrice ?? closes[closes.length - 1] ?? 0;
+      if (!price) continue;
+      const pct = m.regularMarketChangePercent ?? m.fulldayChangePercent ?? 0;
+      out.set(r.symbol, {
+        symbol: r.symbol,
+        shortName: m.shortName || m.longName || r.symbol,
+        price,
+        changePercent: pct,
+        direction: pct > 0.001 ? "up" : pct < -0.001 ? "down" : "flat",
+        closes,
+        sessionEnd: (m.currentTradingPeriod?.regular?.end as number) ?? null,
+      });
+    }
+  } catch {}
+  return out;
+}
+
+// Símbolos del tablero, agrupados como la página Markets de Yahoo
+const BOARD = {
+  indices: {
+    america: ["^GSPC", "^DJI", "^IXIC", "^RUT", "^VIX", "^BVSP", "^MERV", "^MXX", "^GSPTSE", "^IPSA"],
+    europe: ["^STOXX50E", "^FTSE", "^GDAXI", "^FCHI", "^IBEX", "^FTMIB", "^AEX", "^SSMI"],
+    asia: ["^N225", "^HSI", "000001.SS", "^AXJO", "^KS11", "^TWII", "^BSESN", "^JKSE"],
+  },
+  commodities: ["GC=F", "SI=F", "CL=F", "NG=F", "HG=F", "PL=F", "ZW=F", "ZC=F", "KC=F", "CC=F"],
+  currencies: ["EURUSD=X", "USDJPY=X", "GBPUSD=X", "UYU=X", "USDBRL=X", "USDMXN=X", "USDARS=X", "DX-Y.NYB"],
+  treasuries: ["^TNX", "^FVX", "^TYX", "^IRX"],
+  sectors: ["XLK", "XLF", "XLE", "XLY", "XLP", "XLI", "XLV", "XLU", "XLB", "XLRE", "XLC"],
+};
+const SECTOR_NAMES: Record<string, string> = {
+  XLK: "Tecnología", XLF: "Financiero", XLE: "Energía", XLY: "Consumo discrecional",
+  XLP: "Consumo básico", XLI: "Industrial", XLV: "Salud", XLU: "Servicios públicos",
+  XLB: "Materiales", XLRE: "Inmobiliario", XLC: "Comunicaciones",
+};
+
+// Movers del día vía screener predefinido (sin login, verificado)
+async function fetchMovers(kind: "day_gainers" | "day_losers" | "day_losers_active" | "most_actives"): Promise<TickerItem[]> {
+  try {
+    const data = await yfFetch(
+      `https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?scrIds=${kind}&count=8`
+    );
+    const rows = data?.finance?.result?.[0]?.quotes || [];
+    return rows.map((r: any) => ({
+      symbol: r.symbol,
+      shortName: r.shortName || r.longName || r.symbol,
+      price: r.regularMarketPrice ?? 0,
+      changePercent: r.regularMarketChangePercent ?? 0,
+      direction: (r.regularMarketChangePercent ?? 0) > 0 ? "up" : (r.regularMarketChangePercent ?? 0) < 0 ? "down" : "flat",
+    })).filter((t: TickerItem) => t.price > 0);
+  } catch { return []; }
+}
+
+async function fetchTrending(): Promise<TickerItem[]> {
+  try {
+    const data = await yfFetch("https://query1.finance.yahoo.com/v1/finance/trending/US?count=10");
+    const quotes = data?.finance?.result?.[0]?.quotes || [];
+    return quotes.map((q: any) => ({
+      symbol: q.symbol,
+      shortName: q.shortName || q.longName || q.symbol,
+      price: 0,
+      changePercent: 0,
+      direction: "flat" as const,
+    }));
+  } catch { return []; }
+}
+
+// Sparkline SVG mini (la firma visual de Yahoo Finance)
+const Sparkline = memo(({ closes, up }: { closes: number[]; up: boolean }) => {
+  if (closes.length < 2) return <div className="w-[60px] h-[24px]" />;
+  const min = Math.min(...closes), max = Math.max(...closes);
+  const span = max - min || 1;
+  const pts = closes.map((c, i) => `${(i / (closes.length - 1)) * 60},${24 - ((c - min) / span) * 20 - 2}`).join(" ");
+  const color = up ? "#22c55e" : "#ef4444";
+  return (
+    <svg width="60" height="24" className="shrink-0">
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+});
+Sparkline.displayName = "Sparkline";
+
+// Fila de instrumento con destello al cambiar el precio
+const BoardRow = memo(({ item, prev, onClick }: { item: TickerItem & { closes?: number[] }; prev?: TickerItem; onClick?: () => void }) => {
+  const moved = prev && prev.price !== item.price;
+  const flashClass = moved ? (item.price > prev!.price ? "flash-green" : "flash-red") : "";
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg hover:bg-muted/60 transition-colors text-left"
+    >
+      <div className="min-w-0 flex-1">
+        <div className="text-xs text-muted-foreground truncate">{item.shortName || item.symbol}</div>
+        <div className="text-[11px] text-muted-foreground/70">{item.symbol}</div>
+      </div>
+      <Sparkline closes={item.closes || []} up={item.changePercent >= 0} />
+      <div className="text-right shrink-0">
+        <div key={`${item.price}`} className={`text-sm font-semibold px-1.5 rounded price-cell ${flashClass}`}>
+          {item.price.toLocaleString("es-UY", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
+        </div>
+        <div className={`text-xs font-medium ${item.changePercent >= 0 ? "text-green-500" : "text-red-500"}`}>
+          {item.changePercent >= 0 ? "▲" : "▼"} {Math.abs(item.changePercent).toFixed(2)}%
+        </div>
+      </div>
+    </button>
+  );
+});
+BoardRow.displayName = "BoardRow";
+
+// Countdown de cierre de sesión (como "U.S. markets close in 2h 22m")
+function useMarketCountdown(quote: QuoteData | null): string | null {
+  const [, force] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => force((x) => x + 1), 30_000);
+    return () => clearInterval(t);
+  }, []);
+  if (!quote?.sessionEnd || !quote?.marketTime) return null;
+  const remaining = quote.sessionEnd - Math.floor(Date.now() / 1000);
+  if (remaining <= 0 || remaining > 86400) return null;
+  const h = Math.floor(remaining / 3600), m = Math.floor((remaining % 3600) / 60);
+  return `cierra en ${h}h ${m}m`;
+}
+
+// ─── Tablero completo: la sección que abre cuando NO hay símbolo activo ───
+const MarketsBoard = memo(({ onSymbolClick }: { onSymbolClick: (s: string) => void }) => {
+  const [data, setData] = useState<Record<string, (TickerItem & { closes: number[] })[]>>({});
+  // prev en ref: destello sin re-renders extra
+  const dataRef = useRef<Record<string, (TickerItem & { closes: number[] })[]>>({});
+  const prevRef = useRef<Record<string, (TickerItem & { closes: number[] })[]>>({});
+  const [movers, setMovers] = useState<{ gainers: TickerItem[]; losers: TickerItem[]; actives: TickerItem[] }>({ gainers: [], losers: [], actives: [] });
+  const [trending, setTrending] = useState<TickerItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [countdown, setCountdown] = useState<string | null>(null);
+  const [tab, setTab] = useState<"indices" | "commodities" | "currencies" | "treasuries" | "sectors">("indices");
+
+  // carga de todos los grupos (batches paralelos de ≤20) + movers + trending
+  const loadAll = async () => {
+    const groups: [string, string[]][] = [
+      ["america", BOARD.indices.america],
+      ["europe", BOARD.indices.europe],
+      ["asia", BOARD.indices.asia],
+      ["commodities", BOARD.commodities],
+      ["currencies", BOARD.currencies],
+      ["treasuries", BOARD.treasuries],
+      ["sectors", BOARD.sectors],
+    ];
+    const [maps, g, l, a, tr] = await Promise.all([
+      Promise.all(groups.map(([k, syms]) => fetchSparkBatch(syms).then((m) => [k, m] as const))),
+      fetchMovers("day_gainers"),
+      fetchMovers("day_losers"),
+      fetchMovers("most_actives"),
+      fetchTrending(),
+    ]);
+    const next: Record<string, (TickerItem & { closes: number[] })[]> = {};
+    const mapList = maps as unknown as [string, Map<string, TickerItem & { closes: number[] }>][];
+    for (const [k, m] of mapList) {
+      const syms = groups.find(([gk]) => gk === k)![1];
+      next[k] = syms.map((s) => m.get(s)).filter(Boolean) as (TickerItem & { closes: number[] })[];
+    }
+    // destello: el estado mostrado hasta ahora pasa a ser "prev"
+    prevRef.current = dataRef.current;
+    dataRef.current = next;
+    setData(next);
+    setMovers({ gainers: g, losers: l, actives: a });
+    setTrending(tr);
+    setLoading(false);
+    setLastUpdate(new Date());
+    // countdown de cierre del mercado de EE.UU. desde el tradingPeriod del S&P
+    const sp = (next["america"] || []).find((x) => x.symbol === "^GSPC") as any;
+    const ctp = sp?.sessionEnd;
+    if (ctp) {
+      const remaining = ctp - Math.floor(Date.now() / 1000);
+      if (remaining > 0 && remaining < 86400) {
+        const h = Math.floor(remaining / 3600), m = Math.floor((remaining % 3600) / 60);
+        setCountdown(`EE.UU. cierra en ${h}h ${m}m`);
+      }
+    }
+  };
 
   useEffect(() => {
-    const symbols = [
-      "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META",
-      "^GSPC", "^DJI", "^IXIC",
-      "BTC-USD", "ETH-USD",
-      "^BVSP", "^MERV", "^MXX",
-      "GC=F", "SI=F", "CL=F",
-    ];
-    Promise.all(symbols.map((s) => fetchQuote(s))).then((results) => {
-      setQuotes(results.filter((q): q is QuoteData => q !== null));
-      setLoading(false);
-    });
+    loadAll();
+    const t = setInterval(loadAll, 60_000); // tablero completo cada 60 s
+    return () => clearInterval(t);
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-        <Loader2 className="h-6 w-6 animate-spin mr-2" />
-        Cargando mercados...
-      </div>
-    );
-  }
-
-  const groups: { title: string; items: QuoteData[] }[] = [
-    { title: "Acciones", items: quotes.filter((q) => ["AAPL","MSFT","GOOGL","AMZN","TSLA","META"].includes(q.symbol)) },
-    { title: "Índices", items: quotes.filter((q) => ["^GSPC","^DJI","^IXIC"].includes(q.symbol)) },
-    { title: "Crypto", items: quotes.filter((q) => ["BTC-USD","ETH-USD"].includes(q.symbol)) },
-    { title: "Latinoamérica", items: quotes.filter((q) => ["^BVSP","^MERV","^MXX"].includes(q.symbol)) },
-    { title: "Commodities", items: quotes.filter((q) => ["GC=F","SI=F","CL=F"].includes(q.symbol)) },
+  const tabs = [
+    { id: "indices" as const, label: "Índices" },
+    { id: "commodities" as const, label: "Commodities" },
+    { id: "currencies" as const, label: "Divisas" },
+    { id: "treasuries" as const, label: "Bonos EE.UU." },
+    { id: "sectors" as const, label: "Sectores" },
   ];
+
+  const groupFor = (id: string): (TickerItem & { closes: number[] })[] => {
+    if (id === "indices") return [...(data["america"] || []), ...(data["europe"] || []), ...(data["asia"] || [])];
+    return data[id] || [];
+  };
+
+  const prevFor = (sym: string, group: string): TickerItem | undefined =>
+    (prevRef.current[group] || []).find((p) => p.symbol === sym);
 
   return (
     <div className="space-y-4">
-      {groups.map((g) => (
-        <div key={g.title}>
-          <h4 className="text-sm font-semibold text-muted-foreground mb-2">{g.title}</h4>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            {g.items.map((q) => {
-              const isUp = q.change >= 0;
+      {/* Cabecera viva */}
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+          MERCADOS EN VIVO
+        </span>
+        <span>
+          {lastUpdate ? `Actualizado ${lastUpdate.toLocaleTimeString("es-UY", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : ""}
+          {countdown ? ` · ${countdown}` : ""}
+        </span>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          Cargando tablero global...
+        </div>
+      ) : (
+        <>
+          {/* Movers + Trending: la primera fila de decisión */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[
+              { title: "▲ Ganadores del día", items: movers.gainers, cls: "text-green-500" },
+              { title: "▼ Perdedores del día", items: movers.losers, cls: "text-red-500" },
+              { title: "★ Más activos", items: movers.actives, cls: "text-primary" },
+            ].map((sec) => (
+              <Card key={sec.title} className="bg-card-widget border-muted">
+                <CardHeader className="pb-1 pt-3">
+                  <CardTitle className={`text-sm ${sec.cls}`}>{sec.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-1">
+                  {sec.items.length === 0 ? (
+                    <div className="text-xs text-muted-foreground py-4 text-center">Sin datos</div>
+                  ) : (
+                    sec.items.slice(0, 5).map((t) => (
+                      <button
+                        key={t.symbol}
+                        onClick={() => onSymbolClick(t.symbol)}
+                        className="w-full flex items-center justify-between py-1.5 hover:bg-muted/60 rounded px-1 transition-colors text-left"
+                      >
+                        <span className="text-xs font-semibold truncate">{t.symbol}</span>
+                        <span className="text-xs truncate text-muted-foreground flex-1 px-2">{t.shortName}</span>
+                        <span className={`text-xs font-medium ${t.changePercent >= 0 ? "text-green-500" : "text-red-500"}`}>
+                          {t.changePercent >= 0 ? "+" : ""}{t.changePercent.toFixed(2)}%
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Tabs de grupos */}
+          <div className="flex gap-1 flex-wrap border-b border-muted pb-1">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors ${
+                  tab === t.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/60"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Grid de filas con sparkline */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+            {groupFor(tab).map((item) => {
+              const group = tab === "indices" ? (BOARD.indices.america.includes(item.symbol) ? "america" : BOARD.indices.europe.includes(item.symbol) ? "europe" : "asia") : tab;
+              const label =
+                tab === "sectors"
+                  ? SECTOR_NAMES[item.symbol] || item.shortName
+                  : item.shortName || item.symbol;
               return (
-                <div key={q.symbol} className="bg-muted/50 rounded-lg p-3">
-                  <div className="text-xs text-muted-foreground truncate">{q.symbol}</div>
-                  <div className="font-semibold">{q.price.toFixed(2)}</div>
-                  <div className={`text-xs ${isUp ? "text-green-500" : "text-red-500"}`}>
-                    {isUp ? "+" : ""}{q.changePercent.toFixed(2)}%
-                  </div>
-                </div>
+                <BoardRow
+                  key={item.symbol}
+                  item={{ ...item, shortName: label }}
+                  prev={prevFor(item.symbol, group)}
+                  onClick={() => onSymbolClick(item.symbol)}
+                />
               );
             })}
           </div>
-        </div>
-      ))}
+
+          {/* Trending tickers */}
+          {trending.length > 0 && (
+            <div>
+              <h4 className="text-sm font-semibold text-muted-foreground mb-2">🔥 Tendencia ahora (EE.UU.)</h4>
+              <div className="flex flex-wrap gap-2">
+                {trending.slice(0, 10).map((t) => (
+                  <button
+                    key={t.symbol}
+                    onClick={() => onSymbolClick(t.symbol)}
+                    className="px-2.5 py-1 rounded-full bg-muted/60 hover:bg-muted text-xs font-medium transition-colors"
+                  >
+                    {t.symbol}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 });
-MarketOverview.displayName = "MarketOverview";
+MarketsBoard.displayName = "MarketsBoard";
 
 // ─── Noticias ───
 const NewsList = memo(({ news, loading }: { news: NewsItem[]; loading: boolean }) => {
@@ -834,11 +1100,9 @@ export default function MarketExplorer() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [searchTerm, setSearchTerm] = useState("");
   const [searching, setSearching] = useState(false);
-  const [activeSymbol, setActiveSymbol] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem("market-last-symbol") || null;
-    } catch { return null; }
-  });
+  // Al entrar a /bolsas se muestra el TABLERO GLOBAL (como finance.yahoo.com/markets).
+  // El último símbolo queda en localStorage para recuperarlo con un clic en "Volver a X".
+  const [activeSymbol, setActiveSymbol] = useState<string | null>(null);
   const [quote, setQuote] = useState<QuoteData | null>(null);
   const [prevQuote, setPrevQuote] = useState<QuoteData | null>(null);
   const [tickerItems, setTickerItems] = useState<TickerItem[]>([]);
@@ -978,6 +1242,14 @@ export default function MarketExplorer() {
 
       {isOnline && activeSymbol ? (
         <div className="space-y-4">
+          {/* Navegación: volver al tablero global */}
+          <button
+            onClick={() => setActiveSymbol(null)}
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Volver al tablero de mercados
+          </button>
+
           {/* Barra de estado en vivo: hora de última actualización + badge EN VIVO */}
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
@@ -1084,11 +1356,7 @@ export default function MarketExplorer() {
           </div>
         </div>
       ) : isOnline ? (
-        <Card>
-          <CardContent className="pt-4">
-            <MarketOverview />
-          </CardContent>
-        </Card>
+        <MarketsBoard onSymbolClick={selectSymbol} />
       ) : null}
 
       {/* Estilos locales del modo en vivo: carrusel de la cinta + destellos de precio */}
