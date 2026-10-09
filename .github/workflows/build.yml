@@ -86,17 +86,19 @@ jobs:
           echo "  https://capfinanzas-downloads.capfinanzas.workers.dev"
 
       # Backup: also keep build artifacts in the workflow run for debugging
-      - name: Upload artifacts (debug)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-${{ matrix.platform }}
-          path: |
-            release/*.exe
-            release/*.dmg
-            release/*.zip
-            release/*.AppImage
-            release/*.deb
-            release/*.yml
-            release/*.blockmap
-          if-no-files-found: ignore
+      # (DESACTIVADO 2026-10-09: la cuota de artifacts del repo esta saturada por
+      #  60+ versiones; los instaladores viven en el GitHub Release, no aca)
+      # - name: Upload artifacts (debug)
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: release-${{ matrix.platform }}
+      #     path: |
+      #       release/*.exe
+      #       release/*.dmg
+      #       release/*.zip
+      #       release/*.AppImage
+      #       release/*.deb
+      #       release/*.yml
+      #       release/*.blockmap
+      #     if-no-files-found: ignore
