@@ -53,8 +53,15 @@ interface NewsItem {
 }
 
 // ─── Debug ───
+// Buffer a nivel de módulo: addDebug se llama desde funciones de módulo
+// (yfFetch), por lo que NO puede usar el setState del componente directamente
+// (ReferenceError en runtime, tragado por los catch de fetchQuote → "Cargando..." eterno).
+const debugBuf: string[] = [];
+const debugListeners = new Set<(msgs: string[]) => void>();
 function addDebug(msg: string) {
-  setDebugInfo(prev => [...prev.slice(-4), msg]);
+  debugBuf.push(msg);
+  if (debugBuf.length > 5) debugBuf.shift();
+  debugListeners.forEach((fn) => fn([...debugBuf]));
 }
 
 // ─── Fetch vía proxy de Electron (evita CORS) ───
@@ -539,7 +546,14 @@ export default function MarketExplorer() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string[]>([]);
+
+  // Debug: suscribirse al buffer de módulo (addDebug vive fuera del componente)
+  const [debugInfo, setDebugInfo] = useState<string[]>([...debugBuf]);
+  useEffect(() => {
+    const fn = (msgs: string[]) => setDebugInfo(msgs);
+    debugListeners.add(fn);
+    return () => { debugListeners.delete(fn); };
+  }, []);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -593,15 +607,6 @@ export default function MarketExplorer() {
 
   return (
     <div className="space-y-4">
-      {/* Debug overlay */}
-      <div className="fixed bottom-4 right-4 bg-black/80 text-green-400 text-xs p-3 rounded-lg max-w-md z-50 font-mono">
-        <div className="font-bold text-yellow-400 mb-1">DEBUG</div>
-        {debugInfo.map((msg, i) => (
-          <div key={i}>{msg}</div>
-        ))}
-        {debugInfo.length === 0 && <div>waiting...</div>}
-      </div>
-
       {!isOnline && (
         <Alert variant="destructive">
           <WifiOff className="h-4 w-4" />
