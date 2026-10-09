@@ -64,6 +64,18 @@ function addDebug(msg: string) {
   debugListeners.forEach((fn) => fn([...debugBuf]));
 }
 
+// ─── Rangos del gráfico ───
+// 1D/5D usan velas intradía (5m) → se mueven mientras el mercado está abierto
+const CHART_RANGES = [
+  { id: "1d", label: "1D", interval: "5m", range: "1d" },
+  { id: "5d", label: "5D", interval: "15m", range: "5d" },
+  { id: "3mo", label: "3M", interval: "1d", range: "3mo" },
+  { id: "6mo", label: "6M", interval: "1d", range: "6mo" },
+  { id: "1y", label: "1A", interval: "1d", range: "1y" },
+  { id: "5y", label: "5A", interval: "1wk", range: "5y" },
+] as const;
+type RangeId = (typeof CHART_RANGES)[number]["id"];
+
 // ─── Fetch vía proxy de Electron (evita CORS) ───
 async function yfFetch(url: string): Promise<any> {
   const hasElectron = typeof window !== 'undefined' && (window as any).electron;
@@ -121,10 +133,11 @@ async function fetchQuote(symbol: string): Promise<QuoteData | null> {
   }
 }
 
-async function fetchChart(symbol: string): Promise<ChartData | null> {
+async function fetchChart(symbol: string, rangeId: RangeId = "3mo"): Promise<ChartData | null> {
   try {
+    const cfg = CHART_RANGES.find((r) => r.id === rangeId) || CHART_RANGES[2];
     const data = await yfFetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=3mo`
+      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${cfg.interval}&range=${cfg.range}`
     );
     const result = data?.chart?.result?.[0];
     if (!result) return null;
@@ -268,15 +281,25 @@ const CandleChart = memo(({ data, symbol }: { data: ChartData | null; symbol: st
       ctx.fillText(val.toFixed(2), w - padding.right - 4, y + 3);
     }
 
-    // Eje X (fechas)
+    // Eje X (fechas): en intradía mostrar hora local de NY, en diario fecha
     ctx.textAlign = "center";
     const dateCount = Math.min(5, data.timestamp.length);
+    const tz = "America/New_York";
     for (let i = 0; i < dateCount; i++) {
       const idx = Math.floor((data.timestamp.length - 1) * (i / (dateCount - 1 || 1)));
       const ts = data.timestamp[idx];
       if (!ts) continue;
+      // hora de la bolsa (NY) para que coincida con lo que ve el usuario en la web
       const d = new Date(ts * 1000);
-      const label = `${d.getMonth() + 1}/${d.getDate()}`;
+      const intraDay = data.timestamp.length > 0 && (data.timestamp[data.timestamp.length - 1] - data.timestamp[0]) < 86400 * 2;
+      let label: string;
+      try {
+        label = intraDay
+          ? d.toLocaleTimeString("es-UY", { timeZone: tz, hour: "2-digit", minute: "2-digit" })
+          : `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(2)}`;
+      } catch {
+        label = `${d.getMonth() + 1}/${d.getDate()}`;
+      }
       const x = padding.left + idx * gap + gap / 2;
       ctx.fillText(label, x, h - 8);
     }
@@ -546,6 +569,10 @@ export default function MarketExplorer() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(false);
+  // Modo en vivo: auto-refresh cada 30 s mientras el panel esté montado
+  const [rangeId, setRangeId] = useState<RangeId>("1d");
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [tick, setTick] = useState(0);
 
   // Debug: suscribirse al buffer de módulo (addDebug vive fuera del componente)
   const [, setDebugInfo] = useState<string[]>([]);
@@ -574,12 +601,24 @@ export default function MarketExplorer() {
 
   useEffect(() => {
     if (!activeSymbol || !isOnline) return;
+    let cancelled = false;
     setDataLoading(true);
-    Promise.all([fetchQuote(activeSymbol), fetchChart(activeSymbol)]).then(([q, c]) => {
+    Promise.all([fetchQuote(activeSymbol), fetchChart(activeSymbol, rangeId)]).then(([q, c]) => {
+      if (cancelled) return;
       setQuote(q);
       setChartData(c);
       setDataLoading(false);
+      if (q) setLastUpdate(new Date());
     });
+    return () => { cancelled = true; };
+    // tick: el intervalo de 30 s re-dispara este efecto → datos "en vivo"
+  }, [activeSymbol, isOnline, rangeId, tick]);
+
+  // Auto-refresh cada 30 s (solo con panel abierto y conexión activa)
+  useEffect(() => {
+    if (!activeSymbol || !isOnline) return;
+    const t = setInterval(() => setTick((n) => n + 1), 30000);
+    return () => clearInterval(t);
   }, [activeSymbol, isOnline]);
 
   useEffect(() => {
@@ -646,9 +685,32 @@ export default function MarketExplorer() {
 
       {isOnline && activeSymbol ? (
         <div className="space-y-4">
+          {/* Barra de estado en vivo: hora de última actualización + badge EN VIVO */}
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="font-medium text-emerald-600 dark:text-emerald-400">EN VIVO</span>
+            </span>
+            {lastUpdate && <span>· Actualizado: {lastUpdate.toLocaleTimeString("es-UY")}</span>}
+            <span>· Se actualiza solo cada 30 s</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs"
+              onClick={() => setTick((n) => n + 1)}
+              title="Actualizar ahora"
+            >
+              <Loader2 className={`h-3 w-3 mr-1 ${dataLoading ? "animate-spin" : ""}`} />
+              Actualizar
+            </Button>
+          </div>
+
           <Card className="bg-card-widget border-muted">
             <CardContent className="pt-4">
-              {dataLoading ? (
+              {dataLoading && !quote ? (
                 <div className="flex items-center justify-center h-[120px] text-muted-foreground">
                   <Loader2 className="h-5 w-5 animate-spin mr-2" />
                   Cargando...
@@ -661,10 +723,26 @@ export default function MarketExplorer() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                Gráfico en Tiempo Real
-              </CardTitle>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                  Gráfico en Tiempo Real
+                </CardTitle>
+                {/* Selector de rango: 1D velas de 5m → se mueven con el mercado */}
+                <div className="flex gap-1">
+                  {CHART_RANGES.map((r) => (
+                    <Button
+                      key={r.id}
+                      variant={rangeId === r.id ? "default" : "ghost"}
+                      size="sm"
+                      className="h-7 px-2.5 text-xs font-medium"
+                      onClick={() => setRangeId(r.id)}
+                    >
+                      {r.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <CandleChart data={chartData} symbol={activeSymbol} />
