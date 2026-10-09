@@ -288,16 +288,15 @@ function fmtVol(n: number | null | undefined): string {
   return String(n);
 }
 function fmtExTime(epoch: number | null, gmtoffset: number | null, withDate = false): string {
-  // hora en el huso del EXCHANGE (no del usuario) — como lo muestran las terminales
+  // hora en el huso del EXCHANGE (no del usuario) — como lo muestran las terminales.
+  // Truco: desplazar el epoch por gmtoffset y formatear en UTC = hora de pared del exchange,
+  // sin depender de zonas "Etc/GMT±X" (POSIX invierte el signo y "Etc/GMT4" es inválida).
   if (!epoch) return "—";
   try {
-    const opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" };
-    if (withDate) opts.day = "2-digit";
-    if (gmtoffset != null) {
-      const tz = `Etc/GMT${gmtoffset > 0 ? "+" : ""}${-(gmtoffset / 3600)}`;
-      (opts as any).timeZone = tz;
-    }
-    return new Intl.DateTimeFormat("es-UY", opts).format(new Date(epoch * 1000));
+    const d = gmtoffset != null ? new Date((epoch + gmtoffset) * 1000) : new Date(epoch * 1000);
+    const opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit", timeZone: "UTC" };
+    if (withDate) { opts.day = "2-digit"; opts.month = "2-digit"; }
+    return new Intl.DateTimeFormat("es-UY", opts).format(d);
   } catch {
     return "—";
   }
