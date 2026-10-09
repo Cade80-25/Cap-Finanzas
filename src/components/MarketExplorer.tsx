@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo } from "react";
+import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { Search, Wifi, WifiOff, TrendingUp, BarChart3, Globe, Loader2, Newspaper, ArrowUp, ArrowDown } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -222,9 +222,13 @@ const TICKER_SYMBOLS = [
 
 interface TickerItem {
   symbol: string;
-  shortName: string;
+  shortName?: string;
   price: number;
   changePercent: number;
+  sessionStart?: number | null; // epoch de apertura de sesión (para el cronograma mundial)
+  sessionEnd?: number | null;
+  gmtoffset?: number | null;
+  marketTime?: number | null;
   direction: "up" | "down" | "flat";
 }
 
@@ -294,7 +298,7 @@ function fmtExTime(epoch: number | null, gmtoffset: number | null, withDate = fa
   if (!epoch) return "—";
   try {
     const d = gmtoffset != null ? new Date((epoch + gmtoffset) * 1000) : new Date(epoch * 1000);
-    const opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit", timeZone: "UTC" };
+    const opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" };
     if (withDate) { opts.day = "2-digit"; opts.month = "2-digit"; }
     return new Intl.DateTimeFormat("es-UY", opts).format(d);
   } catch {
@@ -755,7 +759,10 @@ async function fetchSparkBatch(symbols: string[]): Promise<Map<string, TickerIte
         changePercent: pct,
         direction: pct > 0.001 ? "up" : pct < -0.001 ? "down" : "flat",
         closes,
+        sessionStart: (m.currentTradingPeriod?.regular?.start as number) ?? null,
         sessionEnd: (m.currentTradingPeriod?.regular?.end as number) ?? null,
+        gmtoffset: m.gmtoffset ?? null,
+        marketTime: m.regularMarketTime ?? null,
       });
     }
   } catch {}
@@ -857,7 +864,7 @@ BoardRow.displayName = "BoardRow";
 function useMarketCountdown(quote: QuoteData | null): string | null {
   const [, force] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => force((x) => x + 1), 30_000);
+    const t = setInterval(() => force((x) => x + 1), 15_000); // cotización viva: cada 15 s
     return () => clearInterval(t);
   }, []);
   if (!quote?.sessionEnd || !quote?.marketTime) return null;
@@ -866,6 +873,80 @@ function useMarketCountdown(quote: QuoteData | null): string | null {
   const h = Math.floor(remaining / 3600), m = Math.floor((remaining % 3600) / 60);
   return `cierra en ${h}h ${m}m`;
 }
+
+// ─── Cronograma mundial: estado de cada exchange desde el tradingPeriod de SUS índices ───
+// Cada entrada usa el sessionStart/End/gmtoffset del propio símbolo (ya llegan en el batch spark).
+const WORLD_MARKETS: { symbol: string; name: string }[] = [
+  { symbol: "^GSPC", name: "EE.UU. (NYSE)" },
+  { symbol: "^IXIC", name: "EE.UU. (Nasdaq)" },
+  { symbol: "^FTSE", name: "Reino Unido (LSE)" },
+  { symbol: "^GDAXI", name: "Alemania (XETRA)" },
+  { symbol: "^FCHI", name: "Francia (Euronext)" },
+  { symbol: "^N225", name: "Japón (TSE)" },
+  { symbol: "^HSI", name: "Hong Kong (HKEX)" },
+  { symbol: "000001.SS", name: "China (SSE)" },
+  { symbol: "^BVSP", name: "Brasil (B3)" },
+  { symbol: "^MERV", name: "Argentina (BYMA)" },
+  { symbol: "^MXX", name: "México (BMV)" },
+  { symbol: "^IPSA", name: "Chile (BCS)" },
+];
+
+// Estado de un mercado: ABIERTO/CERRADO + abre en / cierra en, recalculado en vivo
+function worldMarketStatus(it: TickerItem | undefined): { open: boolean; label: string; localTime: string } {
+  if (!it || !it.sessionStart || !it.sessionEnd || !it.gmtoffset) return { open: false, label: "—", localTime: "—" };
+  // "ahora" en tiempo del exchange = último tick del mercado (aproximación viva del reloj)
+  const now = Math.floor(Date.now() / 1000);
+  const localTime = fmtExTime(now, it.gmtoffset); // hora de pared del exchange AHORA
+  const open = now >= it.sessionStart && now <= it.sessionEnd;
+  const remaining = open ? it.sessionEnd - now : it.sessionStart - now;
+  const h = Math.floor(Math.abs(remaining) / 3600), m = Math.floor((Math.abs(remaining) % 3600) / 60);
+  if (open) return { open: true, label: `cierra en ${h}h ${m}m`, localTime };
+  if (remaining > 0 && remaining < 86400) return { open: false, label: `abre en ${h}h ${m}m`, localTime };
+  if (remaining <= 0) {
+    // sesión de hoy terminada y la próxima apertura es MAÑANA a la misma hora
+    const nextOpen = it.sessionStart! + 86400;
+    const r2 = nextOpen - now;
+    if (r2 > 0 && r2 < 86400) {
+      const h2 = Math.floor(r2 / 3600), m2 = Math.floor((r2 % 3600) / 60);
+      return { open: false, label: `abre en ${h2}h ${m2}m`, localTime };
+    }
+    return { open: false, label: "fin de semana", localTime };
+  }
+  return { open: false, label: "fin de semana", localTime };
+}
+
+const WorldClocks = memo(({ data }: { data: Record<string, (TickerItem & { closes: number[] })[]> }) => {
+  // índice plano de todos los grupos para lookup por símbolo
+  const all = useMemo(() => {
+    const idx = new Map<string, TickerItem>();
+    for (const arr of Object.values(data)) for (const it of arr) idx.set(it.symbol, it);
+    return idx;
+  }, [data]);
+  return (
+    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 text-xs" data-testid="worldclocks">
+      {WORLD_MARKETS.map((wm) => {
+        const st = worldMarketStatus(all.get(wm.symbol));
+        return (
+          <div
+            key={wm.symbol}
+            className={`shrink-0 rounded-lg border px-2.5 py-1.5 flex items-center gap-2 ${
+              st.open ? "border-green-500/40 bg-green-500/10" : "border-muted bg-muted/40"
+            }`}
+          >
+            <span className={`inline-block h-2 w-2 rounded-full ${st.open ? "bg-green-500 animate-pulse" : "bg-gray-400"}`} />
+            <div className="leading-tight">
+              <div className="font-medium">{wm.name}</div>
+              <div className={st.open ? "text-green-500" : "text-muted-foreground"}>
+                {st.open ? `ABIERTO · ${st.label}` : `CERRADO · ${st.label}`} · {st.localTime}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+});
+WorldClocks.displayName = "WorldClocks";
 
 // ─── Tablero completo: la sección que abre cuando NO hay símbolo activo ───
 const MarketsBoard = memo(({ onSymbolClick }: { onSymbolClick: (s: string) => void }) => {
@@ -926,7 +1007,7 @@ const MarketsBoard = memo(({ onSymbolClick }: { onSymbolClick: (s: string) => vo
 
   useEffect(() => {
     loadAll();
-    const t = setInterval(loadAll, 60_000); // tablero completo cada 60 s
+    const t = setInterval(loadAll, 15_000); // tablero vivo: cada 15 s (verificado: Yahoo tolera este ritmo)
     return () => clearInterval(t);
   }, []);
 
@@ -967,6 +1048,9 @@ const MarketsBoard = memo(({ onSymbolClick }: { onSymbolClick: (s: string) => vo
         </div>
       ) : (
         <>
+          {/* Cronograma mundial: estado de cada exchange, vivo */}
+          <WorldClocks data={data} />
+
           {/* Movers + Trending: la primera fila de decisión */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {[
@@ -1164,14 +1248,14 @@ export default function MarketExplorer() {
     let cancelled = false;
     const load = () => fetchTicker().then((items) => { if (!cancelled) setTickerItems(items); });
     load();
-    const t = setInterval(load, 60000);
+    const t = setInterval(load, 10_000); // detalle vivo: cada 10 s
     return () => { cancelled = true; clearInterval(t); };
   }, [isOnline]);
 
-  // Auto-refresh cada 30 s (solo con panel abierto y conexión activa)
+  // Auto-refresco del detalle: cada 10 s (verificado: Yahoo tolera)
   useEffect(() => {
     if (!activeSymbol || !isOnline) return;
-    const t = setInterval(() => setTick((n) => n + 1), 30000);
+    const t = setInterval(() => setTick((n) => n + 1), 10_000); // hora del exchange refresca cada 10 s
     return () => clearInterval(t);
   }, [activeSymbol, isOnline]);
 
