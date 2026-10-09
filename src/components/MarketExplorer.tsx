@@ -34,6 +34,19 @@ interface QuoteData {
   currency: string;
   exchange: string;
   name: string;
+  // Datos de decisión (meta del chart, sin endpoints bloqueados)
+  dayHigh: number | null;
+  dayLow: number | null;
+  volume: number | null;
+  fiftyTwoWeekHigh: number | null;
+  fiftyTwoWeekLow: number | null;
+  prevClose: number | null;
+  sessionStart: number | null; // epoch de apertura de la sesión (hora del exchange)
+  sessionEnd: number | null;   // epoch de cierre
+  sessionOpen: number | null;   // precio de apertura de la sesión
+  gmtoffset: number | null;    // offset del exchange en segundos
+  marketTime: number | null;    // epoch del último precio
+  instrumentType: string | null;
 }
 
 interface ChartData {
@@ -119,6 +132,7 @@ async function fetchQuote(symbol: string): Promise<QuoteData | null> {
     const prevClose = meta.chartPreviousClose || meta.previousClose || price;
     const change = price - prevClose;
     const changePercent = prevClose ? (change / prevClose) * 100 : 0;
+    const ctp = meta.currentTradingPeriod?.regular;
     return {
       symbol: meta.symbol || symbol,
       price,
@@ -127,6 +141,18 @@ async function fetchQuote(symbol: string): Promise<QuoteData | null> {
       currency: meta.currency || "USD",
       exchange: meta.fullExchangeName || meta.exchangeName || "",
       name: meta.longName || meta.shortName || symbol,
+      dayHigh: meta.regularMarketDayHigh ?? null,
+      dayLow: meta.regularMarketDayLow ?? null,
+      volume: meta.regularMarketVolume ?? null,
+      fiftyTwoWeekHigh: meta.fiftyTwoWeekHigh ?? null,
+      fiftyTwoWeekLow: meta.fiftyTwoWeekLow ?? null,
+      prevClose: prevClose ?? null,
+      sessionStart: ctp?.start ?? null,
+      sessionEnd: ctp?.end ?? null,
+      sessionOpen: (result.indicators?.quote?.[0]?.open || []).find((v: number | null) => v != null) ?? null,
+      gmtoffset: meta.gmtoffset ?? null,
+      marketTime: meta.regularMarketTime ?? null,
+      instrumentType: meta.instrumentType ?? null,
     };
   } catch {
     return null;
@@ -181,6 +207,100 @@ async function searchSymbol(query: string): Promise<string | null> {
     }
   } catch {}
   return null;
+}
+
+// ─── Cinta de precios (spark: multi-símbolo en UN request) ───
+// Como el "Ticker" de las terminales: precios que se mueven en un carrusel
+const TICKER_SYMBOLS = [
+  "^GSPC", "^IXIC", "^DJI",        // índices EE.UU.
+  "AAPL", "MSFT", "NVDA", "TSLA",  // tech
+  "BTC-USD", "ETH-USD",            // crypto
+  "GC=F", "CL=F",                  // oro y petróleo
+  "EURUSD=X", "UYU=X",             // divisas
+  "^BVSP", "^MERV",                // LatAm
+];
+
+interface TickerItem {
+  symbol: string;
+  shortName: string;
+  price: number;
+  changePercent: number;
+  direction: "up" | "down" | "flat";
+}
+
+async function fetchTicker(): Promise<TickerItem[]> {
+  try {
+    const symbols = TICKER_SYMBOLS.join(",");
+    const data = await yfFetch(
+      `https://query1.finance.yahoo.com/v7/finance/spark?symbols=${encodeURIComponent(symbols)}&range=1d&interval=5m`
+    );
+    const results = data?.spark?.result || [];
+    return results.map((r: any) => {
+      const resp = r?.response?.[0];
+      const meta = resp?.meta || {};
+      const close = resp?.close || [];
+      const first = close[0] ?? meta.chartPreviousClose ?? meta.previousClose ?? 0;
+      const last = close[close.length - 1] ?? meta.regularMarketPrice ?? 0;
+      const pct = first ? ((last - first) / first) * 100 : 0;
+      return {
+        symbol: r.symbol || meta.symbol,
+        shortName: meta.shortName || r.symbol,
+        price: last,
+        changePercent: pct,
+        direction: pct > 0.001 ? "up" : pct < -0.001 ? "down" : "flat",
+      } as TickerItem;
+    }).filter((t: TickerItem) => t.price > 0);
+  } catch {
+    return [];
+  }
+}
+
+// ─── Estado del mercado: ABIERTO / CERRADO / PRE / POST ───
+function marketStatus(quote: QuoteData): { label: string; open: boolean; eta: string | null } {
+  if (!quote.marketTime || !quote.sessionStart || !quote.sessionEnd) {
+    return { label: "—", open: false, eta: null };
+  }
+  const now = quote.marketTime; // epoch del último tick (aprox "ahora" en tiempo de mercado)
+  if (now >= quote.sessionStart && now <= quote.sessionEnd) {
+    return { label: "MERCADO ABIERTO", open: true, eta: null };
+  }
+  // mercado cerrado: calcular próx apertura en hora local del exchange
+  const opensIn = quote.sessionStart - now;
+  if (opensIn > 0 && opensIn < 86400 * 2) {
+    const h = Math.floor(opensIn / 3600);
+    const m = Math.floor((opensIn % 3600) / 60);
+    return { label: "CERRADO — abre en", open: false, eta: `${h}h ${m}m` };
+  }
+  return { label: "MERCADO CERRADO", open: false, eta: null };
+}
+
+// ─── Formatos ───
+function fmtNum(n: number | null | undefined): string {
+  if (n == null || isNaN(n)) return "—";
+  return n.toLocaleString("es-UY", { maximumFractionDigits: 2 });
+}
+function fmtVol(n: number | null | undefined): string {
+  if (n == null || isNaN(n)) return "—";
+  if (n >= 1e12) return (n / 1e12).toFixed(1) + " T";
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + " MM M";
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + " M";
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + " K";
+  return String(n);
+}
+function fmtExTime(epoch: number | null, gmtoffset: number | null, withDate = false): string {
+  // hora en el huso del EXCHANGE (no del usuario) — como lo muestran las terminales
+  if (!epoch) return "—";
+  try {
+    const opts: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" };
+    if (withDate) opts.day = "2-digit";
+    if (gmtoffset != null) {
+      const tz = `Etc/GMT${gmtoffset > 0 ? "+" : ""}${-(gmtoffset / 3600)}`;
+      (opts as any).timeZone = tz;
+    }
+    return new Intl.DateTimeFormat("es-UY", opts).format(new Date(epoch * 1000));
+  } catch {
+    return "—";
+  }
 }
 
 // ─── Gráfico de velas nativo ───
@@ -324,7 +444,163 @@ const CandleChart = memo(({ data, symbol }: { data: ChartData | null; symbol: st
 });
 CandleChart.displayName = "CandleChart";
 
-// ─── Información del símbolo ───
+// ─── Cinta de precios (carrusel animado, tipo Ticker de TV) ───
+const PriceTicker = memo(({ items, onSymbolClick }: { items: TickerItem[]; onSymbolClick: (s: string) => void }) => {
+  if (items.length === 0) return null;
+  // duplicar para el loop infinito del carrusel CSS
+  const doubled = [...items, ...items];
+  return (
+    <div className="overflow-hidden border rounded-lg bg-card">
+      <div
+        className="flex gap-6 py-2 whitespace-nowrap"
+        style={{
+          animation: "ticker-scroll 60s linear infinite",
+          width: "max-content",
+        }}
+      >
+        {doubled.map((t, i) => (
+          <button
+            key={`${t.symbol}-${i}`}
+            onClick={() => onSymbolClick(t.symbol)}
+            className="inline-flex items-baseline gap-1.5 text-sm hover:opacity-80 transition-opacity"
+            title={`Ver ${t.shortName}`}
+          >
+            <span className="font-semibold">{t.symbol}</span>
+            <span>{t.price.toLocaleString("es-UY", { maximumFractionDigits: 2 })}</span>
+            <span
+              className={`text-xs font-medium ${
+                t.direction === "up" ? "text-green-500" : t.direction === "down" ? "text-red-500" : "text-muted-foreground"
+              }`}
+            >
+              {t.direction === "up" ? "▲" : t.direction === "down" ? "▼" : "="}
+              {t.changePercent >= 0 ? "+" : ""}{t.changePercent.toFixed(2)}%
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+});
+PriceTicker.displayName = "PriceTicker";
+
+// ─── Panel de decisión (como el resumen de IBKR / eToro) ───
+const DecisionPanel = memo(({ quote, prevQuote }: { quote: QuoteData | null; prevQuote: QuoteData | null }) => {
+  if (!quote) {
+    return (
+      <div className="flex items-center justify-center h-[100px] text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin mr-2" />
+        Cargando datos...
+      </div>
+    );
+  }
+
+  const status = marketStatus(quote);
+  // destello cuando el precio cambia (verde si subió, rojo si bajó) — feedback visual "en vivo"
+  const priceMoved = prevQuote && prevQuote.price !== quote.price;
+  const flash = priceMoved ? (quote.price > prevQuote!.price ? "flash-green" : "flash-red") : "";
+  const range52 = quote.fiftyTwoWeekHigh && quote.fiftyTwoWeekLow
+    ? ((quote.price - quote.fiftyTwoWeekLow) / (quote.fiftyTwoWeekHigh - quote.fiftyTwoWeekLow)) * 100
+    : null;
+  // posición del precio dentro del rango del día (barra)
+  const dayRange = quote.dayHigh != null && quote.dayLow != null && quote.dayHigh > quote.dayLow
+    ? ((quote.price - quote.dayLow) / (quote.dayHigh - quote.dayLow)) * 100
+    : null;
+
+  return (
+    <div className="space-y-4">
+      {/* Precio con destello + estado del mercado */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-baseline gap-3 flex-wrap">
+          <span
+            key={`${quote.marketTime}-${quote.price}`}
+            className={`text-3xl font-bold price-cell ${flash}`}
+          >
+            {quote.price.toFixed(2)}
+          </span>
+          <span className="text-sm text-muted-foreground">{quote.currency}</span>
+          <span className={`flex items-center gap-1 text-sm font-medium ${quote.change >= 0 ? "text-green-500" : "text-red-500"}`}>
+            {quote.change >= 0 ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+            {quote.change >= 0 ? "+" : ""}{quote.change.toFixed(2)} ({quote.change >= 0 ? "+" : ""}{quote.changePercent.toFixed(2)}%)
+          </span>
+        </div>
+        <Badge variant={status.open ? "default" : "secondary"} className="gap-1">
+          <span className={`inline-block h-2 w-2 rounded-full ${status.open ? "bg-green-400 animate-pulse" : "bg-gray-400"}`} />
+          {status.label} {status.eta ? status.eta : ""}
+        </Badge>
+      </div>
+
+      {/* Rango del día: barra con la posición del precio actual */}
+      {dayRange != null && (
+        <div>
+          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+            <span>Mín del día {fmtNum(quote.dayLow)}</span>
+            <span>Máx del día {fmtNum(quote.dayHigh)}</span>
+          </div>
+          <div className="h-2 rounded-full bg-muted relative overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-red-400 via-yellow-400 to-green-500" style={{ width: "100%" }} />
+            <div
+              className="absolute top-[-3px] h-3.5 w-1.5 rounded-sm bg-foreground shadow"
+              style={{ left: `calc(${Math.min(98, Math.max(2, dayRange))}% - 3px)` }}
+            />
+          </div>
+          <div className="text-xs text-center text-muted-foreground mt-1">
+            El precio está en el {dayRange.toFixed(0)}% del rango del día
+          </div>
+        </div>
+      )}
+
+      {/* Grid de datos de decisión */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="bg-muted/50 rounded-lg p-2.5">
+          <div className="text-[11px] text-muted-foreground">Apertura</div>
+          <div className="text-sm font-semibold">{fmtNum(quote.sessionOpen ?? quote.dayLow)}</div>
+        </div>
+        <div className="bg-muted/50 rounded-lg p-2.5">
+          <div className="text-[11px] text-muted-foreground">Cierre previo</div>
+          <div className="text-sm font-semibold">{fmtNum(quote.prevClose)}</div>
+        </div>
+        <div className="bg-muted/50 rounded-lg p-2.5">
+          <div className="text-[11px] text-muted-foreground">Volumen</div>
+          <div className="text-sm font-semibold">{fmtVol(quote.volume)}</div>
+        </div>
+        <div className="bg-muted/50 rounded-lg p-2.5">
+          <div className="text-[11px] text-muted-foreground">Rango 52 sem.</div>
+          <div className="text-sm font-semibold">
+            {quote.fiftyTwoWeekLow ? fmtNum(quote.fiftyTwoWeekLow) : "—"} – {quote.fiftyTwoWeekHigh ? fmtNum(quote.fiftyTwoWeekHigh) : "—"}
+          </div>
+        </div>
+      </div>
+
+      {/* Posición en 52 semanas */}
+      {range52 != null && (
+        <div>
+          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+            <span>Mín 52 sem. {fmtNum(quote.fiftyTwoWeekLow)}</span>
+            <span>Máx 52 sem. {fmtNum(quote.fiftyTwoWeekHigh)}</span>
+          </div>
+          <div className="h-2 rounded-full bg-muted relative overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-red-400 via-yellow-400 to-green-500" style={{ width: "100%" }} />
+            <div
+              className="absolute top-[-3px] h-3.5 w-1.5 rounded-sm bg-foreground shadow"
+              style={{ left: `calc(${Math.min(98, Math.max(2, range52))}% - 3px)` }}
+            />
+          </div>
+          <div className="text-xs text-center text-muted-foreground mt-1">
+            {range52.toFixed(0)}% del rango de 52 semanas — {range52 > 70 ? "cerca de máximos anuales" : range52 < 30 ? "cerca de mínimos anuales" : "en zona media anual"}
+          </div>
+        </div>
+      )}
+
+      {/* Hora del exchange */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <span>Sesión: {fmtExTime(quote.sessionStart, quote.gmtoffset)} – {fmtExTime(quote.sessionEnd, quote.gmtoffset)} (hora de {quote.exchange || "exchange"})</span>
+      </div>
+    </div>
+  );
+});
+DecisionPanel.displayName = "DecisionPanel";
+
+// ─── Información del símbolo (usada por el perfil de empresa) ───
 const SymbolInfo = memo(({ quote }: { quote: QuoteData | null }) => {
   if (!quote) {
     return (
@@ -565,6 +841,8 @@ export default function MarketExplorer() {
     } catch { return null; }
   });
   const [quote, setQuote] = useState<QuoteData | null>(null);
+  const [prevQuote, setPrevQuote] = useState<QuoteData | null>(null);
+  const [tickerItems, setTickerItems] = useState<TickerItem[]>([]);
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
@@ -605,7 +883,10 @@ export default function MarketExplorer() {
     setDataLoading(true);
     Promise.all([fetchQuote(activeSymbol), fetchChart(activeSymbol, rangeId)]).then(([q, c]) => {
       if (cancelled) return;
-      setQuote(q);
+      setQuote((prev) => {
+        if (prev && q && prev.price !== q.price) setPrevQuote(prev);
+        return q;
+      });
       setChartData(c);
       setDataLoading(false);
       if (q) setLastUpdate(new Date());
@@ -613,6 +894,16 @@ export default function MarketExplorer() {
     return () => { cancelled = true; };
     // tick: el intervalo de 30 s re-dispara este efecto → datos "en vivo"
   }, [activeSymbol, isOnline, rangeId, tick]);
+
+  // Cinta de precios global (spark multi-símbolo): carga inicial + refresco cada 60 s
+  useEffect(() => {
+    if (!isOnline) return;
+    let cancelled = false;
+    const load = () => fetchTicker().then((items) => { if (!cancelled) setTickerItems(items); });
+    load();
+    const t = setInterval(load, 60000);
+    return () => { cancelled = true; clearInterval(t); };
+  }, [isOnline]);
 
   // Auto-refresh cada 30 s (solo con panel abierto y conexión activa)
   useEffect(() => {
@@ -655,6 +946,9 @@ export default function MarketExplorer() {
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Cinta de precios global — siempre visible, se desliza sola */}
+      {isOnline && <PriceTicker items={tickerItems} onSymbolClick={selectSymbol} />}
 
       <div className="flex gap-2">
         <Input
@@ -716,7 +1010,7 @@ export default function MarketExplorer() {
                   Cargando...
                 </div>
               ) : (
-                <SymbolInfo quote={quote} />
+                <DecisionPanel quote={quote} prevQuote={prevQuote} />
               )}
             </CardContent>
           </Card>
@@ -797,6 +1091,25 @@ export default function MarketExplorer() {
           </CardContent>
         </Card>
       ) : null}
+
+      {/* Estilos locales del modo en vivo: carrusel de la cinta + destellos de precio */}
+      <style>{`
+        @keyframes ticker-scroll {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        @keyframes flash-green-kf {
+          0% { background-color: rgba(34, 197, 94, 0.35); }
+          100% { background-color: transparent; }
+        }
+        @keyframes flash-red-kf {
+          0% { background-color: rgba(239, 68, 68, 0.35); }
+          100% { background-color: transparent; }
+        }
+        .flash-green { animation: flash-green-kf 1.2s ease-out; }
+        .flash-red { animation: flash-red-kf 1.2s ease-out; }
+        .price-cell { padding: 2px 8px; border-radius: 6px; }
+      `}</style>
     </div>
   );
 }
