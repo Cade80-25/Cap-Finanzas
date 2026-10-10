@@ -4,7 +4,7 @@ import { WalletSelector } from "@/components/WalletSelector";
 import { ProfileSelector } from "@/components/ProfileSelector";
 import {
   Home, Receipt, Calendar, Target, Tag, PieChart, Cog, Wallet, Building2,
-  BarChart2, BarChart3,
+  BarChart2, BarChart3, DollarSign, FileText, ClipboardCheck, Wrench, Car, Home as HomeIcon,
   X, Globe, GraduationCap, Calculator, LucideIcon, TrendingUp, Users, Briefcase, Factory, Landmark, Boxes} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,12 @@ const allNavigation: NavItem[] = [
   { name: "Bienes Raíces", href: "/inmobiliaria", icon: Building2, featureKey: "inmobiliaria" },
   { name: "Análisis Financiero", href: "/analisis", icon: BarChart3, featureKey: "analisis" },
   { name: "Journal de Trading", href: "/trading", icon: BarChart2, featureKey: "trading" },
+  { name: "Gastos", href: "/gastos", icon: DollarSign, featureKey: "gastos" },
+  { name: "Contratos", href: "/contratos", icon: FileText, featureKey: "contratos" },
+  { name: "Calidad", href: "/calidad", icon: ClipboardCheck, featureKey: "calidad" },
+  { name: "Mantenimiento", href: "/mantenimiento", icon: Wrench, featureKey: "mantenimiento" },
+  { name: "Flota", href: "/flota", icon: Car, featureKey: "flota" },
+  { name: "Alquiler", href: "/alquiler", icon: HomeIcon, featureKey: "alquiler" },
   { name: "Bolsas en Vivo", href: "/bolsas", icon: TrendingUp, featureKey: "markets" },
   { name: "Aprender", href: "/aprender", icon: GraduationCap, featureKey: "learn" },
   { name: "Ajustes", href: "/ajustes", icon: Cog, featureKey: "settings" },

@@ -215,15 +215,15 @@ El código determina el plan; el binario es el mismo para todos.
 | Bolsas en Vivo | Trading, criptomonedas, mercado de capitales | ✅ Implementado |
 | Contabilidad de proyectos / obras | Costos por proyecto/obra/orden, avance, facturación por hito, rentabilidad por proyecto | ✅ Implementado |
 | Contabilidad analítica / de costos | Centros de costo y beneficio, dimensiones analíticas, reparto de indirectos, rentabilidad por producto/cliente/canal | ✅ Implementado |
-| Gastos y notas de gasto | Reportes de gastos, reembolsos, anticipos, flujos de aprobación, políticas por categoría | P3 |
-| Contratos y suscripciones | Contratos recurrentes, facturación automática, renovaciones, prorrateos | P3 |
+| **Gastos y Notas de Gasto** | Reportes de gastos, reembolsos, anticipos, aprobaciones, políticas de gasto | ✅ Implementado |
+| **Contratos y Suscripciones** | Contratos recurrentes, suscripciones, facturación automática, renovaciones, prorrateos | ✅ Implementado |
 | **Gestión de Tesorería** | Posición de caja diaria, flujos previstos, encaje bancario, inversión excedentes, cash pooling | ✅ Implementado |
 | **Gestión de Riesgos Financieros** | Cobertura tipo de cambio/tipo interés, riesgo país/comercial/crédito, límites por contraparte | P3 (plantilla) |
 | **Financiamiento Estructurado** | Emisión bonos/valores, rating, estructura capital (WACC), costo deuda vs patrimonio | P3 (plantilla) |
-| Calidad | Planes de control, no conformidades, acciones correctivas, trazabilidad | P3 (plantilla) |
-| Mantenimiento (GMAO) | Órdenes de trabajo, preventivo/correctivo, repuestos, historial de equipos | P3 (plantilla) |
-| Flota | Vehículos, gastos (combustible, peajes, seguros), mantenimiento, vencimientos | P3 (plantilla) |
-| Alquiler / Rental | Equipos, inmuebles, contratos de alquiler, facturación periódica, devoluciones | P3 (plantilla) |
+| **Calidad** | Planes de control, no conformidades, acciones correctivas, trazabilidad | ✅ Implementado |
+| **Mantenimiento (GMAO)** | Órdenes de trabajo, preventivo/correctivo, repuestos, historial de equipos | ✅ Implementado |
+| **Flota** | Vehículos, gastos (combustible, peajes, seguros), mantenimiento, vencimientos | ✅ Implementado |
+| **Alquiler / Rental** | Equipos, inmuebles, contratos de alquiler, facturación periódica, devoluciones | ✅ Implementado |
 | Ventas / CRM ligero | Propuestas, pedidos, seguimiento de clientes, agenda de contacto | P3 |
 | Punto de venta | TPV básico — solo si lo piden usuarios con comercio | P3 |
 | Gestión documental | Adjuntos a asientos/facturas, OCR básico, clasificación, búsqueda | P3 |

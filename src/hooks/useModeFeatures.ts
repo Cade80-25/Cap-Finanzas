@@ -27,6 +27,12 @@ export type FeatureKey =
   | "inmobiliaria"
   | "analisis"
   | "trading"
+  | "gastos"
+  | "contratos"
+  | "calidad"
+  | "mantenimiento"
+  | "flota"
+  | "alquiler"
   | "journal"
   | "ledger"
   | "balance"
@@ -72,6 +78,12 @@ const FEATURE_CONFIG: FeatureConfig[] = [
   { key: "inmobiliaria", route: "/inmobiliaria", label: "Bienes Raíces", simpleMode: false, traditionalMode: true },
   { key: "analisis", route: "/analisis", label: "Análisis Financiero", simpleMode: false, traditionalMode: true },
   { key: "trading", route: "/trading", label: "Journal de Trading", simpleMode: false, traditionalMode: true },
+  { key: "gastos", route: "/gastos", label: "Gastos", simpleMode: false, traditionalMode: true },
+  { key: "contratos", route: "/contratos", label: "Contratos", simpleMode: false, traditionalMode: true },
+  { key: "calidad", route: "/calidad", label: "Calidad", simpleMode: false, traditionalMode: true },
+  { key: "mantenimiento", route: "/mantenimiento", label: "Mantenimiento", simpleMode: false, traditionalMode: true },
+  { key: "flota", route: "/flota", label: "Flota", simpleMode: false, traditionalMode: true },
+  { key: "alquiler", route: "/alquiler", label: "Alquiler", simpleMode: false, traditionalMode: true },
   { key: "journal", route: "/contabilidad?tab=diario", label: "Libro Diario", simpleMode: false, traditionalMode: true },
   { key: "ledger", route: "/contabilidad?tab=mayor", label: "Libro Mayor", simpleMode: false, traditionalMode: true },
   { key: "balance", route: "/contabilidad?tab=balance", label: "Balance General", simpleMode: false, traditionalMode: true },
