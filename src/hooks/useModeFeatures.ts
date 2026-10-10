@@ -17,6 +17,9 @@ export type FeatureKey =
   | "cuentasCorrientes"
   | "facturacion"
   | "rrhh"
+  | "fabricacion"
+  | "activos"
+  | "inventario"
   | "journal"
   | "ledger"
   | "balance"
@@ -52,6 +55,9 @@ const FEATURE_CONFIG: FeatureConfig[] = [
   { key: "cuentasCorrientes", route: "/cuentas-corrientes", label: "Cuentas Corrientes", simpleMode: false, traditionalMode: true },
   { key: "facturacion", route: "/facturacion", label: "Facturación", simpleMode: false, traditionalMode: true },
   { key: "rrhh", route: "/rrhh", label: "RRHH", simpleMode: false, traditionalMode: true },
+  { key: "fabricacion", route: "/fabricacion", label: "Fabricación", simpleMode: false, traditionalMode: true },
+  { key: "activos", route: "/activos", label: "Activos y Logística", simpleMode: false, traditionalMode: true },
+  { key: "inventario", route: "/inventario", label: "Inventario", simpleMode: false, traditionalMode: true },
   { key: "journal", route: "/contabilidad?tab=diario", label: "Libro Diario", simpleMode: false, traditionalMode: true },
   { key: "ledger", route: "/contabilidad?tab=mayor", label: "Libro Mayor", simpleMode: false, traditionalMode: true },
   { key: "balance", route: "/contabilidad?tab=balance", label: "Balance General", simpleMode: false, traditionalMode: true },

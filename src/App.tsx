@@ -41,6 +41,9 @@ const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 const CuentasCorrientes = lazy(() => import("./pages/CuentasCorrientes"));
 const Facturacion = lazy(() => import("./pages/Facturacion"));
 const RRHH = lazy(() => import("./pages/RRHH"));
+const Fabricacion = lazy(() => import("./pages/Fabricacion"));
+const Activos = lazy(() => import("./pages/Activos"));
+const Inventario = lazy(() => import("./pages/Inventario"));
 
 const queryClient = new QueryClient();
 
@@ -107,6 +110,9 @@ const App = () => (
                   <Route path="cuentas-corrientes" element={<PlanGuard feature="cuentasCorrientes"><CuentasCorrientes /></PlanGuard>} />
                   <Route path="facturacion" element={<PlanGuard feature="facturacion"><Facturacion /></PlanGuard>} />
                   <Route path="rrhh" element={<PlanGuard feature="rrhh"><RRHH /></PlanGuard>} />
+                  <Route path="fabricacion" element={<PlanGuard feature="fabricacion"><Fabricacion /></PlanGuard>} />
+                  <Route path="activos" element={<PlanGuard feature="activos"><Activos /></PlanGuard>} />
+                  <Route path="inventario" element={<PlanGuard feature="inventario"><Inventario /></PlanGuard>} />
                   <Route path="bolsas" element={<PlanGuard feature="markets"><Bolsas /></PlanGuard>} />
                   <Route path="aprender" element={<Aprender />} />
                   <Route path="notificaciones" element={<Notificaciones />} />
