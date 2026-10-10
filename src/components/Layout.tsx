@@ -4,7 +4,7 @@ import { WalletSelector } from "@/components/WalletSelector";
 import { ProfileSelector } from "@/components/ProfileSelector";
 import {
   Home, Receipt, Calendar, Target, Tag, PieChart, Cog,
-  X, Globe, GraduationCap, Calculator, LucideIcon, TrendingUp} from "lucide-react";
+  X, Globe, GraduationCap, Calculator, LucideIcon, TrendingUp, Users} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import MenuBar from "@/components/MenuBar";
@@ -40,6 +40,7 @@ const allNavigation: NavItem[] = [
   { name: "Categorías", href: "/categorias", icon: Tag, featureKey: "categories" },
   { name: "Resumen", href: "/resumen", icon: PieChart, featureKey: "summary" },
   { name: "Contabilidad", href: "/contabilidad", icon: Calculator, featureKey: "accounting" },
+  { name: "Cuentas Corrientes", href: "/cuentas-corrientes", icon: Users, featureKey: "cuentasCorrientes" },
   { name: "Bolsas en Vivo", href: "/bolsas", icon: TrendingUp, featureKey: "markets" },
   { name: "Aprender", href: "/aprender", icon: GraduationCap, featureKey: "learn" },
   { name: "Ajustes", href: "/ajustes", icon: Cog, featureKey: "settings" },
