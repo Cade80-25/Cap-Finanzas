@@ -209,9 +209,10 @@ El código determina el plan; el binario es el mismo para todos.
 | Facturación e impuestos | Facturas, notas de crédito/débito, IVA configurable por país, numeración propia, asiento automático en el Diario | P1 |
 | Personal (RRHH) | Empleados, sueldos, liquidaciones, vacaciones y licencias, partes médicos, descuentos; conceptos de recibo editables por plantilla | P1 (plantilla) |
 | Fabricación (contable) | BOM/Lista de materiales con costos, órdenes de producción, WIP/Producción en curso, productos terminados, costeo estándar vs real, análisis de variaciones (material, mano de obra, CIF), subproductos y desperdicios, subcontratación; asientos automáticos en Diario | P1 (plantilla) |
-| Activos y logística | Maquinaria, inmuebles, vehículos, depreciación, mantenimiento, ubicaciones | P2 (plantilla) |
-| Inventario | Stock, valoración (PEPS/UEPS/Promedio), almacenes, ubicaciones, alertas de reposición, transferencias | P2 (plantilla) |
-| Banca | Conciliación bancaria, importación de extractos con mapeo de columnas (reusar el importador CSV existente) | P2 |
+| Activos y logística | Maquinaria, inmuebles, vehículos, depreciación, mantenimiento, ubicaciones | ✅ Implementado |
+| Inventario | Stock, valoración (PEPS/UEPS/Promedio), almacenes, ubicaciones, alertas de reposición, transferencias | ✅ Implementado |
+| Banca | Conciliación bancaria, importación de extractos con mapeo de columnas (reusar el importador CSV existente) | ✅ Implementado |
+| Bolsas en Vivo | Trading, criptomonedas, mercado de capitales | ✅ Implementado |
 | Contabilidad de proyectos / obras | Costos por proyecto/obra/orden, avance, facturación por hito, rentabilidad por proyecto | P2 (plantilla) |
 | Contabilidad analítica / de costos | Centros de costo y beneficio, dimensiones analíticas, reparto de indirectos, rentabilidad por producto/cliente/canal | P2 (plantilla) |
 | Gastos y notas de gasto | Reportes de gastos, reembolsos, anticipos, flujos de aprobación, políticas por categoría | P3 |
