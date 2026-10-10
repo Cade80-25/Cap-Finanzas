@@ -15,6 +15,7 @@ export type FeatureKey =
   | "consolidated"
   | "accounting"
   | "cuentasCorrientes"
+  | "facturacion"
   | "journal"
   | "ledger"
   | "balance"
@@ -48,6 +49,7 @@ const FEATURE_CONFIG: FeatureConfig[] = [
   { key: "consolidated", route: "/resumen?tab=consolidado", label: "Consolidado", simpleMode: false, traditionalMode: true },
   { key: "accounting", route: "/contabilidad", label: "Contabilidad", simpleMode: false, traditionalMode: true },
   { key: "cuentasCorrientes", route: "/cuentas-corrientes", label: "Cuentas Corrientes", simpleMode: false, traditionalMode: true },
+  { key: "facturacion", route: "/facturacion", label: "Facturación", simpleMode: false, traditionalMode: true },
   { key: "journal", route: "/contabilidad?tab=diario", label: "Libro Diario", simpleMode: false, traditionalMode: true },
   { key: "ledger", route: "/contabilidad?tab=mayor", label: "Libro Mayor", simpleMode: false, traditionalMode: true },
   { key: "balance", route: "/contabilidad?tab=balance", label: "Balance General", simpleMode: false, traditionalMode: true },

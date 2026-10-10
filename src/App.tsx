@@ -39,6 +39,7 @@ const Comparativa = lazy(() => import("./pages/Comparativa"));
 const Articulo = lazy(() => import("./pages/Articulo"));
 const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 const CuentasCorrientes = lazy(() => import("./pages/CuentasCorrientes"));
+const Facturacion = lazy(() => import("./pages/Facturacion"));
 
 const queryClient = new QueryClient();
 
@@ -103,6 +104,7 @@ const App = () => (
                   <Route path="resumen" element={<Resumen />} />
                   <Route path="contabilidad" element={<PlanGuard feature="accounting"><Contabilidad /></PlanGuard>} />
                   <Route path="cuentas-corrientes" element={<PlanGuard feature="cuentasCorrientes"><CuentasCorrientes /></PlanGuard>} />
+                  <Route path="facturacion" element={<PlanGuard feature="facturacion"><Facturacion /></PlanGuard>} />
                   <Route path="bolsas" element={<PlanGuard feature="markets"><Bolsas /></PlanGuard>} />
                   <Route path="aprender" element={<Aprender />} />
                   <Route path="notificaciones" element={<Notificaciones />} />

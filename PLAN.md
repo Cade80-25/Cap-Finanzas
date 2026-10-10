@@ -228,8 +228,7 @@ El código determina el plan; el binario es el mismo para todos.
 | Gestión documental | Adjuntos a asientos/facturas, OCR básico, clasificación, búsqueda | P3 |
 | Flujos de aprobación | Workflows configurables: facturas, gastos, pagos, órdenes de compra | P3 |
 | Business Intelligence | Dashboards, KPIs, reportes programados, alertas | P3 |
-| **Trading y Operativa Bursátil** | Análisis técnico/fundamental, gestión de posiciones, journal de trading, backtesting, riesgo por operación | P2 (plantilla) |
-| **Criptomonedas** | Wallet tracking, ganancias/pérdidas por exchange, staking/DeFi, reporte fiscal cripto, alertas de volatilidad | P2 (plantilla) |
+| **Bolsas en Vivo (ampliación)** | Trading: análisis técnico/fundamental, journal de trading, gestión de posiciones. Criptomonedas: wallet tracking, ganancias/pérdidas por exchange, staking/DeFi, reporte fiscal cripto. Todo dentro de `/bolsas` como tabs, no como secciones separadas | P2 |
 | **Bienes Raíces e Inversión Inmobiliaria** | Propiedades, arrendamientos, hipotecas, ROI inmobiliario, depreciación de inmuebles, plusvalía | P2 (plantilla) |
 | **Seguros** | Pólizas, coberturas, siniestros, vencimientos, aseguradoras, deducibles | P3 (plantilla) |
 | **Auditoría y Control Interno** | Checklist de auditoría, hallazgos, planes de acción, segregación de funciones, compliance | P3 (plantilla) |
