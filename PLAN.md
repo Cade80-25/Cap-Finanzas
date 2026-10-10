@@ -217,7 +217,7 @@ El código determina el plan; el binario es el mismo para todos.
 | Contabilidad analítica / de costos | Centros de costo y beneficio, dimensiones analíticas, reparto de indirectos, rentabilidad por producto/cliente/canal | ✅ Implementado |
 | Gastos y notas de gasto | Reportes de gastos, reembolsos, anticipos, flujos de aprobación, políticas por categoría | P3 |
 | Contratos y suscripciones | Contratos recurrentes, facturación automática, renovaciones, prorrateos | P3 |
-| **Gestión de Tesorería** | Posición de caja diaria, flujos previstos, encaje bancario, inversión excedentes, cash pooling | P2 (plantilla) |
+| **Gestión de Tesorería** | Posición de caja diaria, flujos previstos, encaje bancario, inversión excedentes, cash pooling | ✅ Implementado |
 | **Gestión de Riesgos Financieros** | Cobertura tipo de cambio/tipo interés, riesgo país/comercial/crédito, límites por contraparte | P3 (plantilla) |
 | **Financiamiento Estructurado** | Emisión bonos/valores, rating, estructura capital (WACC), costo deuda vs patrimonio | P3 (plantilla) |
 | Calidad | Planes de control, no conformidades, acciones correctivas, trazabilidad | P3 (plantilla) |
@@ -230,7 +230,7 @@ El código determina el plan; el binario es el mismo para todos.
 | Flujos de aprobación | Workflows configurables: facturas, gastos, pagos, órdenes de compra | P3 |
 | Business Intelligence | Dashboards, KPIs, reportes programados, alertas | P3 |
 | **Bolsas en Vivo (ampliación)** | Trading: análisis técnico/fundamental, journal de trading, gestión de posiciones. Criptomonedas: wallet tracking, ganancias/pérdidas por exchange, staking/DeFi, reporte fiscal cripto. Todo dentro de `/bolsas` como tabs, no como secciones separadas | P2 |
-| **Bienes Raíces e Inversión Inmobiliaria** | Propiedades, arrendamientos, hipotecas, ROI inmobiliario, depreciación de inmuebles, plusvalía | P2 (plantilla) |
+| **Bienes Raíces e Inversión Inmobiliaria** | Propiedades, arrendamientos, hipotecas, ROI inmobiliario, depreciación de inmuebles, plusvalía | ✅ Implementado |
 | **Seguros** | Pólizas, coberturas, siniestros, vencimientos, aseguradoras, deducibles | P3 (plantilla) |
 | **Auditoría y Control Interno** | Checklist de auditoría, hallazgos, planes de acción, segregación de funciones, compliance | P3 (plantilla) |
 | **Gestión de Proyectos** | Gantt, hitos, presupuesto por proyecto, rentabilidad por proyecto, recursos asignados | P2 (plantilla) |

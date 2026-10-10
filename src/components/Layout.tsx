@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { WalletSelector } from "@/components/WalletSelector";
 import { ProfileSelector } from "@/components/ProfileSelector";
 import {
-  Home, Receipt, Calendar, Target, Tag, PieChart, Cog,
+  Home, Receipt, Calendar, Target, Tag, PieChart, Cog, Wallet, Building2,
   X, Globe, GraduationCap, Calculator, LucideIcon, TrendingUp, Users, Briefcase, Factory, Landmark, Boxes} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,8 @@ const allNavigation: NavItem[] = [
   { name: "Banca", href: "/banca", icon: Landmark, featureKey: "banca" },
   { name: "Proyectos y Obras", href: "/proyectos", icon: Target, featureKey: "proyectos" },
   { name: "Contabilidad Analítica", href: "/analitica", icon: PieChart, featureKey: "analitica" },
+  { name: "Tesorería", href: "/tesoreria", icon: Wallet, featureKey: "tesoreria" },
+  { name: "Bienes Raíces", href: "/inmobiliaria", icon: Building2, featureKey: "inmobiliaria" },
   { name: "Bolsas en Vivo", href: "/bolsas", icon: TrendingUp, featureKey: "markets" },
   { name: "Aprender", href: "/aprender", icon: GraduationCap, featureKey: "learn" },
   { name: "Ajustes", href: "/ajustes", icon: Cog, featureKey: "settings" },
