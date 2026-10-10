@@ -4,6 +4,7 @@ import { WalletSelector } from "@/components/WalletSelector";
 import { ProfileSelector } from "@/components/ProfileSelector";
 import {
   Home, Receipt, Calendar, Target, Tag, PieChart, Cog, Wallet, Building2,
+  BarChart2, BarChart3,
   X, Globe, GraduationCap, Calculator, LucideIcon, TrendingUp, Users, Briefcase, Factory, Landmark, Boxes} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,8 @@ const allNavigation: NavItem[] = [
   { name: "Contabilidad Analítica", href: "/analitica", icon: PieChart, featureKey: "analitica" },
   { name: "Tesorería", href: "/tesoreria", icon: Wallet, featureKey: "tesoreria" },
   { name: "Bienes Raíces", href: "/inmobiliaria", icon: Building2, featureKey: "inmobiliaria" },
+  { name: "Análisis Financiero", href: "/analisis", icon: BarChart3, featureKey: "analisis" },
+  { name: "Journal de Trading", href: "/trading", icon: BarChart2, featureKey: "trading" },
   { name: "Bolsas en Vivo", href: "/bolsas", icon: TrendingUp, featureKey: "markets" },
   { name: "Aprender", href: "/aprender", icon: GraduationCap, featureKey: "learn" },
   { name: "Ajustes", href: "/ajustes", icon: Cog, featureKey: "settings" },

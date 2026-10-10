@@ -49,6 +49,8 @@ const Proyectos = lazy(() => import("./pages/Proyectos"));
 const ContabilidadAnalitica = lazy(() => import("./pages/ContabilidadAnalitica"));
 const Tesoreria = lazy(() => import("./pages/Tesoreria"));
 const Inmobiliaria = lazy(() => import("./pages/Inmobiliaria"));
+const AnalisisFinanciero = lazy(() => import("./pages/AnalisisFinanciero"));
+const TradingJournal = lazy(() => import("./pages/TradingJournal"));
 
 const queryClient = new QueryClient();
 
@@ -123,6 +125,8 @@ const App = () => (
                   <Route path="analitica" element={<PlanGuard feature="analitica"><ContabilidadAnalitica /></PlanGuard>} />
                   <Route path="tesoreria" element={<PlanGuard feature="tesoreria"><Tesoreria /></PlanGuard>} />
                   <Route path="inmobiliaria" element={<PlanGuard feature="inmobiliaria"><Inmobiliaria /></PlanGuard>} />
+                  <Route path="analisis" element={<PlanGuard feature="analisis"><AnalisisFinanciero /></PlanGuard>} />
+                  <Route path="trading" element={<PlanGuard feature="trading"><TradingJournal /></PlanGuard>} />
                   <Route path="bolsas" element={<PlanGuard feature="markets"><Bolsas /></PlanGuard>} />
                   <Route path="aprender" element={<Aprender />} />
                   <Route path="notificaciones" element={<Notificaciones />} />
