@@ -187,4 +187,71 @@ El código determina el plan; el binario es el mismo para todos.
 1. **Cambiar un precio o vigencia = actualizar este archivo y el código, en el mismo commit.**
 2. El README del repo y la landing deben reflejar esta tabla. Si no coinciden, están mal ellos.
 3. El `license_type` se consulta al activar; nunca asumir un TTL fijo para todos.
+
+---
+
+## Roadmap v2 — Cap-Finanzas Negocios (decidido 2026-10-09)
+
+> Decisión de Fernando: v2 incluye **todos los dominios** de gestión de una
+> empresa, no solo el núcleo contable. Lo que lo hace posible es el **sistema de
+> plantillas modificables**: cada dominio es una plantilla editable (rellenar,
+> importar CSV o crear desde cero, según país y régimen) montada sobre el motor
+> de doble entrada que ya existe. "Incluir todo" no es programar la regla fiscal
+> de cada país: es dar la estructura y dejar que el usuario o su contador la
+> adapten. El mapa es completo desde el día uno; la profundidad de cada dominio
+> crece por iteración según el uso real.
+
+### Dominios de v2 (mapa completo; validado contra Dolibarr y Odoo)
+
+| Dominio | Incluye | Prioridad |
+|---|---|---|
+| Cuentas corrientes | Clientes (deudores, cartera), proveedores (acreedores), antigüedad 30/60/90, cobros y pagos parciales | P1 |
+| Facturación e impuestos | Facturas, notas de crédito/débito, IVA configurable por país, numeración propia, asiento automático en el Diario | P1 |
+| Personal (RRHH) | Empleados, sueldos, liquidaciones, vacaciones y licencias, partes médicos, descuentos; conceptos de recibo editables por plantilla | P1 (plantilla) |
+| Activos y logística | Maquinaria, inmuebles, vehículos, depreciación, mantenimiento, ubicaciones | P2 (plantilla) |
+| Inventario | Stock, valoración, almacenes, alertas de reposición | P2 (plantilla) |
+| Banca | Conciliación bancaria, importación de extractos con mapeo de columnas (reusar el importador CSV existente) | P2 |
+| Ventas / CRM ligero | Propuestas, pedidos, seguimiento de clientes, agenda de contacto | P3 |
+| Gastos | Reportes de gastos, reembolsos, anticipos | P3 |
+| Punto de venta | TPV básico — solo si lo piden usuarios con comercio | P3 |
+| Fabricación | Fuera de alcance por ahora (Odoo lo cubre; no es nuestro nicho) | — |
+
+### Sistema de plantillas (el corazón de v2)
+
+1. Marco general: crear, editar, duplicar, importar y exportar plantillas (JSON + CSV).
+2. Plantillas de fábrica por dominio, con valores por defecto editables.
+3. Toda plantilla genera asientos en el Libro Diario existente — el motor no cambia.
+4. Descargo en Términos: la plantilla es una herramienta, no asesoramiento fiscal.
+
+### Orden de construcción dentro de v2
+
+P1 (cuentas corrientes + facturación + plantillas RRHH) → lanzar → escuchar a
+los usuarios fundadores → profundizar los dominios según uso real. Las
+prioridades P1/P2/P3 son **orden de construcción**, nunca recorte del mapa.
+
+### Pricing decidido — PENDIENTE DE IMPLEMENTAR (respeta la regla 1)
+
+Decidido con Fernando el 2026-10-09:
+
+- **Personal**: $19–20 USD, pago único, permanente.
+- **Empresarial**: $99–100 USD, pago único, permanente. Fin de la renovación
+  semestral ("suscripción disfrazada" — decisión de identidad del producto).
+- **Política de versiones** (escribirla en Términos desde ya): la licencia cubre
+  la versión mayor actual y todas sus mejoras (1.x) para siempre. Versiones
+  mayores nuevas (2.0+) son un upgrade pago con descuento para licencias
+  activas. Correcciones de bugs siempre gratis.
+- **Usuarios fundadores** (primeros compradores): v2 gratis o a precio simbólico.
+
+⚠️ Hasta cambiar el código (TTL de `traditional` 180 días → perpetuo en
+`license-activate/index.ts`, precios en `useLicense.ts`, textos en
+`LicenseGate.tsx`), la tabla de la sección "Planes" de arriba **sigue
+gobernando**. Este archivo y el código se cambian en el mismo commit, nunca solos.
+
+### "Beta" queda fuera del vocabulario
+
+Decisión de Fernando: hacia el público no se usa "beta" — toda versión es la
+beta de la siguiente. El programa de testers pasa a llamarse **Programa de
+Fundadores**: línea directa con el creador, su feedback define v2, precio de
+fundador como recompensa. Internamente, los números de versión (1.x, 2.0)
+siguen usándose solo como hitos de ingeniería.
 4. Los secretos van en variables de entorno de Supabase, nunca en el repo.
