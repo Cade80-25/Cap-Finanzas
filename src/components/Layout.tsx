@@ -46,6 +46,7 @@ const allNavigation: NavItem[] = [
   { name: "Fabricación", href: "/fabricacion", icon: Factory, featureKey: "fabricacion" },
   { name: "Activos y Logística", href: "/activos", icon: Landmark, featureKey: "activos" },
   { name: "Inventario", href: "/inventario", icon: Boxes, featureKey: "inventario" },
+  { name: "Banca", href: "/banca", icon: Landmark, featureKey: "banca" },
   { name: "Bolsas en Vivo", href: "/bolsas", icon: TrendingUp, featureKey: "markets" },
   { name: "Aprender", href: "/aprender", icon: GraduationCap, featureKey: "learn" },
   { name: "Ajustes", href: "/ajustes", icon: Cog, featureKey: "settings" },
