@@ -216,6 +216,9 @@ El código determina el plan; el binario es el mismo para todos.
 | Contabilidad analítica / de costos | Centros de costo y beneficio, dimensiones analíticas, reparto de indirectos, rentabilidad por producto/cliente/canal | P2 (plantilla) |
 | Gastos y notas de gasto | Reportes de gastos, reembolsos, anticipos, flujos de aprobación, políticas por categoría | P3 |
 | Contratos y suscripciones | Contratos recurrentes, facturación automática, renovaciones, prorrateos | P3 |
+| **Gestión de Tesorería** | Posición de caja diaria, flujos previstos, encaje bancario, inversión excedentes, cash pooling | P2 (plantilla) |
+| **Gestión de Riesgos Financieros** | Cobertura tipo de cambio/tipo interés, riesgo país/comercial/crédito, límites por contraparte | P3 (plantilla) |
+| **Financiamiento Estructurado** | Emisión bonos/valores, rating, estructura capital (WACC), costo deuda vs patrimonio | P3 (plantilla) |
 | Calidad | Planes de control, no conformidades, acciones correctivas, trazabilidad | P3 (plantilla) |
 | Mantenimiento (GMAO) | Órdenes de trabajo, preventivo/correctivo, repuestos, historial de equipos | P3 (plantilla) |
 | Flota | Vehículos, gastos (combustible, peajes, seguros), mantenimiento, vencimientos | P3 (plantilla) |
