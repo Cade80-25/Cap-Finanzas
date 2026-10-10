@@ -213,8 +213,8 @@ El código determina el plan; el binario es el mismo para todos.
 | Inventario | Stock, valoración (PEPS/UEPS/Promedio), almacenes, ubicaciones, alertas de reposición, transferencias | ✅ Implementado |
 | Banca | Conciliación bancaria, importación de extractos con mapeo de columnas (reusar el importador CSV existente) | ✅ Implementado |
 | Bolsas en Vivo | Trading, criptomonedas, mercado de capitales | ✅ Implementado |
-| Contabilidad de proyectos / obras | Costos por proyecto/obra/orden, avance, facturación por hito, rentabilidad por proyecto | P2 (plantilla) |
-| Contabilidad analítica / de costos | Centros de costo y beneficio, dimensiones analíticas, reparto de indirectos, rentabilidad por producto/cliente/canal | P2 (plantilla) |
+| Contabilidad de proyectos / obras | Costos por proyecto/obra/orden, avance, facturación por hito, rentabilidad por proyecto | ✅ Implementado |
+| Contabilidad analítica / de costos | Centros de costo y beneficio, dimensiones analíticas, reparto de indirectos, rentabilidad por producto/cliente/canal | ✅ Implementado |
 | Gastos y notas de gasto | Reportes de gastos, reembolsos, anticipos, flujos de aprobación, políticas por categoría | P3 |
 | Contratos y suscripciones | Contratos recurrentes, facturación automática, renovaciones, prorrateos | P3 |
 | **Gestión de Tesorería** | Posición de caja diaria, flujos previstos, encaje bancario, inversión excedentes, cash pooling | P2 (plantilla) |

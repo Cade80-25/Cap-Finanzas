@@ -21,6 +21,8 @@ export type FeatureKey =
   | "activos"
   | "inventario"
   | "banca"
+  | "proyectos"
+  | "analitica"
   | "journal"
   | "ledger"
   | "balance"
@@ -60,6 +62,8 @@ const FEATURE_CONFIG: FeatureConfig[] = [
   { key: "activos", route: "/activos", label: "Activos y Logística", simpleMode: false, traditionalMode: true },
   { key: "inventario", route: "/inventario", label: "Inventario", simpleMode: false, traditionalMode: true },
   { key: "banca", route: "/banca", label: "Banca", simpleMode: false, traditionalMode: true },
+  { key: "proyectos", route: "/proyectos", label: "Proyectos y Obras", simpleMode: false, traditionalMode: true },
+  { key: "analitica", route: "/analitica", label: "Contabilidad Analítica", simpleMode: false, traditionalMode: true },
   { key: "journal", route: "/contabilidad?tab=diario", label: "Libro Diario", simpleMode: false, traditionalMode: true },
   { key: "ledger", route: "/contabilidad?tab=mayor", label: "Libro Mayor", simpleMode: false, traditionalMode: true },
   { key: "balance", route: "/contabilidad?tab=balance", label: "Balance General", simpleMode: false, traditionalMode: true },
