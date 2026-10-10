@@ -317,9 +317,9 @@ export function useLicense() {
   }, []);
 
   // Precios oficiales (ver PLAN.md en la raiz del repo).
-  //   simple: pago unico, licencia permanente.
-  //   full:   Empresarial, renovable cada 6 meses.
-  const pricing = { simple: 20, full: 100 };
+  //   simple:      pago unico, licencia perpetua (USD 19-20).
+  //   traditional: pago unico, licencia perpetua (USD 99-100).
+    const pricing = { simple: 20, traditional: 100 };
 
   const referralAccountBonus = Math.min(
     parseInt(localStorage.getItem("cap-finanzas-referral-count") || "0", 10),

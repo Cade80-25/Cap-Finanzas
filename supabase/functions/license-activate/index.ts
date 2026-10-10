@@ -15,15 +15,14 @@ const BodySchema = z.object({
 
 // Vigencia del token segun el plan (ver PLAN.md en la raiz del repo).
 // - simple:      permanente (100 anios, efectivamente sin vencimiento)
-// - traditional/full/account: semestral (180 dias), renovable
+// - traditional: permanente (100 anios, efectivamente sin vencimiento)
 const PERPETUAL_DAYS = 36500;
-const SEMESTRAL_DAYS = 180;
 
 function ttlDaysFor(licenseType: string | null | undefined): number {
   const t = (licenseType ?? "").toLowerCase();
-  if (t === "simple") return PERPETUAL_DAYS;
-  // traditional, full, account y cualquier otro: semestral
-  return SEMESTRAL_DAYS;
+  if (t === "simple" || t === "traditional") return PERPETUAL_DAYS;
+  // full, account y cualquier otro: perpetuo (para compatibilidad)
+  return PERPETUAL_DAYS;
 }
 
 function b64url(bytes: Uint8Array): string {

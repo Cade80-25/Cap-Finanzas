@@ -47,7 +47,7 @@ export function LicenseGate({ children }: LicenseGateProps) {
             <Progress value={100} className="h-2" />
           </div>
 
-          {/* Dos planes: Simples (permanente) y Empresarial (semestral) */}
+          {/* Dos planes: Simples (permanente) y Empresarial (permanente) */}
           <div className="grid gap-4 sm:grid-cols-2">
             {/* Plan Simples */}
             <div className="border rounded-lg p-5 space-y-3">
@@ -75,9 +75,9 @@ export function LicenseGate({ children }: LicenseGateProps) {
                 <span className="font-semibold">Empresarial</span>
               </div>
               <div className="text-3xl font-bold text-primary">
-                ${pricing.full} <span className="text-base font-normal text-muted-foreground">USD</span>
+                ${pricing.traditional} <span className="text-base font-normal text-muted-foreground">USD</span>
               </div>
-              <p className="text-xs font-medium text-muted-foreground">Cada 6 meses · Renovable</p>
+              <p className="text-xs font-medium text-muted-foreground">Pago único · Permanente</p>
               <ul className="text-xs text-muted-foreground space-y-1">
                 {["Todo lo del plan Simples", "Libro Diario y Mayor", "Balance y Estado de Resultados", "Enciclopedia contable", "Chat IA y Bolsas en Vivo"].map((f, i) => (
                   <li key={i} className="flex items-center gap-1.5">
