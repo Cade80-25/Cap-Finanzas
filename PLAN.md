@@ -208,13 +208,23 @@ El código determina el plan; el binario es el mismo para todos.
 | Cuentas corrientes | Clientes (deudores, cartera), proveedores (acreedores), antigüedad 30/60/90, cobros y pagos parciales | P1 |
 | Facturación e impuestos | Facturas, notas de crédito/débito, IVA configurable por país, numeración propia, asiento automático en el Diario | P1 |
 | Personal (RRHH) | Empleados, sueldos, liquidaciones, vacaciones y licencias, partes médicos, descuentos; conceptos de recibo editables por plantilla | P1 (plantilla) |
+| Fabricación (contable) | BOM/Lista de materiales con costos, órdenes de producción, WIP/Producción en curso, productos terminados, costeo estándar vs real, análisis de variaciones (material, mano de obra, CIF), subproductos y desperdicios, subcontratación; asientos automáticos en Diario | P1 (plantilla) |
 | Activos y logística | Maquinaria, inmuebles, vehículos, depreciación, mantenimiento, ubicaciones | P2 (plantilla) |
-| Inventario | Stock, valoración, almacenes, alertas de reposición | P2 (plantilla) |
+| Inventario | Stock, valoración (PEPS/UEPS/Promedio), almacenes, ubicaciones, alertas de reposición, transferencias | P2 (plantilla) |
 | Banca | Conciliación bancaria, importación de extractos con mapeo de columnas (reusar el importador CSV existente) | P2 |
+| Contabilidad de proyectos / obras | Costos por proyecto/obra/orden, avance, facturación por hito, rentabilidad por proyecto | P2 (plantilla) |
+| Contabilidad analítica / de costos | Centros de costo y beneficio, dimensiones analíticas, reparto de indirectos, rentabilidad por producto/cliente/canal | P2 (plantilla) |
+| Gastos y notas de gasto | Reportes de gastos, reembolsos, anticipos, flujos de aprobación, políticas por categoría | P3 |
+| Contratos y suscripciones | Contratos recurrentes, facturación automática, renovaciones, prorrateos | P3 |
+| Calidad | Planes de control, no conformidades, acciones correctivas, trazabilidad | P3 (plantilla) |
+| Mantenimiento (GMAO) | Órdenes de trabajo, preventivo/correctivo, repuestos, historial de equipos | P3 (plantilla) |
+| Flota | Vehículos, gastos (combustible, peajes, seguros), mantenimiento, vencimientos | P3 (plantilla) |
+| Alquiler / Rental | Equipos, inmuebles, contratos de alquiler, facturación periódica, devoluciones | P3 (plantilla) |
 | Ventas / CRM ligero | Propuestas, pedidos, seguimiento de clientes, agenda de contacto | P3 |
-| Gastos | Reportes de gastos, reembolsos, anticipos | P3 |
 | Punto de venta | TPV básico — solo si lo piden usuarios con comercio | P3 |
-| Fabricación | Fuera de alcance por ahora (Odoo lo cubre; no es nuestro nicho) | — |
+| Gestión documental | Adjuntos a asientos/facturas, OCR básico, clasificación, búsqueda | P3 |
+| Flujos de aprobación | Workflows configurables: facturas, gastos, pagos, órdenes de compra | P3 |
+| Business Intelligence | Dashboards, KPIs, reportes programados, alertas | P3 |
 
 ### Sistema de plantillas (el corazón de v2)
 
