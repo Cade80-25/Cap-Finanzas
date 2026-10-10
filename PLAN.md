@@ -14,10 +14,9 @@ que reconstruir cuál era la correcta.
 | Plan | Precio | Vigencia | Códigos | Alcance |
 |---|---|---|---|---|
 | **Simples** | **$20 USD** | **Permanente** | `CF-SIMPLE-*` | Finanzas personales, presupuestos, calendario, múltiples monedas, Tutor IA |
-| **Empresarial** | **$100 USD** | **6 meses** (renovable) | `CF-TRAD-*` | Todo lo del Simples + Libro Diario, Libro Mayor, Balance, Estado de Resultados, Enciclopedia, Chat IA, Bolsas en Vivo |
+| **Empresarial** | **$100 USD** | **Permanente** | `CF-TRAD-*` | Todo lo del Simples + Libro Diario, Libro Mayor, Balance, Estado de Resultados, Enciclopedia, Chat IA, Bolsas en Vivo, Cuentas Corrientes |
 
-**No existe plan Empresarial permanente.** Decisión de negocio: la renovación semestral
-genera más ingreso que una venta única.
+**Ambos planes son perpetuos (pago único).** Decisión de Fernando (2026-10-09): fin de la renovación semestral ("suscripción disfrazada").
 
 ### Prueba
 
@@ -39,12 +38,12 @@ El campo `exp` depende del **tipo de licencia**:
 | `license_type` | `exp` | Constante |
 |---|---|---|
 | `simple` | `iat + 100 años` (efectivamente permanente) | `PERPETUAL_DAYS = 36500` |
-| `traditional` | `iat + 180 días` | `SEMESTRAL_DAYS = 180` |
-| `full` | `iat + 180 días` | `SEMESTRAL_DAYS = 180` |
-| `account` | `iat + 180 días` | `SEMESTRAL_DAYS = 180` |
+| `traditional` | `iat + 100 años` (efectivamente permanente) | `PERPETUAL_DAYS = 36500` |
+| `full` | `iat + 100 años` (compatibilidad) | `PERPETUAL_DAYS = 36500` |
+| `account` | `iat + 100 años` (compatibilidad) | `PERPETUAL_DAYS = 36500` |
 
-> **Antes**: `TOKEN_TTL_DAYS = 90` para **todos** los planes. Eso significaba que quien compraba
-> el plan "permanente" se quedaba sin licencia a los 3 meses.
+> **2026-10-09**: `traditional` pasó de semestral (180 días) a perpetuo (36500 días).
+> Decisión de Fernando: ambos planes son pago único y permanentes. Fin de la renovación semestral.
 
 ---
 
@@ -57,6 +56,7 @@ El campo `exp` depende del **tipo de licencia**:
 | Calendario · Presupuesto · Monedas · Resumen | varias | Ambos |
 | Categorías | `/categorias` | Empresarial |
 | Contabilidad (Diario, Mayor, Balance, Resultados) | `/contabilidad` | Empresarial |
+| Cuentas Corrientes (deudores/acreedores) | `/cuentas-corrientes` | Empresarial |
 | **Bolsas en Vivo** | `/bolsas` | Empresarial (datos requieren internet) |
 | Aprender · Recomendaciones · Manual | `/aprender` | Ambos |
 | Enciclopedia | `/aprender?tab=enciclopedia` | Empresarial |
@@ -228,6 +228,16 @@ El código determina el plan; el binario es el mismo para todos.
 | Gestión documental | Adjuntos a asientos/facturas, OCR básico, clasificación, búsqueda | P3 |
 | Flujos de aprobación | Workflows configurables: facturas, gastos, pagos, órdenes de compra | P3 |
 | Business Intelligence | Dashboards, KPIs, reportes programados, alertas | P3 |
+| **Trading y Operativa Bursátil** | Análisis técnico/fundamental, gestión de posiciones, journal de trading, backtesting, riesgo por operación | P2 (plantilla) |
+| **Criptomonedas** | Wallet tracking, ganancias/pérdidas por exchange, staking/DeFi, reporte fiscal cripto, alertas de volatilidad | P2 (plantilla) |
+| **Bienes Raíces e Inversión Inmobiliaria** | Propiedades, arrendamientos, hipotecas, ROI inmobiliario, depreciación de inmuebles, plusvalía | P2 (plantilla) |
+| **Seguros** | Pólizas, coberturas, siniestros, vencimientos, aseguradoras, deducibles | P3 (plantilla) |
+| **Auditoría y Control Interno** | Checklist de auditoría, hallazgos, planes de acción, segregación de funciones, compliance | P3 (plantilla) |
+| **Gestión de Proyectos** | Gantt, hitos, presupuesto por proyecto, rentabilidad por proyecto, recursos asignados | P2 (plantilla) |
+| **Startups y Emprendimiento** | Plan de negocio, métricas de startup (MRR/ARR/Churn), runway, burn rate, cap table | P3 (plantilla) |
+| **Análisis Financiero y Ratios** | KPIs financieros (ROE/ROA/margen/EBITDA), benchmarking, tendencias, scorecards | P2 |
+| **Comercio Exterior** | Importación/exportación, aduanas, aranceles, Incoterms, divisas, despachantes | P3 (plantilla) |
+| **Marketing y Ventas avanzado** | Campañas, embudos de venta, CAC/LTV, segmentación, automatización | P3 (plantilla) |
 
 ### Sistema de plantillas (el corazón de v2)
 
