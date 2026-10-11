@@ -218,8 +218,8 @@ El código determina el plan; el binario es el mismo para todos.
 | **Gastos y Notas de Gasto** | Reportes de gastos, reembolsos, anticipos, aprobaciones, políticas de gasto | ✅ Implementado |
 | **Contratos y Suscripciones** | Contratos recurrentes, suscripciones, facturación automática, renovaciones, prorrateos | ✅ Implementado |
 | **Gestión de Tesorería** | Posición de caja diaria, flujos previstos, encaje bancario, inversión excedentes, cash pooling | ✅ Implementado |
-| **Gestión de Riesgos Financieros** | Cobertura tipo de cambio/tipo interés, riesgo país/comercial/crédito, límites por contraparte | P3 (plantilla) |
-| **Financiamiento Estructurado** | Emisión bonos/valores, rating, estructura capital (WACC), costo deuda vs patrimonio | P3 (plantilla) |
+| **Gestión de Riesgos Financieros** | Cobertura tipo de cambio/tipo interés, riesgo país/comercial/crédito, límites por contraparte | ✅ Implementado |
+| **Financiamiento Estructurado** | Emisión bonos/valores, rating, estructura capital (WACC), costo deuda vs patrimonio | ✅ Implementado |
 | **Calidad** | Planes de control, no conformidades, acciones correctivas, trazabilidad | ✅ Implementado |
 | **Mantenimiento (GMAO)** | Órdenes de trabajo, preventivo/correctivo, repuestos, historial de equipos | ✅ Implementado |
 | **Flota** | Vehículos, gastos (combustible, peajes, seguros), mantenimiento, vencimientos | ✅ Implementado |
@@ -233,7 +233,7 @@ El código determina el plan; el binario es el mismo para todos.
 | **Bienes Raíces e Inversión Inmobiliaria** | Propiedades, arrendamientos, hipotecas, ROI inmobiliario, depreciación de inmuebles, plusvalía | ✅ Implementado |
 | **Seguros** | Pólizas, coberturas, siniestros, vencimientos, aseguradoras, deducibles | ✅ Implementado |
 | **Auditoría y Control Interno** | Checklist de auditoría, hallazgos, planes de acción, segregación de funciones, compliance | ✅ Implementado |
-| **Gestión de Proyectos** | Gantt, hitos, presupuesto por proyecto, rentabilidad por proyecto, recursos asignados | P2 (plantilla) |
+| **Gestión de Proyectos** | Gantt, hitos, presupuesto por proyecto, rentabilidad por proyecto, recursos asignados | ✅ Implementado |
 | **Startups y Emprendimiento** | Plan de negocio, métricas de startup (MRR/ARR/Churn), runway, burn rate, cap table | P3 (plantilla) |
 | **Análisis Financiero y Ratios** | KPIs financieros (ROE/ROA/margen/EBITDA), benchmarking, tendencias, scorecards | ✅ Implementado |
 | **Comercio Exterior** | Importación/exportación, aduanas, aranceles, Incoterms, divisas, despachantes | P3 (plantilla) |
