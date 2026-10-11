@@ -5,7 +5,7 @@ import { ProfileSelector } from "@/components/ProfileSelector";
 import {
   Home, Receipt, Calendar, Target, Tag, PieChart, Cog, Wallet, Building2,
   BarChart2, BarChart3, DollarSign, FileText, ClipboardCheck, Wrench, Car, Home as HomeIcon,
-  X, Globe, GraduationCap, Calculator, LucideIcon, TrendingUp, Users, Briefcase, Factory, Landmark, Boxes, Shield, AlertTriangle, CheckCircle, DollarSign as DollarIcon, Target, TrendingDown} from "lucide-react";
+  X, Globe, GraduationCap, Calculator, LucideIcon, TrendingUp, Users, Briefcase, Factory, Landmark, Boxes, Shield, AlertTriangle, CheckCircle, DollarSign as DollarIcon, Target, TrendingDown, Rocket, Ship} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import MenuBar from "@/components/MenuBar";
@@ -66,6 +66,9 @@ const allNavigation: NavItem[] = [
   { name: "Riesgos", href: "/riesgos", icon: TrendingDown, featureKey: "riesgos" },
   { name: "Financiamiento", href: "/financiamiento", icon: DollarIcon, featureKey: "financiamiento" },
   { name: "Proyectos", href: "/proyectos", icon: Target, featureKey: "proyectos" },
+  { name: "Startups", href: "/startups", icon: Rocket, featureKey: "startups" },
+  { name: "Comercio Exterior", href: "/comercio", icon: Ship, featureKey: "comercio" },
+  { name: "CRM", href: "/crm", icon: Users, featureKey: "crm" },
   { name: "Bolsas en Vivo", href: "/bolsas", icon: TrendingUp, featureKey: "markets" },
   { name: "Aprender", href: "/aprender", icon: GraduationCap, featureKey: "learn" },
   { name: "Ajustes", href: "/ajustes", icon: Cog, featureKey: "settings" },

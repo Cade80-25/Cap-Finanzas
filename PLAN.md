@@ -224,7 +224,7 @@ El código determina el plan; el binario es el mismo para todos.
 | **Mantenimiento (GMAO)** | Órdenes de trabajo, preventivo/correctivo, repuestos, historial de equipos | ✅ Implementado |
 | **Flota** | Vehículos, gastos (combustible, peajes, seguros), mantenimiento, vencimientos | ✅ Implementado |
 | **Alquiler / Rental** | Equipos, inmuebles, contratos de alquiler, facturación periódica, devoluciones | ✅ Implementado |
-| Ventas / CRM ligero | Propuestas, pedidos, seguimiento de clientes, agenda de contacto | P3 |
+| Ventas / CRM ligero | Propuestas, pedidos, seguimiento de clientes, agenda de contacto | ✅ Implementado |
 | Punto de venta | TPV básico — solo si lo piden usuarios con comercio | P3 |
 | Gestión documental | Adjuntos a asientos/facturas, OCR básico, clasificación, búsqueda | P3 |
 | **Flujos de Aprobación** | Workflows configurables: facturas, gastos, pagos, órdenes de compra | ✅ Implementado |
@@ -234,9 +234,9 @@ El código determina el plan; el binario es el mismo para todos.
 | **Seguros** | Pólizas, coberturas, siniestros, vencimientos, aseguradoras, deducibles | ✅ Implementado |
 | **Auditoría y Control Interno** | Checklist de auditoría, hallazgos, planes de acción, segregación de funciones, compliance | ✅ Implementado |
 | **Gestión de Proyectos** | Gantt, hitos, presupuesto por proyecto, rentabilidad por proyecto, recursos asignados | ✅ Implementado |
-| **Startups y Emprendimiento** | Plan de negocio, métricas de startup (MRR/ARR/Churn), runway, burn rate, cap table | P3 (plantilla) |
+| **Startups y Emprendimiento** | Plan de negocio, métricas de startup (MRR/ARR/Churn), runway, burn rate, cap table | ✅ Implementado |
 | **Análisis Financiero y Ratios** | KPIs financieros (ROE/ROA/margen/EBITDA), benchmarking, tendencias, scorecards | ✅ Implementado |
-| **Comercio Exterior** | Importación/exportación, aduanas, aranceles, Incoterms, divisas, despachantes | P3 (plantilla) |
+| **Comercio Exterior** | Importación/exportación, aduanas, aranceles, Incoterms, divisas, despachantes | ✅ Implementado |
 | **Marketing y Ventas avanzado** | Campañas, embudos de venta, CAC/LTV, segmentación, automatización | P3 (plantilla) |
 
 ### Sistema de plantillas (el corazón de v2)

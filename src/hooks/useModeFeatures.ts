@@ -39,6 +39,9 @@ export type FeatureKey =
   | "riesgos"
   | "financiamiento"
   | "proyectos"
+  | "startups"
+  | "comercio"
+  | "crm"
   | "journal"
   | "ledger"
   | "balance"
@@ -96,6 +99,9 @@ const FEATURE_CONFIG: FeatureConfig[] = [
   { key: "riesgos", route: "/riesgos", label: "Riesgos", simpleMode: false, traditionalMode: true },
   { key: "financiamiento", route: "/financiamiento", label: "Financiamiento", simpleMode: false, traditionalMode: true },
   { key: "proyectos", route: "/proyectos", label: "Proyectos", simpleMode: false, traditionalMode: true },
+  { key: "startups", route: "/startups", label: "Startups", simpleMode: false, traditionalMode: true },
+  { key: "comercio", route: "/comercio", label: "Comercio Exterior", simpleMode: false, traditionalMode: true },
+  { key: "crm", route: "/crm", label: "CRM", simpleMode: false, traditionalMode: true },
   { key: "journal", route: "/contabilidad?tab=diario", label: "Libro Diario", simpleMode: false, traditionalMode: true },
   { key: "ledger", route: "/contabilidad?tab=mayor", label: "Libro Mayor", simpleMode: false, traditionalMode: true },
   { key: "balance", route: "/contabilidad?tab=balance", label: "Balance General", simpleMode: false, traditionalMode: true },

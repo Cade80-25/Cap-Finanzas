@@ -63,6 +63,9 @@ const Aprobaciones = lazy(() => import("./pages/Aprobaciones"));
 const Riesgos = lazy(() => import("./pages/Riesgos"));
 const Financiamiento = lazy(() => import("./pages/Financiamiento"));
 const GestionProyectos = lazy(() => import("./pages/GestionProyectos"));
+const Startups = lazy(() => import("./pages/Startups"));
+const ComercioExterior = lazy(() => import("./pages/ComercioExterior"));
+const CrmLigero = lazy(() => import("./pages/CrmLigero"));
 
 const queryClient = new QueryClient();
 
@@ -151,6 +154,9 @@ const App = () => (
                   <Route path="riesgos" element={<PlanGuard feature="riesgos"><Riesgos /></PlanGuard>} />
                   <Route path="financiamiento" element={<PlanGuard feature="financiamiento"><Financiamiento /></PlanGuard>} />
                   <Route path="proyectos" element={<PlanGuard feature="proyectos"><GestionProyectos /></PlanGuard>} />
+                  <Route path="startups" element={<PlanGuard feature="startups"><Startups /></PlanGuard>} />
+                  <Route path="comercio" element={<PlanGuard feature="comercio"><ComercioExterior /></PlanGuard>} />
+                  <Route path="crm" element={<PlanGuard feature="crm"><CrmLigero /></PlanGuard>} />
                   <Route path="bolsas" element={<PlanGuard feature="markets"><Bolsas /></PlanGuard>} />
                   <Route path="aprender" element={<Aprender />} />
                   <Route path="notificaciones" element={<Notificaciones />} />
