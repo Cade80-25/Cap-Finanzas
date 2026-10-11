@@ -8,7 +8,7 @@ interface AdvancedSettings {
   devMode: boolean;
   dataLogging: boolean;
   autoSync: boolean;
-  betaFeatures: boolean;
+  advancedFeatures: boolean;
   syncInterval: number; // in seconds
   maxLogEntries: number;
 }
@@ -26,7 +26,7 @@ const defaultSettings: AdvancedSettings = {
   devMode: false,
   dataLogging: false,
   autoSync: false,
-  betaFeatures: false,
+  advancedFeatures: false,
   syncInterval: 30,
   maxLogEntries: 500,
 };
@@ -167,10 +167,10 @@ export function useAdvancedFeatures() {
     }
   }, [setSettings, addLog, syncData, settings.syncInterval]);
 
-  // Toggle beta features
-  const setBetaFeatures = useCallback((enabled: boolean) => {
-    setSettings(prev => ({ ...prev, betaFeatures: enabled }));
-    addLog("info", "Sistema", enabled ? "Funciones beta activadas" : "Funciones beta desactivadas");
+  // Toggle advanced features
+  const setAdvancedFeatures = useCallback((enabled: boolean) => {
+    setSettings(prev => ({ ...prev, advancedFeatures: enabled }));
+    addLog("info", "Sistema", enabled ? "Funciones avanzadas activadas" : "Funciones avanzadas desactivadas");
   }, [setSettings, addLog]);
 
   // Set sync interval
@@ -248,7 +248,7 @@ export function useAdvancedFeatures() {
     devMode: settings.devMode,
     dataLogging: settings.dataLogging,
     autoSync: settings.autoSync,
-    betaFeatures: settings.betaFeatures,
+    advancedFeatures: settings.advancedFeatures,
     syncInterval: settings.syncInterval,
     
     // Sync status
@@ -262,7 +262,7 @@ export function useAdvancedFeatures() {
     setDevMode,
     setDataLogging,
     setAutoSync,
-    setBetaFeatures,
+    setAdvancedFeatures,
     setSyncInterval,
     syncData,
     addLog,

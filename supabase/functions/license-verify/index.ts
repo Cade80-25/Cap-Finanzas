@@ -16,12 +16,12 @@ const BodySchema = z.object({
 // Vigencia del token segun el plan (ver PLAN.md en la raiz del repo).
 // Debe coincidir con license-activate/index.ts.
 const PERPETUAL_DAYS = 36500;
-const SEMESTRAL_DAYS = 180;
 
 function ttlDaysFor(licenseType: string | null | undefined): number {
   const t = (licenseType ?? "").toLowerCase();
-  if (t === "simple") return PERPETUAL_DAYS;
-  return SEMESTRAL_DAYS;
+  // Todos los planes son perpetuos (ver PLAN.md). Simple y tradicional: pago único.
+  if (t === "simple" || t === "traditional") return PERPETUAL_DAYS;
+  return PERPETUAL_DAYS;
 }
 
 function b64url(bytes: Uint8Array): string {

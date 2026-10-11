@@ -51,7 +51,7 @@ interface ConfigData {
   devMode: boolean;
   dataLogging: boolean;
   autoSync: boolean;
-  betaFeatures: boolean;
+  advancedFeatures: boolean;
   autoUpdates: boolean;
   exportFormat: string;
 }
@@ -69,7 +69,7 @@ const defaultConfig: ConfigData = {
   devMode: false,
   dataLogging: false,
   autoSync: false,
-  betaFeatures: false,
+  advancedFeatures: false,
   autoUpdates: true,
   exportFormat: "json",
 };
@@ -1378,17 +1378,17 @@ export default function Configuracion() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Funciones Beta</Label>
+                  <Label>Funciones avanzadas</Label>
                   <p className="text-xs text-muted-foreground">
-                    Probar nuevas funcionalidades experimentales
+                    Probar nuevas funcionalidades avanzadas
                   </p>
                 </div>
                 <Switch 
-                  checked={advanced.betaFeatures} 
+                  checked={advanced.advancedFeatures} 
                   onCheckedChange={(checked) => {
-                    advanced.setBetaFeatures(checked);
-                    updateConfig({ betaFeatures: checked });
-                    toast.success(checked ? "Funciones beta activadas" : "Funciones beta desactivadas");
+                    advanced.setAdvancedFeatures(checked);
+                    updateConfig({ advancedFeatures: checked });
+                    toast.success(checked ? "Funciones avanzadas activadas" : "Funciones avanzadas desactivadas");
                   }} 
                 />
               </div>
