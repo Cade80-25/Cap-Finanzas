@@ -58,6 +58,8 @@ import {
   CostVariance,
   SubcontractOrder,
 } from "@/hooks/useFabricacion";
+import { useModuleIntegration } from "@/hooks/useModuleIntegration";
+import { CheckCircle2 } from "lucide-react";
 
 const MONEY = (n: number) =>
   `$${(Number.isFinite(n) ? n : 0).toLocaleString("es-UY", {
@@ -140,6 +142,28 @@ export default function Fabricacion() {
     productMap,
     currentPeriod,
   } = useFabricacion();
+
+  const { postProduction, postMaterialConsumption, postLaborApplied, isPosted } = useModuleIntegration();
+  const completeProductionWithPost = (id: string) => {
+    const order = orders.find((o) => o.id === id);
+    if (!order) return;
+    const ref = `production:${id}`;
+    if (!isPosted(ref)) {
+      const result = postProduction({
+        orderId: id,
+        orderNumber: order.orderNumber,
+        productName: order.productName,
+        bomCost: order.bomCost,
+        actualCost: order.actualCost || order.bomCost,
+        wipBreakdown: order.wipEntries?.map((w) => ({ type: w.type, amount: w.amount })),
+      });
+      if (!result.ok && result.message !== "Ya contabilizado") {
+        alert(result.message);
+        return;
+      }
+    }
+    completeProduction(id);
+  };
 
   const [tab, setTab] = useState("productos");
 
@@ -272,13 +296,23 @@ export default function Fabricacion() {
 
   const handleAddWip = () => {
     if (!fWipOrder || !fWipDesc.trim() || !fWipAmount) return;
+    const amount = parseFloat(fWipAmount) || 0;
+    const order = orders.find((o) => o.id === fWipOrder);
     addWipEntry(fWipOrder, {
       date: fWipDate || todayISO(),
       type: fWipType,
       description: fWipDesc.trim(),
-      amount: parseFloat(fWipAmount) || 0,
+      amount,
       account: fWipAccount.trim() || "WIP",
     });
+    // Integración contable: material → consumo; labor → mano de obra aplicada
+    if (order && amount > 0) {
+      if (fWipType === "material") {
+        postMaterialConsumption(order.orderNumber, order.productName, amount, fWipDate || todayISO());
+      } else if (fWipType === "labor") {
+        postLaborApplied(order.orderNumber, order.productName, amount, fWipDate || todayISO());
+      }
+    }
     setFWipOrder("");
     setFWipDate("");
     setFWipType("material");
@@ -501,7 +535,7 @@ export default function Fabricacion() {
                           <Button size="sm" variant="outline" onClick={() => pauseProduction(o.id)}>
                             <Pause className="h-3.5 w-3.5 mr-1" /> Pausar
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => completeProduction(o.id)}>
+                          <Button size="sm" variant="outline" onClick={() => completeProductionWithPost(o.id)}>
                             <CheckCircle className="h-3.5 w-3.5 mr-1" /> Completar
                           </Button>
                         </>
@@ -511,10 +545,15 @@ export default function Fabricacion() {
                           <Button size="sm" variant="outline" onClick={() => startProduction(o.id)}>
                             <Play className="h-3.5 w-3.5 mr-1" /> Reanudar
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => completeProduction(o.id)}>
+                          <Button size="sm" variant="outline" onClick={() => completeProductionWithPost(o.id)}>
                             <CheckCircle className="h-3.5 w-3.5 mr-1" /> Completar
                           </Button>
                         </>
+                      )}
+                      {isPosted(`production:${o.id}`) && (
+                        <Badge className="text-xs bg-blue-100 text-blue-800">
+                          <CheckCircle2 className="h-3 w-3 mr-0.5" /> Contab.
+                        </Badge>
                       )}
                       <Button size="sm" variant="ghost" onClick={() => setDetailOrderId(o.id)}>
                         <Eye className="h-3.5 w-3.5" />

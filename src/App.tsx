@@ -42,6 +42,7 @@ const CuentasCorrientes = lazy(() => import("./pages/CuentasCorrientes"));
 const Facturacion = lazy(() => import("./pages/Facturacion"));
 const RRHH = lazy(() => import("./pages/RRHH"));
 const Fabricacion = lazy(() => import("./pages/Fabricacion"));
+const Automatizacion = lazy(() => import("./pages/Automatizacion"));
 const Activos = lazy(() => import("./pages/Activos"));
 const Inventario = lazy(() => import("./pages/Inventario"));
 const Banca = lazy(() => import("./pages/Banca"));
@@ -137,10 +138,10 @@ const App = () => (
                   <Route path="facturacion" element={<PlanGuard feature="facturacion"><Facturacion /></PlanGuard>} />
                   <Route path="rrhh" element={<PlanGuard feature="rrhh"><RRHH /></PlanGuard>} />
                   <Route path="fabricacion" element={<PlanGuard feature="fabricacion"><Fabricacion /></PlanGuard>} />
+                  <Route path="automatizacion" element={<PlanGuard feature="automatizacion"><Automatizacion /></PlanGuard>} />
                   <Route path="activos" element={<PlanGuard feature="activos"><Activos /></PlanGuard>} />
                   <Route path="inventario" element={<PlanGuard feature="inventario"><Inventario /></PlanGuard>} />
                   <Route path="banca" element={<PlanGuard feature="banca"><Banca /></PlanGuard>} />
-                  <Route path="proyectos" element={<PlanGuard feature="proyectos"><Proyectos /></PlanGuard>} />
                   <Route path="analitica" element={<PlanGuard feature="analitica"><ContabilidadAnalitica /></PlanGuard>} />
                   <Route path="tesoreria" element={<PlanGuard feature="tesoreria"><Tesoreria /></PlanGuard>} />
                   <Route path="inmobiliaria" element={<PlanGuard feature="inmobiliaria"><Inmobiliaria /></PlanGuard>} />

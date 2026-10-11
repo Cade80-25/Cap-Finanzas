@@ -51,6 +51,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useRRHH, Employee, EmployeeStatus, PayrollEntry, VacationRecord, MedicalPart } from "@/hooks/useRRHH";
+import { useModuleIntegration } from "@/hooks/useModuleIntegration";
+import { CheckCircle2 } from "lucide-react";
 
 const MONEY = (n: number) =>
   `$${(Number.isFinite(n) ? n : 0).toLocaleString("es-UY", {
@@ -124,6 +126,26 @@ export default function RRHH() {
     employeePayrollMap,
     currentPeriod,
   } = useRRHH();
+
+  const { postPayroll, isPosted } = useModuleIntegration();
+  const markPayrollPaidWithPost = (id: string) => {
+    const entry = payrollEntries.find((p) => p.id === id);
+    if (!entry) return;
+    const ref = `payroll:${id}`;
+    if (isPosted(ref)) { markPayrollPaid(id); return; }
+    const result = postPayroll({
+      payrollId: id,
+      period: entry.period,
+      employeeName: getEmployeeName(entry.employeeId),
+      baseSalary: entry.baseSalary,
+      bonifications: entry.bonifications,
+      overtime: entry.overtime,
+      deductions: entry.deductions,
+      netPay: entry.netPay,
+    });
+    if (result.ok) markPayrollPaid(id);
+    else if (result.message !== "Ya contabilizado") alert(result.message);
+  };
 
   const [tab, setTab] = useState("empleados");
 
@@ -395,9 +417,14 @@ export default function RRHH() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       {!p.paid && (
-                        <Button size="sm" variant="outline" onClick={() => markPayrollPaid(p.id)}>
+                        <Button size="sm" variant="outline" onClick={() => markPayrollPaidWithPost(p.id)}>
                           <CheckCircle className="h-3.5 w-3.5 mr-1" /> Pagar
                         </Button>
+                      )}
+                      {isPosted(`payroll:${p.id}`) && (
+                        <Badge className="text-xs bg-blue-100 text-blue-800 ml-1">
+                          <CheckCircle2 className="h-3 w-3 mr-0.5" /> Contabilizado
+                        </Badge>
                       )}
                       <Button
                         size="sm"

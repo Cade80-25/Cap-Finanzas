@@ -63,6 +63,16 @@ export const ACCOUNT_TO_SIMPLE: Record<string, string> = {
   "inventarios": "alimentacion",
   "depreciacion": "vivienda",
   "amortizacion": "vivienda",
+  // Cuentas de empresa
+  "sueldos": "otros-gastos",
+  "cargas-sociales": "servicios",
+  "produccion-en-curso": "ahorros",
+  "productos-terminados": "ahorros",
+  "materias-primas": "ahorros",
+  "variacion-costos": "otros-gastos",
+  "iva-por-pagar": "servicios",
+  "iva-por-cobrar": "otros-ingresos",
+  "compras": "otros-gastos",
 };
 
 // Mapeo de cuenta contable → tipo de categoría simple
@@ -83,6 +93,16 @@ export const ACCOUNT_TO_TYPE: Record<string, "income" | "expense"> = {
   "inventarios": "expense",
   "depreciacion": "expense",
   "amortizacion": "expense",
+  // Cuentas de empresa
+  "sueldos": "expense",
+  "cargas-sociales": "expense",
+  "produccion-en-curso": "expense",
+  "productos-terminados": "expense",
+  "materias-primas": "expense",
+  "variacion-costos": "expense",
+  "iva-por-pagar": "expense",
+  "iva-por-cobrar": "income",
+  "compras": "expense",
 };
 
 /**

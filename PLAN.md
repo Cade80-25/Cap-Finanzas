@@ -207,8 +207,8 @@ El código determina el plan; el binario es el mismo para todos.
 |---|---|---|
 | Cuentas corrientes | Clientes (deudores, cartera), proveedores (acreedores), antigüedad 30/60/90, cobros y pagos parciales | P1 |
 | Facturación e impuestos | Facturas, notas de crédito/débito, IVA configurable por país, numeración propia, asiento automático en el Diario | P1 |
-| Personal (RRHH) | Empleados, sueldos, liquidaciones, vacaciones y licencias, partes médicos, descuentos; conceptos de recibo editables por plantilla | P1 (plantilla) |
-| Fabricación (contable) | BOM/Lista de materiales con costos, órdenes de producción, WIP/Producción en curso, productos terminados, costeo estándar vs real, análisis de variaciones (material, mano de obra, CIF), subproductos y desperdicios, subcontratación; asientos automáticos en Diario | P1 (plantilla) |
+| Personal (RRHH) | Empleados, sueldos, liquidaciones, vacaciones y licencias, partes médicos, descuentos; conceptos de recibo editables por plantilla | ✅ Implementado (integrado al Diario) |
+| Fabricación (contable) | BOM/Lista de materiales con costos, órdenes de producción, WIP/Producción en curso, productos terminados, costeo estándar vs real, análisis de variaciones (material, mano de obra, CIF), subproductos y desperdicios, subcontratación; asientos automáticos en Diario | ✅ Implementado (integrado al Diario) |
 | Activos y logística | Maquinaria, inmuebles, vehículos, depreciación, mantenimiento, ubicaciones | ✅ Implementado |
 | Inventario | Stock, valoración (PEPS/UEPS/Promedio), almacenes, ubicaciones, alertas de reposición, transferencias | ✅ Implementado |
 | Banca | Conciliación bancaria, importación de extractos con mapeo de columnas (reusar el importador CSV existente) | ✅ Implementado |
@@ -238,6 +238,24 @@ El código determina el plan; el binario es el mismo para todos.
 | **Análisis Financiero y Ratios** | KPIs financieros (ROE/ROA/margen/EBITDA), benchmarking, tendencias, scorecards | ✅ Implementado |
 | **Comercio Exterior** | Importación/exportación, aduanas, aranceles, Incoterms, divisas, despachantes | ✅ Implementado |
 | **Marketing y Ventas avanzado** | Campañas, embudos de venta, CAC/LTV, segmentación, automatización | ✅ Implementado |
+
+### Etapa 1 — Integración y Profundización (EN CURSO)
+
+**Motor de integración** (`src/lib/moduleIntegration.ts` + `src/hooks/useModuleIntegration.ts`):
+- Funciones puras que traducen datos de módulos operativos a asientos del Libro Diario (doble entrada)
+- RRHH: sueldos → Debe Sueldos / Haber Cargas Sociales + Banco
+- Fabricación: cierre de orden → Debe Productos Terminados / Haber WIP + variación; consumo materiales → Debe WIP / Haber Materias Primas; mano de obra → Debe WIP / Haber Sueldos
+- Facturación: venta → Debe Cuentas por Cobrar / Haber Ingresos + IVA; cobro → Debe Banco / Haber Cuentas por Cobrar
+- TPV: venta directa → Debe Caja/Banco / Haber Ingresos + IVA
+- Hook `useModuleIntegration`: conecta al journal, marca registros como contabilizados, emite notificaciones
+- Plan de cuentas empresarial extendido: sueldos, cargas-sociales, produccion-en-curso, productos-terminados, materias-primas, variacion-costos, iva-por-pagar, iva-por-cobrar, compras
+
+**Automatización sobre datos del usuario** (`src/hooks/useAutomatizacion.ts` + `src/pages/Automatizacion.tsx`):
+- Centro de Automatización: alertas automáticas generadas desde los datos que el usuario ya cargó
+- Alertas: cuentas por cobrar vencidas, cuentas por pagar vencidas, stock bajo mínimo, pólizas por vencer, contratos por vencer, facturas vencidas sin cobrar, variaciones de costo desfavorables, nómina pendiente de pago
+- Severidad: crítica / alta / media / baja, con monto en riesgo consolidado
+- Cada alerta enlaza al módulo correspondiente para acción inmediata
+- Sin conexión externa: trabaja 100% sobre datos locales del usuario
 
 ### Sistema de plantillas (el corazón de v2)
 

@@ -31,6 +31,16 @@ const ACCOUNT_CATEGORIES: Record<string, { type: "activo" | "pasivo" | "patrimon
   "inventarios": { type: "activo", label: "Inventarios", icon: "📦", color: "bg-amber-500" },
   "depreciacion": { type: "gasto", label: "Depreciación", icon: "📉", color: "bg-gray-500" },
   "amortizacion": { type: "gasto", label: "Amortización", icon: "📊", color: "bg-gray-600" },
+  // ── Cuentas de empresa (integración de módulos v2) ──
+  "sueldos": { type: "gasto", label: "Sueldos y Jornales", icon: "👥", color: "bg-indigo-500" },
+  "cargas-sociales": { type: "pasivo", label: "Cargas Sociales", icon: "🧾", color: "bg-rose-400" },
+  "produccion-en-curso": { type: "activo", label: "Producción en Curso (WIP)", icon: "⚙️", color: "bg-cyan-500" },
+  "productos-terminados": { type: "activo", label: "Productos Terminados", icon: "🏭", color: "bg-cyan-600" },
+  "materias-primas": { type: "activo", label: "Materias Primas", icon: "🪵", color: "bg-lime-600" },
+  "variacion-costos": { type: "gasto", label: "Variación de Costos", icon: "📈", color: "bg-orange-400" },
+  "iva-por-pagar": { type: "pasivo", label: "IVA por Pagar", icon: "🧮", color: "bg-red-300" },
+  "iva-por-cobrar": { type: "activo", label: "IVA por Cobrar", icon: "🧮", color: "bg-blue-300" },
+  "compras": { type: "gasto", label: "Compras", icon: "🛒", color: "bg-yellow-600" },
 };
 
 export function useAccountingData() {

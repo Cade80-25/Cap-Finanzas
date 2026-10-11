@@ -5,7 +5,7 @@ import { ProfileSelector } from "@/components/ProfileSelector";
 import {
   Home, Receipt, Calendar, Target, Tag, PieChart, Cog, Wallet, Building2,
   BarChart2, BarChart3, DollarSign, FileText, ClipboardCheck, Wrench, Car, Home as HomeIcon,
-  X, Globe, GraduationCap, Calculator, LucideIcon, TrendingUp, Users, Briefcase, Factory, Landmark, Boxes, Shield, AlertTriangle, CheckCircle, DollarSign as DollarIcon, Target, TrendingDown, Rocket, Ship, ShoppingCart, FileText, BarChart3, Megaphone} from "lucide-react";
+  X, Globe, GraduationCap, Calculator, LucideIcon, TrendingUp, Users, Briefcase, Factory, Landmark, Boxes, Shield, AlertTriangle, CheckCircle, DollarSign as DollarIcon, Target, TrendingDown, Rocket, Ship, ShoppingCart, FileText, BarChart3, Megaphone, Activity} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import MenuBar from "@/components/MenuBar";
@@ -48,7 +48,6 @@ const allNavigation: NavItem[] = [
   { name: "Activos y Logística", href: "/activos", icon: Landmark, featureKey: "activos" },
   { name: "Inventario", href: "/inventario", icon: Boxes, featureKey: "inventario" },
   { name: "Banca", href: "/banca", icon: Landmark, featureKey: "banca" },
-  { name: "Proyectos y Obras", href: "/proyectos", icon: Target, featureKey: "proyectos" },
   { name: "Contabilidad Analítica", href: "/analitica", icon: PieChart, featureKey: "analitica" },
   { name: "Tesorería", href: "/tesoreria", icon: Wallet, featureKey: "tesoreria" },
   { name: "Bienes Raíces", href: "/inmobiliaria", icon: Building2, featureKey: "inmobiliaria" },
@@ -73,6 +72,7 @@ const allNavigation: NavItem[] = [
   { name: "Documentos", href: "/documentos", icon: FileText, featureKey: "documentos" },
   { name: "Business Intelligence", href: "/bi", icon: BarChart3, featureKey: "bi" },
   { name: "Marketing y Ventas", href: "/marketing", icon: Megaphone, featureKey: "marketing" },
+  { name: "Centro de Automatización", href: "/automatizacion", icon: Activity, featureKey: "automatizacion" },
   { name: "Bolsas en Vivo", href: "/bolsas", icon: TrendingUp, featureKey: "markets" },
   { name: "Aprender", href: "/aprender", icon: GraduationCap, featureKey: "learn" },
   { name: "Ajustes", href: "/ajustes", icon: Cog, featureKey: "settings" },
