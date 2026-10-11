@@ -18,6 +18,7 @@ import { useSeguros } from "@/hooks/useSeguros";
 import { useContratos } from "@/hooks/useContratos";
 import { useFabricacion } from "@/hooks/useFabricacion";
 import { useRRHH } from "@/hooks/useRRHH";
+import { useTPV } from "@/hooks/useTPV";
 
 export type AlertSeverity = "critica" | "alta" | "media" | "baja";
 
@@ -54,6 +55,7 @@ export function useAutomatizacion() {
   const con = useContratos();
   const fab = useFabricacion();
   const rrhh = useRRHH();
+  const tpv = useTPV();
 
   const alerts = useMemo<BusinessAlert[]>(() => {
     const out: BusinessAlert[] = [];
@@ -215,8 +217,26 @@ export function useAutomatizacion() {
       }
     } catch { /* noop */ }
 
+    // ── TPV: caja abierta sin cerrar ──
+    try {
+      const abiertas = (tpv.transactions || []).filter((t) => t.status === "abierta");
+      if (abiertas.length > 0) {
+        const amount = abiertas.reduce((s, t) => s + t.total, 0);
+        out.push({
+          id: "tpv-caja-abierta",
+          severity: "media",
+          module: "TPV",
+          title: "Ventas abiertas sin cobrar",
+          message: `${abiertas.length} venta(s) en estado abierta — cobrar o anular`,
+          count: abiertas.length,
+          amount,
+          route: "/tpv",
+        });
+      }
+    } catch { /* noop */ }
+
     return out.sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
-  }, [cc.movements, fac.invoices, inv.items, seg.policies, con.contracts, fab.variances, rrhh.payrollEntries]);
+  }, [cc.movements, fac.invoices, inv.items, seg.policies, con.contracts, fab.variances, rrhh.payrollEntries, tpv.transactions]);
 
   const resumen = useMemo(() => {
     const porSeveridad = { critica: 0, alta: 0, media: 0, baja: 0 };

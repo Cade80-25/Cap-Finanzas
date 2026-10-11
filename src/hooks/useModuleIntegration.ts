@@ -18,6 +18,9 @@ import {
   buildCollectionEntries,
   buildPaymentEntries,
   buildSaleEntries,
+  buildPurchaseEntries,
+  buildCostOfSalesEntries,
+  buildInventoryAdjustmentEntries,
   isBalanced,
   draftsToTransactions,
   nextJournalId,
@@ -184,6 +187,44 @@ export function useModuleIntegration() {
     [postEntries, addNotification]
   );
 
+  // ── Inventario ──
+
+  const postPurchase = useCallback(
+    (reference: string, supplierName: string, amount: number, payment: "efectivo" | "credito" | "transferencia", date?: string, refId?: string): PostResult => {
+      const ref = `purchase:${refId || reference}:${date || ""}`;
+      const entries = buildPurchaseEntries(reference, supplierName, amount, payment, date);
+      const result = postEntries(ref, "purchase", entries);
+      if (result.ok) {
+        addNotification({
+          type: "info",
+          title: "Compra contabilizada",
+          message: `${reference} — ${supplierName}: ${result.entries} asientos`,
+        });
+      }
+      return result;
+    },
+    [postEntries, addNotification]
+  );
+
+  const postCostOfSales = useCallback(
+    (reference: string, productName: string, amount: number, date?: string, refId?: string): PostResult => {
+      const ref = `costsales:${refId || reference}:${date || ""}`;
+      const entries = buildCostOfSalesEntries(reference, productName, amount, date);
+      return postEntries(ref, "costsales", entries);
+    },
+    [postEntries]
+  );
+
+  const postInventoryAdjustment = useCallback(
+    (movementId: string, itemName: string, amount: number, date?: string): PostResult => {
+      const ref = `invadj:${movementId}`;
+      const entries = buildInventoryAdjustmentEntries(itemName, amount, date);
+      if (entries.length === 0) return { ok: false, entries: 0, message: "Ajuste sin efecto" };
+      return postEntries(ref, "invadj", entries);
+    },
+    [postEntries]
+  );
+
   // ── Utilidades ──
 
   const isPosted = useCallback((ref: string): boolean => {
@@ -203,6 +244,9 @@ export function useModuleIntegration() {
     postCollection,
     postPayment,
     postSale,
+    postPurchase,
+    postCostOfSales,
+    postInventoryAdjustment,
     isPosted,
     getPostedRefs,
   };

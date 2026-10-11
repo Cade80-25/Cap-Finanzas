@@ -281,6 +281,64 @@ export function buildSaleEntries(input: SalePostInput): DraftEntry[] {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Inventario → Compras / Costo de ventas / Ajustes
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Compra de mercadería: Debe Inventarios, Haber Caja/Banco/Cuentas por Pagar */
+export function buildPurchaseEntries(
+  reference: string,
+  supplierName: string,
+  amount: number,
+  payment: "efectivo" | "credito" | "transferencia",
+  date?: string
+): DraftEntry[] {
+  const d = date || todayISO();
+  const desc = `Compra ${reference} — ${supplierName}`;
+  const creditAccount = payment === "efectivo" ? "caja" : payment === "transferencia" ? "banco" : "cuentas-por-pagar";
+  return [
+    { date: d, account: "inventarios", description: desc, debit: round2(amount), credit: 0, subcategory: "Compras" },
+    { date: d, account: creditAccount, description: desc, debit: 0, credit: round2(amount), subcategory: "Compras" },
+  ];
+}
+
+/** Costo de ventas: Debe Costo de Ventas, Haber Inventarios */
+export function buildCostOfSalesEntries(
+  reference: string,
+  productName: string,
+  amount: number,
+  date?: string
+): DraftEntry[] {
+  const d = date || todayISO();
+  const desc = `Costo de ventas ${reference} — ${productName}`;
+  return [
+    { date: d, account: "costo-ventas", description: desc, debit: round2(amount), credit: 0, subcategory: "Costos" },
+    { date: d, account: "inventarios", description: desc, debit: 0, credit: round2(amount), subcategory: "Costos" },
+  ];
+}
+
+/** Ajuste de inventario por valor: delta>0 = sobrante (sube stock), delta<0 = merma (baja stock) */
+export function buildInventoryAdjustmentEntries(
+  itemName: string,
+  valueDelta: number,
+  date?: string
+): DraftEntry[] {
+  const d = date || todayISO();
+  const amt = round2(Math.abs(valueDelta));
+  if (amt < 0.005) return [];
+  const desc = `Ajuste inventario — ${itemName}`;
+  // Sobrante: sube el activo, reduce el gasto. Merma: gasto contra el activo.
+  return valueDelta > 0
+    ? [
+        { date: d, account: "inventarios", description: desc, debit: amt, credit: 0, subcategory: "Inventario" },
+        { date: d, account: "costo-ventas", description: desc, debit: 0, credit: amt, subcategory: "Inventario" },
+      ]
+    : [
+        { date: d, account: "costo-ventas", description: desc, debit: amt, credit: 0, subcategory: "Inventario" },
+        { date: d, account: "inventarios", description: desc, debit: 0, credit: amt, subcategory: "Inventario" },
+      ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Utilidades
 // ─────────────────────────────────────────────────────────────────────────────
 

@@ -239,6 +239,25 @@ El código determina el plan; el binario es el mismo para todos.
 | **Comercio Exterior** | Importación/exportación, aduanas, aranceles, Incoterms, divisas, despachantes | ✅ Implementado |
 | **Marketing y Ventas avanzado** | Campañas, embudos de venta, CAC/LTV, segmentación, automatización | ✅ Implementado |
 
+### Etapa 3 — Ciclo de Venta-Stock Completo (EN CURSO)
+
+**TPV → Diario + Inventario**:
+- Al cobrar una venta → asiento automático: Debe Caja/Banco (según medio de pago) / Haber Ingresos + IVA por Pagar
+- Cierre de ciclo real: cada ítem vendido descuenta stock del Inventario (match por nombre)
+- Por cada ítem con stock: asiento de costo de ventas (Debe Costo de Ventas / Haber Inventarios)
+- Badge "Contab." en la tabla de ventas
+
+**Inventario → Diario**:
+- Entrada (compra) → asiento: Debe Inventarios / Haber Caja (efectivo)
+- Salida → asiento de costo de ventas: Debe Costo de Ventas / Haber Inventarios
+- Ajuste → asiento por valor del delta: sobrante reduce gasto, merma lo aumenta
+- Badge "Contab." en la tabla de movimientos
+- Referencias únicas por id de movimiento (`purchase:{id}:{fecha}`, `costsales:{id}:{fecha}`, `invadj:{id}`) — permite múltiples operaciones del mismo artículo el mismo día
+
+**Motor de automatización extendido**:
+- Nueva alerta TPV: ventas en estado "abierta" sin cobrar
+- `useTPV` integrado al panel de estado del negocio
+
 ### Etapa 2 — Cadena de Ventas Completa (EN CURSO)
 
 **Facturación → Diario**:

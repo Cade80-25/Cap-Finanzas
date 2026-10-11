@@ -659,8 +659,8 @@ export default function CuentasCorrientes() {
                               <Badge variant={isIncrease ? "destructive" : "secondary"} className="text-xs">
                                 {KIND_LABEL[m.kind]}
                               </Badge>
-                              {(m.kind === "cobro" && isPosted(`collection:ccm:${m.id}`)) ||
-                              (m.kind === "pago" && isPosted(`payment:ccm:${m.id}`)) ? (
+                              {(m.kind === "cobro" && isPosted(`collection:ccm:${m.id}:${m.date}`)) ||
+                              (m.kind === "pago" && isPosted(`payment:ccm:${m.id}:${m.date}`)) ? (
                                 <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
                                   <CheckCircle2 className="h-3 w-3 mr-1" /> Contabilizado
                                 </Badge>
