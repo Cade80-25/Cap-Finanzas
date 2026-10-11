@@ -238,6 +238,21 @@ export function buildCollectionEntries(
   ];
 }
 
+/** Pago a proveedor: Debe Cuentas por pagar, Haber Banco */
+export function buildPaymentEntries(
+  number: string,
+  providerName: string,
+  amount: number,
+  date?: string
+): DraftEntry[] {
+  const d = date || todayISO();
+  const desc = `Pago ${number} — ${providerName}`;
+  return [
+    { date: d, account: "cuentas-por-pagar", description: desc, debit: round2(amount), credit: 0, subcategory: "Pagos" },
+    { date: d, account: "banco", description: desc, debit: 0, credit: round2(amount), subcategory: "Pagos" },
+  ];
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // TPV → Venta directa (caja/banco)
 // ─────────────────────────────────────────────────────────────────────────────

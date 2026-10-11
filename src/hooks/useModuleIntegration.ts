@@ -16,6 +16,7 @@ import {
   buildLaborAppliedEntries,
   buildInvoiceEntries,
   buildCollectionEntries,
+  buildPaymentEntries,
   buildSaleEntries,
   isBalanced,
   draftsToTransactions,
@@ -155,6 +156,15 @@ export function useModuleIntegration() {
     [postEntries]
   );
 
+  const postPayment = useCallback(
+    (number: string, providerName: string, amount: number, date?: string): PostResult => {
+      const ref = `payment:${number}:${date || ""}`;
+      const entries = buildPaymentEntries(number, providerName, amount, date);
+      return postEntries(ref, "payment", entries);
+    },
+    [postEntries]
+  );
+
   // ── TPV ──
 
   const postSale = useCallback(
@@ -191,6 +201,7 @@ export function useModuleIntegration() {
     postLaborApplied,
     postInvoice,
     postCollection,
+    postPayment,
     postSale,
     isPosted,
     getPostedRefs,

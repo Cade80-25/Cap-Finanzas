@@ -46,6 +46,8 @@ import {
 } from "@/components/ui/table";
 import { useFacturacion, InvoiceItem, InvoiceType, InvoiceStatus } from "@/hooks/useFacturacion";
 import { useCuentasCorrientes } from "@/hooks/useCuentasCorrientes";
+import { useModuleIntegration } from "@/hooks/useModuleIntegration";
+import { CheckCircle2 } from "lucide-react";
 
 const MONEY = (n: number) =>
   `$${(Number.isFinite(n) ? n : 0).toLocaleString("es-UY", {
@@ -100,6 +102,7 @@ export default function Facturacion() {
     stats,
   } = useFacturacion();
   const { contacts } = useCuentasCorrientes();
+  const { postInvoice, isPosted } = useModuleIntegration();
 
   const [tab, setTab] = useState<string>("facturas");
   const [createOpen, setCreateOpen] = useState(false);
@@ -184,7 +187,14 @@ export default function Facturacion() {
 
     if (!formContactId || items.length === 0) return;
 
-    createInvoice({
+    const contact = contacts.find((c) => c.id === formContactId);
+    const contactName = contact?.name || "Cliente";
+
+    const subtotal = items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+    const vat = items.reduce((s, it) => s + (it.quantity * it.unitPrice * it.vatRate) / 100, 0);
+    const total = subtotal + vat;
+
+    const newInvoice = createInvoice({
       type: formType,
       date: formDate,
       dueDate: formDue || undefined,
@@ -193,6 +203,19 @@ export default function Facturacion() {
       notes: formNotes.trim() || undefined,
       relatedInvoiceId: formRelatedId || undefined,
     });
+
+    // Generar asiento contable automático
+    if (newInvoice && formType === "factura") {
+      postInvoice({
+        invoiceId: newInvoice.id,
+        number: newInvoice.number,
+        clientName: contactName,
+        subtotal: Math.round(subtotal * 100) / 100,
+        tax: Math.round(vat * 100) / 100,
+        total: Math.round(total * 100) / 100,
+        date: formDate,
+      });
+    }
 
     // Reset
     setFormItems([emptyItem()]);
@@ -276,9 +299,16 @@ export default function Facturacion() {
                     {MONEY(inv.total)}
                   </TableCell>
                   <TableCell onClick={() => setDetailId(inv.id)}>
-                    <Badge className={`text-xs ${STATUS_COLOR[inv.status]}`}>
-                      {STATUS_LABEL[inv.status]}
-                    </Badge>
+                    <div className="flex flex-col gap-1">
+                      <Badge className={`text-xs ${STATUS_COLOR[inv.status]}`}>
+                        {STATUS_LABEL[inv.status]}
+                      </Badge>
+                      {isPosted(`invoice:${inv.id}`) && (
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 w-fit">
+                          <CheckCircle2 className="h-3 w-3 mr-1" /> Contabilizado
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">

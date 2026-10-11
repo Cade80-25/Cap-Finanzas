@@ -239,6 +239,24 @@ El código determina el plan; el binario es el mismo para todos.
 | **Comercio Exterior** | Importación/exportación, aduanas, aranceles, Incoterms, divisas, despachantes | ✅ Implementado |
 | **Marketing y Ventas avanzado** | Campañas, embudos de venta, CAC/LTV, segmentación, automatización | ✅ Implementado |
 
+### Etapa 2 — Cadena de Ventas Completa (EN CURSO)
+
+**Facturación → Diario**:
+- Al crear una factura → asiento automático: Debe Cuentas por Cobrar / Haber Ingresos + IVA por Pagar
+- Badge "Contabilizado" visible en la tabla de facturas
+- Nota de crédito/débito también contabilizan (ajustan la cuenta por cobrar)
+
+**Cuentas Corrientes → Diario**:
+- Al registrar un cobro → asiento automático: Debe Banco / Haber Cuentas por Cobrar
+- Al registrar un pago → asiento automático: Debe Cuentas por Pagar / Haber Banco
+- Badge "Contabilizado" visible en la tabla de movimientos
+- Integración bidireccional: los asientos se reflejan en el Diario con referencia cruzada
+
+**Motor de integración extendido**:
+- `buildPaymentEntries`: asiento de pago a proveedor (Debe Cuentas por Pagar / Haber Banco)
+- `postPayment` en `useModuleIntegration`: hook para publicar pagos
+- Referencias únicas por movimiento (`ccm:{id}`) para evitar duplicados
+
 ### Etapa 1 — Integración y Profundización (EN CURSO)
 
 **Motor de integración** (`src/lib/moduleIntegration.ts` + `src/hooks/useModuleIntegration.ts`):

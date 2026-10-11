@@ -42,6 +42,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useCuentasCorrientes, ContactType, CCMovementKind, AgingBuckets } from "@/hooks/useCuentasCorrientes";
+import { useModuleIntegration } from "@/hooks/useModuleIntegration";
+import { CheckCircle2 } from "lucide-react";
 
 const MONEY = (n: number) =>
   `$${(Number.isFinite(n) ? n : 0).toLocaleString("es-UY", {
@@ -103,6 +105,7 @@ export default function CuentasCorrientes() {
     stats,
     movements,
   } = useCuentasCorrientes();
+  const { postCollection, postPayment, isPosted } = useModuleIntegration();
 
   const [tab, setTab] = useState<"clientes" | "proveedores" | "antiguedad">("clientes");
   const [contactOpen, setContactOpen] = useState(false);
@@ -170,7 +173,9 @@ export default function CuentasCorrientes() {
   const handleCreateMovement = () => {
     const amount = parseFloat(mvAmount.replace(",", "."));
     if (!mvContactId || !Number.isFinite(amount) || amount <= 0) return;
-    addMovement({
+    const contact = contacts.find((c) => c.id === mvContactId);
+    const contactName = contact?.name || "Contacto";
+    const movement = addMovement({
       contactId: mvContactId,
       date: mvDate,
       dueDate: mvDue || undefined,
@@ -178,6 +183,12 @@ export default function CuentasCorrientes() {
       amount,
       description: mvDesc.trim() || KIND_LABEL[mvKind],
     });
+    // Generar asiento contable automático para cobros y pagos
+    if (mvKind === "cobro") {
+      postCollection(`ccm:${movement.id}`, contactName, amount, mvDate);
+    } else if (mvKind === "pago") {
+      postPayment(`ccm:${movement.id}`, contactName, amount, mvDate);
+    }
     setMvAmount("");
     setMvDesc("");
     setMvDue("");
@@ -644,9 +655,17 @@ export default function CuentasCorrientes() {
                         <TableRow key={m.id}>
                           <TableCell className="text-sm">{m.date}</TableCell>
                           <TableCell>
-                            <Badge variant={isIncrease ? "destructive" : "secondary"} className="text-xs">
-                              {KIND_LABEL[m.kind]}
-                            </Badge>
+                            <div className="flex flex-col gap-1 items-start">
+                              <Badge variant={isIncrease ? "destructive" : "secondary"} className="text-xs">
+                                {KIND_LABEL[m.kind]}
+                              </Badge>
+                              {(m.kind === "cobro" && isPosted(`collection:ccm:${m.id}`)) ||
+                              (m.kind === "pago" && isPosted(`payment:ccm:${m.id}`)) ? (
+                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                  <CheckCircle2 className="h-3 w-3 mr-1" /> Contabilizado
+                                </Badge>
+                              ) : null}
+                            </div>
                           </TableCell>
                           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
                             {m.description}
