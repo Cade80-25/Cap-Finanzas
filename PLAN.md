@@ -225,10 +225,10 @@ El código determina el plan; el binario es el mismo para todos.
 | **Flota** | Vehículos, gastos (combustible, peajes, seguros), mantenimiento, vencimientos | ✅ Implementado |
 | **Alquiler / Rental** | Equipos, inmuebles, contratos de alquiler, facturación periódica, devoluciones | ✅ Implementado |
 | Ventas / CRM ligero | Propuestas, pedidos, seguimiento de clientes, agenda de contacto | ✅ Implementado |
-| Punto de venta | TPV básico — solo si lo piden usuarios con comercio | P3 |
-| Gestión documental | Adjuntos a asientos/facturas, OCR básico, clasificación, búsqueda | P3 |
+| Punto de venta | TPV básico — solo si lo piden usuarios con comercio | ✅ Implementado |
+| Gestión documental | Adjuntos a asientos/facturas, OCR básico, clasificación, búsqueda | ✅ Implementado |
 | **Flujos de Aprobación** | Workflows configurables: facturas, gastos, pagos, órdenes de compra | ✅ Implementado |
-| Business Intelligence | Dashboards, KPIs, reportes programados, alertas | P3 |
+| Business Intelligence | Dashboards, KPIs, reportes programados, alertas | ✅ Implementado |
 | **Bolsas en Vivo (ampliación)** | Trading: análisis técnico/fundamental, journal de trading, gestión de posiciones. Criptomonedas: wallet tracking, ganancias/pérdidas por exchange, staking/DeFi, reporte fiscal cripto. Todo dentro de `/bolsas` como tabs, no como secciones separadas | ✅ Implementado (journal de trading + wallet cripto + staking) |
 | **Bienes Raíces e Inversión Inmobiliaria** | Propiedades, arrendamientos, hipotecas, ROI inmobiliario, depreciación de inmuebles, plusvalía | ✅ Implementado |
 | **Seguros** | Pólizas, coberturas, siniestros, vencimientos, aseguradoras, deducibles | ✅ Implementado |
@@ -237,7 +237,7 @@ El código determina el plan; el binario es el mismo para todos.
 | **Startups y Emprendimiento** | Plan de negocio, métricas de startup (MRR/ARR/Churn), runway, burn rate, cap table | ✅ Implementado |
 | **Análisis Financiero y Ratios** | KPIs financieros (ROE/ROA/margen/EBITDA), benchmarking, tendencias, scorecards | ✅ Implementado |
 | **Comercio Exterior** | Importación/exportación, aduanas, aranceles, Incoterms, divisas, despachantes | ✅ Implementado |
-| **Marketing y Ventas avanzado** | Campañas, embudos de venta, CAC/LTV, segmentación, automatización | P3 (plantilla) |
+| **Marketing y Ventas avanzado** | Campañas, embudos de venta, CAC/LTV, segmentación, automatización | ✅ Implementado |
 
 ### Sistema de plantillas (el corazón de v2)
 

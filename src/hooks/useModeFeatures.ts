@@ -42,6 +42,10 @@ export type FeatureKey =
   | "startups"
   | "comercio"
   | "crm"
+  | "tpv"
+  | "documentos"
+  | "bi"
+  | "marketing"
   | "journal"
   | "ledger"
   | "balance"
@@ -102,6 +106,10 @@ const FEATURE_CONFIG: FeatureConfig[] = [
   { key: "startups", route: "/startups", label: "Startups", simpleMode: false, traditionalMode: true },
   { key: "comercio", route: "/comercio", label: "Comercio Exterior", simpleMode: false, traditionalMode: true },
   { key: "crm", route: "/crm", label: "CRM", simpleMode: false, traditionalMode: true },
+  { key: "tpv", route: "/tpv", label: "TPV", simpleMode: false, traditionalMode: true },
+  { key: "documentos", route: "/documentos", label: "Documentos", simpleMode: false, traditionalMode: true },
+  { key: "bi", route: "/bi", label: "Business Intelligence", simpleMode: false, traditionalMode: true },
+  { key: "marketing", route: "/marketing", label: "Marketing y Ventas", simpleMode: false, traditionalMode: true },
   { key: "journal", route: "/contabilidad?tab=diario", label: "Libro Diario", simpleMode: false, traditionalMode: true },
   { key: "ledger", route: "/contabilidad?tab=mayor", label: "Libro Mayor", simpleMode: false, traditionalMode: true },
   { key: "balance", route: "/contabilidad?tab=balance", label: "Balance General", simpleMode: false, traditionalMode: true },
