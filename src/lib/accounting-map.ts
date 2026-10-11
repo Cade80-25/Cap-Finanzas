@@ -62,6 +62,7 @@ export const ACCOUNT_TO_SIMPLE: Record<string, string> = {
   "cuentas-por-pagar": "servicios",
   "inventarios": "alimentacion",
   "depreciacion": "vivienda",
+  "depreciacion-acumulada": "ahorros",
   "amortizacion": "vivienda",
   // Cuentas de empresa
   "sueldos": "otros-gastos",
@@ -92,6 +93,7 @@ export const ACCOUNT_TO_TYPE: Record<string, "income" | "expense"> = {
   "cuentas-por-pagar": "expense",
   "inventarios": "expense",
   "depreciacion": "expense",
+  "depreciacion-acumulada": "expense",
   "amortizacion": "expense",
   // Cuentas de empresa
   "sueldos": "expense",

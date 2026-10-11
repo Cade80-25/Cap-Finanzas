@@ -21,6 +21,17 @@ import {
   buildPurchaseEntries,
   buildCostOfSalesEntries,
   buildInventoryAdjustmentEntries,
+  buildAssetAcquisitionEntries,
+  buildDepreciationEntries,
+  buildDisposalEntries,
+  buildExpenseApprovalEntries,
+  buildExpenseReimbursementEntries,
+  buildBankTxEntries,
+  buildContractBillingEntries,
+  buildRentCollectionEntries,
+  buildTripEntries,
+  buildMaintenanceEntries,
+  buildClaimEntries,
   isBalanced,
   draftsToTransactions,
   nextJournalId,
@@ -225,6 +236,120 @@ export function useModuleIntegration() {
     [postEntries]
   );
 
+  // ── Activos fijos ──
+
+  const postAssetAcquisition = useCallback(
+    (assetId: string, assetName: string, cost: number, date?: string): PostResult => {
+      const ref = `assetacq:${assetId}`;
+      return postEntries(ref, "assetacq", buildAssetAcquisitionEntries(assetName, cost, date));
+    },
+    [postEntries]
+  );
+
+  const postDepreciation = useCallback(
+    (depId: string, assetName: string, period: string, amount: number, date?: string): PostResult => {
+      const ref = `depreciation:${depId}`;
+      const entries = buildDepreciationEntries(assetName, period, amount, date);
+      if (entries.length === 0) return { ok: false, entries: 0, message: "Depreciación sin efecto" };
+      return postEntries(ref, "depreciation", entries);
+    },
+    [postEntries]
+  );
+
+  const postDisposal = useCallback(
+    (disposalId: string, assetName: string, saleValue: number, bookValue: number, date?: string): PostResult => {
+      const ref = `disposal:${disposalId}`;
+      return postEntries(ref, "disposal", buildDisposalEntries(assetName, saleValue, bookValue, date));
+    },
+    [postEntries]
+  );
+
+  // ── Gastos ──
+
+  const postExpenseApproval = useCallback(
+    (expenseId: string, employeeName: string, description: string, amount: number, date?: string): PostResult => {
+      const ref = `expappr:${expenseId}`;
+      return postEntries(ref, "expappr", buildExpenseApprovalEntries(employeeName, description, amount, date));
+    },
+    [postEntries]
+  );
+
+  const postExpenseReimbursement = useCallback(
+    (expenseId: string, employeeName: string, description: string, amount: number, date?: string): PostResult => {
+      const ref = `expreimb:${expenseId}`;
+      return postEntries(ref, "expreimb", buildExpenseReimbursementEntries(employeeName, description, amount, date));
+    },
+    [postEntries]
+  );
+
+  // ── Banca ──
+
+  const postBankTx = useCallback(
+    (txId: string, description: string, amount: number, date?: string): PostResult => {
+      const ref = `banktx:${txId}`;
+      const entries = buildBankTxEntries(description, amount, date);
+      if (entries.length === 0) return { ok: false, entries: 0, message: "Movimiento sin efecto" };
+      return postEntries(ref, "banktx", entries);
+    },
+    [postEntries]
+  );
+
+  // ── Contratos ──
+
+  const postContractBilling = useCallback(
+    (billingId: string, contractName: string, period: string, amount: number, date?: string): PostResult => {
+      const ref = `contractbill:${billingId}`;
+      return postEntries(ref, "contractbill", buildContractBillingEntries(contractName, period, amount, date));
+    },
+    [postEntries]
+  );
+
+  // ── Alquiler ──
+
+  const postRentCollection = useCallback(
+    (paymentId: string, propertyName: string, period: string, amount: number, date?: string): PostResult => {
+      const ref = `rent:${paymentId}`;
+      return postEntries(ref, "rent", buildRentCollectionEntries(propertyName, period, amount, date));
+    },
+    [postEntries]
+  );
+
+  // ── Flota ──
+
+  const postTrip = useCallback(
+    (tripId: string, vehicleLabel: string, fuelCost: number, tolls: number, date?: string): PostResult => {
+      const ref = `trip:${tripId}`;
+      const entries = buildTripEntries(vehicleLabel, fuelCost, tolls, date);
+      if (entries.length === 0) return { ok: false, entries: 0, message: "Viaje sin costos" };
+      return postEntries(ref, "trip", entries);
+    },
+    [postEntries]
+  );
+
+  // ── Mantenimiento ──
+
+  const postMaintenance = useCallback(
+    (orderId: string, assetName: string, description: string, cost: number, date?: string): PostResult => {
+      const ref = `maintenance:${orderId}`;
+      const entries = buildMaintenanceEntries(assetName, description, cost, date);
+      if (entries.length === 0) return { ok: false, entries: 0, message: "Orden sin costo" };
+      return postEntries(ref, "maintenance", entries);
+    },
+    [postEntries]
+  );
+
+  // ── Seguros ──
+
+  const postClaim = useCallback(
+    (claimId: string, policyNumber: string, claimDescription: string, amount: number, date?: string): PostResult => {
+      const ref = `claim:${claimId}`;
+      const entries = buildClaimEntries(policyNumber, claimDescription, amount, date);
+      if (entries.length === 0) return { ok: false, entries: 0, message: "Siniestro sin monto" };
+      return postEntries(ref, "claim", entries);
+    },
+    [postEntries]
+  );
+
   // ── Utilidades ──
 
   const isPosted = useCallback((ref: string): boolean => {
@@ -247,6 +372,17 @@ export function useModuleIntegration() {
     postPurchase,
     postCostOfSales,
     postInventoryAdjustment,
+    postAssetAcquisition,
+    postDepreciation,
+    postDisposal,
+    postExpenseApproval,
+    postExpenseReimbursement,
+    postBankTx,
+    postContractBilling,
+    postRentCollection,
+    postTrip,
+    postMaintenance,
+    postClaim,
     isPosted,
     getPostedRefs,
   };

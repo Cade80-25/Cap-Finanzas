@@ -56,6 +56,7 @@ import {
   MaintenanceRecord,
   AssetDisposal,
 } from "@/hooks/useActivos";
+import { useModuleIntegration } from "@/hooks/useModuleIntegration";
 
 const MONEY = (n: number) =>
   `$${(Number.isFinite(n) ? n : 0).toLocaleString("es-UY", {
@@ -134,6 +135,7 @@ export default function Activos() {
     assetDepreciationMap,
     assetMaintenanceMap,
   } = useActivos();
+  const { postAssetAcquisition, postDepreciation, postDisposal, postMaintenance, isPosted } = useModuleIntegration();
 
   const [tab, setTab] = useState("activos");
   const [assetOpen, setAssetOpen] = useState(false);
@@ -187,7 +189,7 @@ export default function Activos() {
 
   const handleAddAsset = () => {
     if (!fName.trim()) return;
-    addAsset({
+    const asset = addAsset({
       code: fCode.trim() || `ACT-${Date.now().toString(36).toUpperCase()}`,
       name: fName.trim(),
       category: fCategory,
@@ -205,6 +207,10 @@ export default function Activos() {
       responsible: fResponsible.trim() || undefined,
       notes: fNotes.trim() || undefined,
     });
+    // Asiento automático: Debe Activo Fijo / Haber Banco
+    if (asset && asset.acquisitionCost > 0) {
+      postAssetAcquisition(asset.id, asset.name, asset.acquisitionCost, asset.acquisitionDate);
+    }
     setFCode(""); setFName(""); setFCategory("maquinaria"); setFLocation("");
     setFAcqDate(""); setFAcqCost(""); setFResidual(""); setFLife("");
     setFMethod("lineal"); setFRate(""); setFTotalUnits(""); setFSerial("");
@@ -214,14 +220,19 @@ export default function Activos() {
 
   const handleRegisterDep = () => {
     if (!fDepAsset) return;
-    registerDepreciation(fDepAsset, fDepPeriod);
+    const dep = registerDepreciation(fDepAsset, fDepPeriod);
+    // Asiento automático: Debe Gasto Depreciación / Haber Dep. Acumulada
+    if (dep && dep.amount > 0) {
+      const assetName = assets.find((a) => a.id === fDepAsset)?.name ?? "Activo";
+      postDepreciation(dep.id, assetName, fDepPeriod, dep.amount);
+    }
     setFDepAsset("");
     setDepOpen(false);
   };
 
   const handleAddMaint = () => {
     if (!fMntAsset || !fMntDesc.trim()) return;
-    addMaintenance({
+    const mnt = addMaintenance({
       assetId: fMntAsset,
       date: fMntDate || new Date().toISOString().slice(0, 10),
       type: fMntType,
@@ -230,6 +241,10 @@ export default function Activos() {
       provider: fMntProvider.trim() || undefined,
       nextDueDate: fMntNext || undefined,
     });
+    // Asiento automático: Debe Gastos Operativos / Haber Caja
+    if (mnt && mnt.cost > 0) {
+      postMaintenance(mnt.id, getAssetName(fMntAsset), mnt.description, mnt.cost, mnt.date);
+    }
     setFMntAsset(""); setFMntDate(""); setFMntType("preventivo"); setFMntDesc("");
     setFMntCost(""); setFMntProvider(""); setFMntNext("");
     setMaintOpen(false);
@@ -237,12 +252,17 @@ export default function Activos() {
 
   const handleRegisterDisposal = () => {
     if (!fDispAsset) return;
-    registerDisposal(fDispAsset, {
+    const disposal = registerDisposal(fDispAsset, {
       date: fDispDate || new Date().toISOString().slice(0, 10),
       type: fDispType,
       saleValue: parseFloat(fDispSale) || 0,
       notes: fDispNotes.trim() || undefined,
     });
+    // Asiento automático: baja del activo (valor libro, cobro, ganancia/pérdida)
+    if (disposal) {
+      const assetName = assets.find((a) => a.id === fDispAsset)?.name ?? "Activo";
+      postDisposal(disposal.id, assetName, disposal.saleValue, disposal.bookValueAtDisposal, disposal.date);
+    }
     setFDispAsset(""); setFDispDate(""); setFDispType("venta"); setFDispSale(""); setFDispNotes("");
     setDispOpen(false);
   };
@@ -349,7 +369,7 @@ export default function Activos() {
             <TableBody>
               {depreciationEntries.map((d) => (
                 <TableRow key={d.id}>
-                  <TableCell>{getAssetName(d.assetId)}</TableCell>
+                  <TableCell>{getAssetName(d.assetId)}{isPosted(`depreciation:${d.id}`) && <Badge variant="outline" className="ml-1 text-xs bg-green-50 text-green-700 border-green-200">Contab.</Badge>}</TableCell>
                   <TableCell>{d.period}</TableCell>
                   <TableCell>{METHOD_LABEL[d.method]}</TableCell>
                   <TableCell className="text-right">{MONEY(d.amount)}</TableCell>
@@ -402,7 +422,7 @@ export default function Activos() {
             <TableBody>
               {maintenanceRecords.map((m) => (
                 <TableRow key={m.id}>
-                  <TableCell>{getAssetName(m.assetId)}</TableCell>
+                  <TableCell>{getAssetName(m.assetId)}{isPosted(`maintenance:${m.id}`) && <Badge variant="outline" className="ml-1 text-xs bg-green-50 text-green-700 border-green-200">Contab.</Badge>}</TableCell>
                   <TableCell>{m.date}</TableCell>
                   <TableCell>{MAINT_TYPE[m.type]}</TableCell>
                   <TableCell className="hidden sm:table-cell">{m.description}</TableCell>
@@ -455,7 +475,7 @@ export default function Activos() {
             <TableBody>
               {disposals.map((d) => (
                 <TableRow key={d.id}>
-                  <TableCell>{getAssetName(d.assetId)}</TableCell>
+                  <TableCell>{getAssetName(d.assetId)}{isPosted(`disposal:${d.id}`) && <Badge variant="outline" className="ml-1 text-xs bg-green-50 text-green-700 border-green-200">Contab.</Badge>}</TableCell>
                   <TableCell>{d.date}</TableCell>
                   <TableCell className="capitalize">{d.type}</TableCell>
                   <TableCell className="text-right">{MONEY(d.saleValue)}</TableCell>

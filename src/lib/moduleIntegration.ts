@@ -369,3 +369,168 @@ export function nextJournalId(transactions: JournalTransaction[]): number {
   for (const t of transactions) if (t.id > max) max = t.id;
   return max + 1;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Activos fijos: adquisición, depreciación, baja/venta
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Adquisición de activo fijo: Debe Activo Fijo (activo-no-corriente) / Haber Banco */
+export function buildAssetAcquisitionEntries(assetName: string, cost: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  const desc = `Alta activo fijo — ${assetName}`;
+  return [
+    { date: d, account: "activo-no-corriente", description: desc, debit: round2(cost), credit: 0, subcategory: "Activos Fijos" },
+    { date: d, account: "banco", description: desc, debit: 0, credit: round2(cost), subcategory: "Activos Fijos" },
+  ];
+}
+
+/** Depreciación del período: Debe Gasto Depreciación / Haber Dep. Acumulada */
+export function buildDepreciationEntries(assetName: string, period: string, amount: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  if (amount < 0.005) return [];
+  const desc = `Depreciación ${period} — ${assetName}`;
+  return [
+    { date: d, account: "depreciacion", description: desc, debit: round2(amount), credit: 0, subcategory: "Activos Fijos" },
+    { date: d, account: "depreciacion-acumulada", description: desc, debit: 0, credit: round2(amount), subcategory: "Activos Fijos" },
+  ];
+}
+
+/** Baja/venta: retiro al valor libro + cobro + resultado (ganancia/pérdida) */
+export function buildDisposalEntries(assetName: string, saleValue: number, bookValue: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  const desc = `Baja activo — ${assetName}`;
+  const out: DraftEntry[] = [];
+  if (bookValue > 0.005) {
+    out.push({ date: d, account: "activo-no-corriente", description: desc, debit: 0, credit: round2(bookValue), subcategory: "Activos Fijos" });
+  }
+  if (saleValue > 0.005) {
+    out.push({ date: d, account: "caja", description: `${desc} (cobro)`, debit: round2(saleValue), credit: 0, subcategory: "Activos Fijos" });
+  }
+  const gainLoss = round2(saleValue - bookValue);
+  if (Math.abs(gainLoss) >= 0.005) {
+    if (gainLoss > 0) {
+      out.push({ date: d, account: "ingresos", description: `${desc} (ganancia)`, debit: 0, credit: gainLoss, subcategory: "Activos Fijos" });
+    } else {
+      out.push({ date: d, account: "gastos-operativos", description: `${desc} (pérdida)`, debit: -gainLoss, credit: 0, subcategory: "Activos Fijos" });
+    }
+  }
+  return out;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Gastos: aprobación contabiliza el gasto; reembolso paga al empleado
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Aprobación de gasto: Debe Gastos Operativos / Haber Cuentas por Pagar (al empleado) */
+export function buildExpenseApprovalEntries(employeeName: string, description: string, amount: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  const desc = `Gasto aprobado — ${description} (${employeeName})`;
+  return [
+    { date: d, account: "gastos-operativos", description: desc, debit: round2(amount), credit: 0, subcategory: "Gastos" },
+    { date: d, account: "cuentas-por-pagar", description: desc, debit: 0, credit: round2(amount), subcategory: "Gastos" },
+  ];
+}
+
+/** Reembolso de gasto: Debe Cuentas por Pagar / Haber Caja */
+export function buildExpenseReimbursementEntries(employeeName: string, description: string, amount: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  const desc = `Reembolso gasto — ${description} (${employeeName})`;
+  return [
+    { date: d, account: "cuentas-por-pagar", description: desc, debit: round2(amount), credit: 0, subcategory: "Gastos" },
+    { date: d, account: "caja", description: desc, debit: 0, credit: round2(amount), subcategory: "Gastos" },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Banca: movimiento bancario directo
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Movimiento bancario: entrada → Debe Banco / Haber Ingresos; salida → Debe Gastos / Haber Banco */
+export function buildBankTxEntries(description: string, amount: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  if (Math.abs(amount) < 0.005) return [];
+  if (amount > 0) {
+    return [
+      { date: d, account: "banco", description, debit: round2(amount), credit: 0, subcategory: "Banca" },
+      { date: d, account: "ingresos", description, debit: 0, credit: round2(amount), subcategory: "Banca" },
+    ];
+  }
+  return [
+    { date: d, account: "gastos-operativos", description, debit: round2(-amount), credit: 0, subcategory: "Banca" },
+    { date: d, account: "banco", description, debit: 0, credit: round2(-amount), subcategory: "Banca" },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Contratos: cobro de facturación periódica
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Cobro de contrato: Debe Banco / Haber Ingresos */
+export function buildContractBillingEntries(contractName: string, period: string, amount: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  const desc = `Cobro contrato ${contractName} — ${period}`;
+  return [
+    { date: d, account: "banco", description: desc, debit: round2(amount), credit: 0, subcategory: "Contratos" },
+    { date: d, account: "ingresos", description: desc, debit: 0, credit: round2(amount), subcategory: "Contratos" },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Alquiler: cobro de renta
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Cobro de alquiler: Debe Banco / Haber Ingresos */
+export function buildRentCollectionEntries(propertyName: string, period: string, amount: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  const desc = `Cobro alquiler ${propertyName} — ${period}`;
+  return [
+    { date: d, account: "banco", description: desc, debit: round2(amount), credit: 0, subcategory: "Alquiler" },
+    { date: d, account: "ingresos", description: desc, debit: 0, credit: round2(amount), subcategory: "Alquiler" },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Flota: viaje con combustible y peajes
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Viaje de flota: Debe Gastos Operativos (combustible+peajes) / Haber Caja */
+export function buildTripEntries(vehicleLabel: string, fuelCost: number, tolls: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  const total = round2(fuelCost + tolls);
+  if (total < 0.005) return [];
+  const desc = `Viaje flota — ${vehicleLabel}`;
+  return [
+    { date: d, account: "gastos-operativos", description: desc, debit: total, credit: 0, subcategory: "Flota" },
+    { date: d, account: "caja", description: desc, debit: 0, credit: total, subcategory: "Flota" },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mantenimiento: costos de órdenes de trabajo
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Orden de trabajo: Debe Gastos Operativos / Haber Caja */
+export function buildMaintenanceEntries(assetName: string, description: string, cost: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  if (cost < 0.005) return [];
+  const desc = `Mantenimiento ${assetName} — ${description}`;
+  return [
+    { date: d, account: "gastos-operativos", description: desc, debit: round2(cost), credit: 0, subcategory: "Mantenimiento" },
+    { date: d, account: "caja", description: desc, debit: 0, credit: round2(cost), subcategory: "Mantenimiento" },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Seguros: siniestro pagado por la aseguradora
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Siniestro pagado: Debe Banco / Haber Ingresos (indemnización) */
+export function buildClaimEntries(policyNumber: string, claimDescription: string, amount: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  if (amount < 0.005) return [];
+  const desc = `Siniestro pagado — póliza ${policyNumber}: ${claimDescription}`;
+  return [
+    { date: d, account: "banco", description: desc, debit: round2(amount), credit: 0, subcategory: "Seguros" },
+    { date: d, account: "ingresos", description: desc, debit: 0, credit: round2(amount), subcategory: "Seguros" },
+  ];
+}
