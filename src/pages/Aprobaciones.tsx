@@ -1,0 +1,49 @@
+import { useMemo, useState } from "react";
+import { Plus, Trash2, Eye, CheckCircle, XCircle, Clock, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { useAprobaciones, ApprovalType } from "@/hooks/useAprobaciones";
+
+const money = (n: number) => `$${n.toLocaleString("es-UY", { minimumFractionDigits: 2 })}`;
+const typeLabel: Record<ApprovalType, string> = { gasto: "Gasto", pago: "Pago", orden_compra: "Orden de compra", presupuesto: "Presupuesto", contrato: "Contrato", otro: "Otro" };
+const statusLabel: Record<string, string> = { pendiente: "Pendiente", aprobado: "Aprobado", rechazado: "Rechazado", observado: "Observado" };
+const statusColor: Record<string, string> = { pendiente: "bg-amber-100 text-amber-800", aprobado: "bg-green-100 text-green-800", rechazado: "bg-red-100 text-red-800", observado: "bg-blue-100 text-blue-800" };
+
+export default function Aprobaciones() {
+  const { requests, addRequest, approve, reject, deleteRequest, stats, byType } = useAprobaciones();
+  const [tab, setTab] = useState("solicitudes");
+  const [reqOpen, setReqOpen] = useState(false);
+  const [detailId, setDetailId] = useState<string | null>(null);
+
+  const [fType, setFType] = useState<ApprovalType>("gasto"); const [fTitle, setFTitle] = useState(""); const [fDesc, setFDesc] = useState("");
+  const [fAmount, setFAmount] = useState(""); const [fRequester, setFRequester] = useState(""); const [fApprover, setFApprover] = useState("");
+  const [fNotes, setFNotes] = useState("");
+
+  const detail = useMemo(() => detailId ? requests.find(r => r.id === detailId) ?? null : null, [detailId, requests]);
+
+  const saveReq = () => { if (!fTitle || !fDesc || !fAmount || !fRequester || !fApprover) return; addRequest({ type: fType, title: fTitle, description: fDesc, amount: Number(fAmount), currency: "UYU", requester: fRequester, approver: fApprover, notes: fNotes || undefined }); setFTitle(""); setFDesc(""); setFAmount(""); setFRequester(""); setFApprover(""); setFNotes(""); setReqOpen(false); };
+
+  return <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 animate-fade-in">
+    <div><h1 className="text-2xl sm:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">Flujos de Aprobación</h1><p className="text-sm text-muted-foreground mt-1">Solicitudes, aprobaciones y rechazos</p></div>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Pendientes</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-amber-500">{stats.pending}</div></CardContent></Card>
+      <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Monto pendiente</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-amber-500">{money(stats.pendingAmount)}</div></CardContent></Card>
+      <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Aprobados</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-green-500">{stats.approved}</div></CardContent></Card>
+      <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Rechazados</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-red-500">{stats.rejected}</div></CardContent></Card>
+    </div>
+    <Tabs value={tab} onValueChange={setTab}><TabsList><TabsTrigger value="solicitudes"><Clock className="h-4 w-4 mr-1.5"/>Solicitudes ({requests.length})</TabsTrigger><TabsTrigger value="tipos"><DollarSign className="h-4 w-4 mr-1.5"/>Por tipo</TabsTrigger></TabsList>
+      <TabsContent value="solicitudes" className="mt-4"><div className="mb-3"><Button onClick={() => setReqOpen(true)}><Plus className="h-4 w-4 mr-2"/>Solicitud</Button></div><Card><CardContent className="p-0">{requests.length === 0 ? <div className="py-16 text-center text-muted-foreground">Sin solicitudes</div> : <Table><TableHeader><TableRow><TableHead>Título</TableHead><TableHead>Type</TableHead><TableHead>Solicitante</TableHead><TableHead className="text-right">Monto</TableHead><TableHead>Estado</TableHead><TableHead></TableHead></TableRow></TableHeader><TableBody>{requests.slice().reverse().map(r => <TableRow key={r.id} className="cursor-pointer" onClick={() => setDetailId(r.id)}><TableCell className="font-medium">{r.title}</TableCell><TableCell><Badge variant="outline">{typeLabel[r.type]}</Badge></TableCell><TableCell>{r.requester}</TableCell><TableCell className="text-right font-bold">{money(r.amount)}</TableCell><TableCell><Badge className={statusColor[r.status]}>{statusLabel[r.status]}</Badge></TableCell><TableCell><div className="flex gap-1"><Button size="sm" variant="ghost" onClick={() => setDetailId(r.id)}><Eye className="h-3.5 w-3.5"/></Button>{r.status === "pendiente" && <><Button size="sm" variant="ghost" onClick={() => approve(r.id)}><CheckCircle className="h-3.5 w-3.5 text-green-600"/></Button><Button size="sm" variant="ghost" onClick={() => reject(r.id)}><XCircle className="h-3.5 w-3.5 text-red-600"/></Button></>}<Button size="sm" variant="ghost" onClick={() => deleteRequest(r.id)}><Trash2 className="h-3.5 w-3.5 text-destructive"/></Button></div></TableCell></TableRow>)}</TableBody></Table>}</CardContent></Card></TabsContent>
+      <TabsContent value="tipos" className="mt-4"><Card><CardContent className="p-0"><Table><TableHeader><TableRow><TableHead>Tipo</TableHead><TableHead className="text-right">Solicitudes</TableHead><TableHead className="text-right">Monto</TableHead></TableRow></TableHeader><TableBody>{Array.from(byType.entries()).map(([type, s]) => <TableRow key={type}><TableCell>{typeLabel[type as ApprovalType] ?? type}</TableCell><TableCell className="text-right">{s.count}</TableCell><TableCell className="text-right font-bold">{money(s.amount)}</TableCell></TableRow>)}</TableBody></Table></CardContent></Card></TabsContent>
+    </Tabs>
+    <Dialog open={reqOpen} onOpenChange={setReqOpen}><DialogContent className="max-w-md max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>Nueva solicitud</DialogTitle><DialogDescription>Solicitud de aprobación.</DialogDescription></DialogHeader><div className="space-y-3"><div className="grid grid-cols-2 gap-3"><div><Label>Tipo</Label><Select value={fType} onValueChange={v => setFType(v as ApprovalType)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="gasto">Gasto</SelectItem><SelectItem value="pago">Pago</SelectItem><SelectItem value="orden_compra">Orden de compra</SelectItem><SelectItem value="presupuesto">Presupuesto</SelectItem><SelectItem value="contrato">Contrato</SelectItem><SelectItem value="otro">Otro</SelectItem></SelectContent></Select></div><div><Label>Monto *</Label><Input type="number" value={fAmount} onChange={e => setFAmount(e.target.value)}/></div></div><div><Label>Título *</Label><Input value={fTitle} onChange={e => setFTitle(e.target.value)}/></div><div><Label>Descripción *</Label><Textarea value={fDesc} onChange={e => setFDesc(e.target.value)} rows={2}/></div><div className="grid grid-cols-2 gap-3"><div><Label>Solicitante *</Label><Input value={fRequester} onChange={e => setFRequester(e.target.value)}/></div><div><Label>Aprobador *</Label><Input value={fApprover} onChange={e => setFApprover(e.target.value)}/></div></div></div><DialogFooter><Button variant="outline" onClick={() => setReqOpen(false)}>Cancelar</Button><Button onClick={saveReq} disabled={!fTitle || !fDesc || !fAmount || !fRequester || !fApprover}>Agregar</Button></DialogFooter></DialogContent></Dialog>
+    <Dialog open={!!detailId} onOpenChange={(o) => !o && setDetailId(null)}><DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">{detail && <><DialogHeader><DialogTitle>{detail.title}</DialogTitle><DialogDescription>{typeLabel[detail.type]} · {detail.requester}</DialogDescription></DialogHeader><div className="space-y-4"><div className="grid grid-cols-2 gap-3"><div className="rounded-lg border p-3"><div className="text-xs text-muted-foreground">Monto</div><div className="font-bold text-lg">{money(detail.amount)}</div></div><div className="rounded-lg border p-3"><div className="text-xs text-muted-foreground">Aprobador</div><div className="font-bold text-lg">{detail.approver}</div></div></div><div className="rounded-lg border p-3"><div className="text-xs text-muted-foreground">Descripción</div><p className="text-sm mt-1">{detail.description}</p></div><div className="grid grid-cols-2 gap-3"><div className="rounded-lg border p-3"><div className="text-xs text-muted-foreground">Fecha solicitud</div><div className="font-bold">{detail.requestDate}</div></div><div className="rounded-lg border p-3"><div className="text-xs text-muted-foreground">Fecha decisión</div><div className="font-bold">{detail.decisionDate ?? "—"}</div></div></div>{detail.notes && <div className="rounded-lg border p-3"><div className="text-xs text-muted-foreground">Notas</div><p className="text-sm mt-1">{detail.notes}</p></div>}</div><DialogFooter><Button variant="outline" onClick={() => setDetailId(null)}>Cerrar</Button></DialogFooter></>}</DialogContent></Dialog>
+  </div>;
+}

@@ -227,12 +227,12 @@ El código determina el plan; el binario es el mismo para todos.
 | Ventas / CRM ligero | Propuestas, pedidos, seguimiento de clientes, agenda de contacto | P3 |
 | Punto de venta | TPV básico — solo si lo piden usuarios con comercio | P3 |
 | Gestión documental | Adjuntos a asientos/facturas, OCR básico, clasificación, búsqueda | P3 |
-| Flujos de aprobación | Workflows configurables: facturas, gastos, pagos, órdenes de compra | P3 |
+| **Flujos de Aprobación** | Workflows configurables: facturas, gastos, pagos, órdenes de compra | ✅ Implementado |
 | Business Intelligence | Dashboards, KPIs, reportes programados, alertas | P3 |
 | **Bolsas en Vivo (ampliación)** | Trading: análisis técnico/fundamental, journal de trading, gestión de posiciones. Criptomonedas: wallet tracking, ganancias/pérdidas por exchange, staking/DeFi, reporte fiscal cripto. Todo dentro de `/bolsas` como tabs, no como secciones separadas | ✅ Implementado (journal de trading + wallet cripto + staking) |
 | **Bienes Raíces e Inversión Inmobiliaria** | Propiedades, arrendamientos, hipotecas, ROI inmobiliario, depreciación de inmuebles, plusvalía | ✅ Implementado |
-| **Seguros** | Pólizas, coberturas, siniestros, vencimientos, aseguradoras, deducibles | P3 (plantilla) |
-| **Auditoría y Control Interno** | Checklist de auditoría, hallazgos, planes de acción, segregación de funciones, compliance | P3 (plantilla) |
+| **Seguros** | Pólizas, coberturas, siniestros, vencimientos, aseguradoras, deducibles | ✅ Implementado |
+| **Auditoría y Control Interno** | Checklist de auditoría, hallazgos, planes de acción, segregación de funciones, compliance | ✅ Implementado |
 | **Gestión de Proyectos** | Gantt, hitos, presupuesto por proyecto, rentabilidad por proyecto, recursos asignados | P2 (plantilla) |
 | **Startups y Emprendimiento** | Plan de negocio, métricas de startup (MRR/ARR/Churn), runway, burn rate, cap table | P3 (plantilla) |
 | **Análisis Financiero y Ratios** | KPIs financieros (ROE/ROA/margen/EBITDA), benchmarking, tendencias, scorecards | ✅ Implementado |
