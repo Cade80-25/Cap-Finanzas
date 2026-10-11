@@ -534,3 +534,111 @@ export function buildClaimEntries(policyNumber: string, claimDescription: string
     { date: d, account: "ingresos", description: desc, debit: 0, credit: round2(amount), subcategory: "Seguros" },
   ];
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Comercio Exterior: importación (stock + costos accesorios) y exportación
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Importación: Debe Inventarios (valor mercadería) + Debe Gastos Operativos
+ * (aranceles + flete + seguro) / Haber Banco (total desembolsado).
+ */
+export function buildImportEntries(
+  description: string,
+  goodsValue: number,
+  customsDuties: number,
+  freightCost: number,
+  insuranceCost: number,
+  date?: string
+): DraftEntry[] {
+  const d = date || todayISO();
+  const extras = round2(customsDuties + freightCost + insuranceCost);
+  const goods = round2(goodsValue);
+  const total = round2(goods + extras);
+  if (total < 0.005) return [];
+  const out: DraftEntry[] = [];
+  if (goods > 0.005) {
+    out.push({ date: d, account: "inventarios", description: `Importación — ${description}`, debit: goods, credit: 0, subcategory: "Comercio Exterior" });
+  }
+  if (extras > 0.005) {
+    out.push({ date: d, account: "gastos-operativos", description: `Costos de importación — ${description}`, debit: extras, credit: 0, subcategory: "Comercio Exterior" });
+  }
+  out.push({ date: d, account: "banco", description: `Importación — ${description}`, debit: 0, credit: total, subcategory: "Comercio Exterior" });
+  return out;
+}
+
+/** Exportación: Debe Cuentas por Cobrar / Haber Ingresos */
+export function buildExportEntries(description: string, amount: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  if (amount < 0.005) return [];
+  const desc = `Exportación — ${description}`;
+  return [
+    { date: d, account: "cuentas-por-cobrar", description: desc, debit: round2(amount), credit: 0, subcategory: "Comercio Exterior" },
+    { date: d, account: "ingresos", description: desc, debit: 0, credit: round2(amount), subcategory: "Comercio Exterior" },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Marketing y Ventas: costo de campaña + ingresos generados
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Campaña: gasto ejecutado → Debe Gastos Operativos / Haber Banco;
+ * ingresos atribuidos → Debe Banco / Haber Ingresos.
+ */
+export function buildCampaignEntries(campaignName: string, spent: number, revenue: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  const out: DraftEntry[] = [];
+  const spend = round2(spent);
+  const rev = round2(revenue);
+  if (spend > 0.005) {
+    out.push({ date: d, account: "gastos-operativos", description: `Campaña — ${campaignName}`, debit: spend, credit: 0, subcategory: "Marketing" });
+    out.push({ date: d, account: "banco", description: `Campaña — ${campaignName}`, debit: 0, credit: spend, subcategory: "Marketing" });
+  }
+  if (rev > 0.005) {
+    out.push({ date: d, account: "banco", description: `Ingresos campaña — ${campaignName}`, debit: rev, credit: 0, subcategory: "Marketing" });
+    out.push({ date: d, account: "ingresos", description: `Ingresos campaña — ${campaignName}`, debit: 0, credit: rev, subcategory: "Marketing" });
+  }
+  return out;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Startups: aporte de capital / ronda de inversión
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Ronda de inversión: Debe Banco / Haber Patrimonio (capital aportado) */
+export function buildStartupFundingEntries(startupName: string, amount: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  if (amount < 0.005) return [];
+  const desc = `Aporte de capital — ${startupName}`;
+  return [
+    { date: d, account: "banco", description: desc, debit: round2(amount), credit: 0, subcategory: "Startups" },
+    { date: d, account: "patrimonio", description: desc, debit: 0, credit: round2(amount), subcategory: "Startups" },
+  ];
+}
+
+/** MRR del período: Debe Cuentas por Cobrar / Haber Ingresos */
+export function buildStartupRevenueEntries(startupName: string, period: string, mrr: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  if (mrr < 0.005) return [];
+  const desc = `Ingreso recurrente ${startupName} — ${period}`;
+  return [
+    { date: d, account: "cuentas-por-cobrar", description: desc, debit: round2(mrr), credit: 0, subcategory: "Startups" },
+    { date: d, account: "ingresos", description: desc, debit: 0, credit: round2(mrr), subcategory: "Startups" },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Auditoría: provisión por hallazgo con impacto económico
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Provisión por hallazgo: Debe Gastos Operativos / Haber Cuentas por Pagar */
+export function buildFindingProvisionEntries(findingTitle: string, amount: number, date?: string): DraftEntry[] {
+  const d = date || todayISO();
+  if (amount < 0.005) return [];
+  const desc = `Provisión auditoría — ${findingTitle}`;
+  return [
+    { date: d, account: "gastos-operativos", description: desc, debit: round2(amount), credit: 0, subcategory: "Auditoría" },
+    { date: d, account: "cuentas-por-pagar", description: desc, debit: 0, credit: round2(amount), subcategory: "Auditoría" },
+  ];
+}

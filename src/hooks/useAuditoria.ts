@@ -29,6 +29,8 @@ export interface AuditFinding {
   responsible: string;
   dueDate: string;
   status: FindingStatus;
+  /** Impacto económico estimado del hallazgo (opcional) — si > 0 se provisiona en el diario. */
+  economicImpact?: number;
   closedDate?: string;
   notes?: string;
   createdAt: string;

@@ -32,6 +32,12 @@ import {
   buildTripEntries,
   buildMaintenanceEntries,
   buildClaimEntries,
+  buildImportEntries,
+  buildExportEntries,
+  buildCampaignEntries,
+  buildStartupFundingEntries,
+  buildStartupRevenueEntries,
+  buildFindingProvisionEntries,
   isBalanced,
   draftsToTransactions,
   nextJournalId,
@@ -350,6 +356,74 @@ export function useModuleIntegration() {
     [postEntries]
   );
 
+  // ── Comercio Exterior ──
+
+  const postImport = useCallback(
+    (operationId: string, description: string, goodsValue: number, duties: number, freight: number, insurance: number, date?: string): PostResult => {
+      const ref = `import:${operationId}`;
+      const entries = buildImportEntries(description, goodsValue, duties, freight, insurance, date);
+      if (entries.length === 0) return { ok: false, entries: 0, message: "Importación sin monto" };
+      return postEntries(ref, "import", entries);
+    },
+    [postEntries]
+  );
+
+  const postExport = useCallback(
+    (operationId: string, description: string, amount: number, date?: string): PostResult => {
+      const ref = `export:${operationId}`;
+      const entries = buildExportEntries(description, amount, date);
+      if (entries.length === 0) return { ok: false, entries: 0, message: "Exportación sin monto" };
+      return postEntries(ref, "export", entries);
+    },
+    [postEntries]
+  );
+
+  // ── Marketing y Ventas ──
+
+  const postCampaign = useCallback(
+    (campaignId: string, campaignName: string, spent: number, revenue: number, date?: string): PostResult => {
+      const ref = `campaign:${campaignId}`;
+      const entries = buildCampaignEntries(campaignName, spent, revenue, date);
+      if (entries.length === 0) return { ok: false, entries: 0, message: "Campaña sin movimientos" };
+      return postEntries(ref, "campaign", entries);
+    },
+    [postEntries]
+  );
+
+  // ── Startups ──
+
+  const postStartupFunding = useCallback(
+    (startupId: string, startupName: string, amount: number, date?: string): PostResult => {
+      const ref = `startupfund:${startupId}`;
+      const entries = buildStartupFundingEntries(startupName, amount, date);
+      if (entries.length === 0) return { ok: false, entries: 0, message: "Aporte sin monto" };
+      return postEntries(ref, "startupfund", entries);
+    },
+    [postEntries]
+  );
+
+  const postStartupRevenue = useCallback(
+    (startupId: string, startupName: string, period: string, mrr: number, date?: string): PostResult => {
+      const ref = `startuprev:${startupId}:${period}`;
+      const entries = buildStartupRevenueEntries(startupName, period, mrr, date);
+      if (entries.length === 0) return { ok: false, entries: 0, message: "MRR sin monto" };
+      return postEntries(ref, "startuprev", entries);
+    },
+    [postEntries]
+  );
+
+  // ── Auditoría ──
+
+  const postFindingProvision = useCallback(
+    (findingId: string, findingTitle: string, amount: number, date?: string): PostResult => {
+      const ref = `findingprov:${findingId}`;
+      const entries = buildFindingProvisionEntries(findingTitle, amount, date);
+      if (entries.length === 0) return { ok: false, entries: 0, message: "Hallazgo sin impacto económico" };
+      return postEntries(ref, "findingprov", entries);
+    },
+    [postEntries]
+  );
+
   // ── Utilidades ──
 
   const isPosted = useCallback((ref: string): boolean => {
@@ -383,6 +457,12 @@ export function useModuleIntegration() {
     postTrip,
     postMaintenance,
     postClaim,
+    postImport,
+    postExport,
+    postCampaign,
+    postStartupFunding,
+    postStartupRevenue,
+    postFindingProvision,
     isPosted,
     getPostedRefs,
   };

@@ -239,7 +239,7 @@ El código determina el plan; el binario es el mismo para todos.
 | **Comercio Exterior** | Importación/exportación, aduanas, aranceles, Incoterms, divisas, despachantes | ✅ Implementado |
 | **Marketing y Ventas avanzado** | Campañas, embudos de venta, CAC/LTV, segmentación, automatización | ✅ Implementado |
 
-### Etapa 3 — Ciclo de Venta-Stock Completo (EN CURSO)
+### Etapa 3 — Ciclo de Venta-Stock Completo ✅ Implementado
 
 **TPV → Diario + Inventario**:
 - Al cobrar una venta → asiento automático: Debe Caja/Banco (según medio de pago) / Haber Ingresos + IVA por Pagar
@@ -258,7 +258,7 @@ El código determina el plan; el binario es el mismo para todos.
 - Nueva alerta TPV: ventas en estado "abierta" sin cobrar
 - `useTPV` integrado al panel de estado del negocio
 
-### Etapa 2 — Cadena de Ventas Completa (EN CURSO)
+### Etapa 2 — Cadena de Ventas Completa ✅ Implementado
 
 **Facturación → Diario**:
 - Al crear una factura → asiento automático: Debe Cuentas por Cobrar / Haber Ingresos + IVA por Pagar
@@ -276,7 +276,7 @@ El código determina el plan; el binario es el mismo para todos.
 - `postPayment` en `useModuleIntegration`: hook para publicar pagos
 - Referencias únicas por movimiento (`ccm:{id}`) para evitar duplicados
 
-### Etapa 1 — Integración y Profundización (EN CURSO)
+### Etapa 1 — Integración y Profundización ✅ Implementado
 
 **Motor de integración** (`src/lib/moduleIntegration.ts` + `src/hooks/useModuleIntegration.ts`):
 - Funciones puras que traducen datos de módulos operativos a asientos del Libro Diario (doble entrada)
