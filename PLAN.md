@@ -333,3 +333,134 @@ Fundadores**: línea directa con el creador, su feedback define v2, precio de
 fundador como recompensa. Internamente, los números de versión (1.x, 2.0)
 siguen usándose solo como hitos de ingeniería.
 4. Los secretos van en variables de entorno de Supabase, nunca en el repo.
+
+---
+
+## Integración contable automática (Etapas 1-6)
+
+### Etapa 1 — Integración y Profundización ✅ Implementado
+
+**Motor de integración** (`src/lib/moduleIntegration.ts` + `src/hooks/useModuleIntegration.ts`):
+- Funciones puras que traducen datos de módulos operativos a asientos del Libro Diario (doble entrada)
+- RRHH: sueldos → Debe Sueldos / Haber Cargas Sociales + Banco
+- Fabricación: cierre de orden → Debe Productos Terminados / Haber WIP + variación; consumo materiales → Debe WIP / Haber Materias Primas; mano de obra → Debe WIP / Haber Sueldos
+- Facturación: venta → Debe Cuentas por Cobrar / Haber Ingresos + IVA; cobro → Debe Banco / Haber Cuentas por Cobrar
+- TPV: venta directa → Debe Caja/Banco / Haber Ingresos + IVA
+- Hook `useModuleIntegration`: conecta al journal, marca registros como contabilizados, emite notificaciones
+- Plan de cuentas empresarial extendido: sueldos, cargas-sociales, produccion-en-curso, productos-terminados, materias-primas, variacion-costos, iva-por-pagar, iva-por-cobrar, compras
+
+**Automatización sobre datos del usuario** (`src/hooks/useAutomatizacion.ts` + `src/pages/Automatizacion.tsx`):
+- Centro de Automatización: alertas automáticas generadas desde los datos que el usuario ya cargó
+- Alertas: cuentas por cobrar vencidas, cuentas por pagar vencidas, stock bajo mínimo, pólizas por vencer, contratos por vencer, facturas vencidas sin cobrar, variaciones de costo desfavorables, nómina pendiente de pago
+- Severidad: crítica / alta / media / baja, con monto en riesgo consolidado
+- Cada alerta enlaza al módulo correspondiente para acción inmediata
+- Sin conexión externa: trabaja 100% sobre datos locales del usuario
+
+### Etapa 2 — Cadena de Ventas Completa ✅ Implementado
+
+**Facturación → Diario**:
+- Al crear una factura → asiento automático: Debe Cuentas por Cobrar / Haber Ingresos + IVA por Pagar
+- Badge "Contabilizado" visible en la tabla de facturas
+- Nota de crédito/débito también contabilizan (ajustan la cuenta por cobrar)
+
+**Cuentas Corrientes → Diario**:
+- Al registrar un cobro → asiento automático: Debe Banco / Haber Cuentas por Cobrar
+- Al registrar un pago → asiento automático: Debe Cuentas por Pagar / Haber Banco
+- Badge "Contabilizado" visible en la tabla de movimientos
+- Integración bidireccional: los asientos se reflejan en el Diario con referencia cruzada
+
+**Motor de integración extendido**:
+- `buildPaymentEntries`: asiento de pago a proveedor (Debe Cuentas por Pagar / Haber Banco)
+- `postPayment` en `useModuleIntegration`: hook para publicar pagos
+- Referencias únicas por movimiento (`ccm:{id}`) para evitar duplicados
+
+### Etapa 3 — Ciclo de Venta-Stock Completo ✅ Implementado
+
+**TPV → Diario + Inventario**:
+- Al cobrar una venta → asiento automático: Debe Caja/Banco (según medio de pago) / Haber Ingresos + IVA por Pagar
+- Cierre de ciclo real: cada ítem vendido descuenta stock del Inventario (match por nombre)
+- Por cada ítem con stock: asiento de costo de ventas (Debe Costo de Ventas / Haber Inventarios)
+- Badge "Contab." en la tabla de ventas
+
+**Inventario → Diario**:
+- Entrada (compra) → asiento: Debe Inventarios / Haber Caja (efectivo)
+- Salida → asiento de costo de ventas: Debe Costo de Ventas / Haber Inventarios
+- Ajuste → asiento por valor del delta: sobrante reduce gasto, merma lo aumenta
+- Badge "Contab." en la tabla de movimientos
+- Referencias únicas por id de movimiento (`purchase:{id}:{fecha}`, `costsales:{id}:{fecha}`, `invadj:{id}`) — permite múltiples operaciones del mismo artículo el mismo día
+
+**Motor de automatización extendido**:
+- Nueva alerta TPV: ventas en estado "abierta" sin cobrar
+- `useTPV` integrado al panel de estado del negocio
+
+### Etapa 4 — Módulos operativos restantes ✅ Implementado
+
+**Activos → Diario**:
+- Adquisición → Debe Activos / Haber Banco
+- Depreciación mensual → Debe Gastos Operativos / Haber Depreciación Acumulada
+- Venta → Debe Banco / Haber Activos + resultado por venta
+- Badge "Contab." en tablas de depreciación, venta y mantenimiento
+
+**Gastos → Diario**:
+- Aprobación → Debe Gastos Operativos / Haber Cuentas por Pagar
+- Reembolso → Debe Banco / Haber Cuentas por Pagar
+- Badge "Contab." en la tabla de gastos
+
+**Banca → Diario**:
+- Movimiento bancario → Debe/Haber Banco según tipo (ingreso/egreso)
+- Badge "Contab." en la tabla de movimientos
+
+**Contratos → Diario**:
+- Facturación de contrato → Debe Cuentas por Cobrar / Haber Ingresos
+- Cobro → Debe Banco / Haber Cuentas por Cobrar
+- Badge "Contab." en la tabla de contratos
+
+**Alquiler → Diario**:
+- Cobro de alquiler → Debe Banco / Haber Ingresos
+- Badge "Contab." en la tabla de alquileres
+
+**Flota → Diario**:
+- Viaje → Debe Gastos Operativos / Haber Banco
+- Badge "Contab." en la tabla de viajes
+
+**Seguros → Diario**:
+- Siniestro pagado → Debe Banco / Haber Ingresos (indemnización)
+- Badge "Contab." en la tabla de siniestros
+
+### Etapa 5 — Módulos restantes ✅ Implementado
+
+**Comercio Exterior → Diario**:
+- Importación → Debe Inventarios + Debe Gastos Operativos (aranceles/flete/seguro) / Haber Banco
+- Exportación → Debe Cuentas por Cobrar / Haber Ingresos
+- Botón "Entregar" contabiliza automáticamente
+- Badge "Contab." en la tabla de operaciones
+
+**Marketing y Ventas → Diario**:
+- Campaña finalizada → Debe Gastos Operativos / Haber Banco (gasto) + Debe Banco / Haber Ingresos (ingresos)
+- Botón "Finalizar" contabiliza automáticamente
+- Badge "Contab." en la tabla de campañas
+
+**Startups → Diario**:
+- MRR del mes → Debe Cuentas por Cobrar / Haber Ingresos
+- Botón de contabilización por cada startup con MRR activo
+- Badge "Contab." en la tabla de startups
+
+**Auditoría → Diario**:
+- Hallazgo con impacto económico → Debe Gastos Operativos / Haber Cuentas por Pagar (provisión)
+- Campo `economicImpact` opcional en el modelo de hallazgos
+- Botón de provisión cuando el hallazgo tiene impacto económico
+- Badge "Contab." en la tabla de hallazgos
+
+**Análisis Financiero**:
+- Módulo de análisis puro — no genera asientos contables
+- No requiere integración contable
+
+### Etapa 6 — Cierre y publicación ✅ Implementado
+
+- Toda la app integrada: 15 módulos con asientos automáticos al Libro Diario
+- Motor contable centralizado en `moduleIntegration.ts` + `useModuleIntegration.ts`
+- Idempotencia por referencia única — sin asientos duplicados
+- Badges "Contab." en todas las tablas para feedback visual
+- TypeScript: 0 errores, 0 warnings
+- Build: 0 errores, 0 warnings
+- Commit `e2d2f62` con 8 archivos, +241/-14 líneas
