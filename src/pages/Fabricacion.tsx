@@ -345,6 +345,7 @@ export default function Fabricacion() {
   const handleAddSubcontract = () => {
     if (!fSubProvider.trim() || !fSubDesc.trim() || !fSubAmount) return;
     addSubcontract({
+      orderNumber: `SUB-${Date.now().toString().slice(-6)}`,
       providerId: `prov-${Date.now()}`,
       providerName: fSubProvider.trim(),
       orderId: fSubOrder,

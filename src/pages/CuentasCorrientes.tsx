@@ -101,6 +101,7 @@ export default function CuentasCorrientes() {
     addContact,
     deleteContact,
     addMovement,
+    deleteMovement,
     balances,
     stats,
     movements,

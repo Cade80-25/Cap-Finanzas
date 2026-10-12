@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 // @ts-expect-error - plain JS plugin, no type declarations
 import prerenderRoutes from "./vite-plugins/prerender-routes.mjs";
 
@@ -14,7 +13,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === "development" && componentTagger(),
     prerenderRoutes(),
   ].filter(Boolean),
   resolve: {

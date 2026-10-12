@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useContabilidadAnalitica, CostCenterType, DimensionType } from "@/hooks/useContabilidadAnalitica";
 
 const money = (n: number) => `$${n.toLocaleString("es-UY", { minimumFractionDigits: 2 })}`;
-const centerTypeLabel: Record<CostCenterType, string> = { produccion: "Producción", administracion: "Administración", ventas: "Ventas", servicio: "Servicio", investigación: "Investigación", otro: "Otro" };
+const centerTypeLabel: Record<CostCenterType, string> = { produccion: "Producción", administracion: "Administración", ventas: "Ventas", servicio: "Servicio", investigacion: "Investigación", otro: "Otro" };
 const dimTypeLabel: Record<DimensionType, string> = { producto: "Producto", cliente: "Cliente", canal: "Canal", region: "Región", proyecto: "Proyecto", departamento: "Departamento" };
 
 export default function ContabilidadAnalitica() {

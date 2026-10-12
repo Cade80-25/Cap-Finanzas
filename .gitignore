@@ -31,3 +31,7 @@ release/
 .env*.local
 cap-finanzas/
 supabase/.temp/
+
+# Instaladores locales, no al repo
+*.exe
+release/
