@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Sparkles, TrendingUp, BookOpen, Target, MessageCircle, Send, LineChart, DollarSign, AlertTriangle, LucideIcon, ShieldAlert, Info, BarChart3, Lock } from "lucide-react";
+import { Sparkles, TrendingUp, BookOpen, Target, MessageCircle, Send, LineChart, DollarSign, AlertTriangle, LucideIcon, ShieldAlert, Info, BarChart3, Lock, CheckCircle } from "lucide-react";
 import { useLicense } from "@/hooks/useLicense";
+import { useJournalTransactions } from "@/hooks/useJournalTransactions";
+import { analizarJournal } from "@/lib/analisisContable";
+import type { AnalisisRec } from "@/lib/analisisContable";
 import { RecommendationDetailDialog } from "@/components/RecommendationDetailDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,32 +40,29 @@ export default function Recomendaciones() {
     return status === "trial" || hasFullLicense;
   }, [status, hasFullLicense]);
 
-  const recomendacionesAutomaticas = [
-    {
-      tipo: "Ahorro",
-      icon: Target,
-      titulo: "Oportunidad de Ahorro Detectada",
-      descripcion: "Tus gastos en entretenimiento aumentaron 25% este mes. Considera reducir $200 para cumplir tu meta de ahorro.",
-      prioridad: "alta",
+  // ==== Análisis contable determinista (sin IA) — datos reales del journal ====
+  const { transactions: journal } = useJournalTransactions();
+  const { resumen, recs: recsReales } = useMemo(() => analizarJournal(journal), [journal]);
+
+  const recomendacionesAutomaticas = useMemo(() => {
+    if (recsReales.length === 0) return [];
+    const iconPorTipo: Record<AnalisisRec["tipo"], LucideIcon> = {
+      Liquidez: DollarSign,
+      Balance: AlertTriangle,
+      Gastos: Target,
+      Patrimonio: TrendingUp,
+      Cumplimiento: ShieldAlert,
+    };
+    return recsReales.map((rec) => ({
+      tipo: rec.tipo,
+      icon: iconPorTipo[rec.tipo],
+      titulo: rec.titulo,
+      descripcion: rec.descripcion,
+      prioridad: rec.prioridad,
       detailType: "ahorro" as const,
-    },
-    {
-      tipo: "Inversión",
-      icon: TrendingUp,
-      titulo: "Momento para Invertir",
-      descripcion: "Tienes $5,000 sin asignar en tu presupuesto. Considera invertir en un fondo de bajo riesgo para generar rendimientos.",
-      prioridad: "media",
-      detailType: "inversion" as const,
-    },
-    {
-      tipo: "Educación",
-      icon: BookOpen,
-      titulo: "Aprende sobre Inversiones",
-      descripcion: "Recomendación: Lee sobre 'Fondos Indexados' en la Enciclopedia para mejorar tus conocimientos financieros.",
-      prioridad: "baja",
-      detailType: "educacion" as const,
-    }
-  ];
+      evidencia: rec.evidencia,
+    }));
+  }, [recsReales]);
 
   const preguntasSugeridas = [
     "¿Cómo puedo reducir mis gastos mensuales?",
@@ -150,7 +150,23 @@ export default function Recomendaciones() {
       </div>
 
       <div data-tutorial="recomendaciones-cards" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {recomendacionesAutomaticas.map((rec, idx) => (
+        {recomendacionesAutomaticas.length === 0 ? (
+          <Card className="lg:col-span-3 shadow-soft">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <CheckCircle className="h-8 w-8 text-primary mb-2" />
+              </div>
+              <CardTitle className="text-lg">Todo en orden</CardTitle>
+              <CardDescription>Análisis contable</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                No hay alertas en tu libro diario: el debe y haber cuadran, y el mes no muestra
+                desequilibrios que requieran acción.
+              </p>
+            </CardContent>
+          </Card>
+        ) : recomendacionesAutomaticas.map((rec, idx) => (
           <Card key={idx} className="shadow-soft hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -163,7 +179,8 @@ export default function Recomendaciones() {
               <CardDescription>{rec.tipo}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">{rec.descripcion}</p>
+              <p className="text-sm text-muted-foreground mb-2">{rec.descripcion}</p>
+              <p className="text-xs text-muted-foreground/70 mb-4 font-mono">{rec.evidencia}</p>
               <Button 
                 variant="outline" 
                 size="sm" 

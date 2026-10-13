@@ -1,4 +1,4 @@
-import { Database, Bell, Shield, Download, Upload, Palette, Zap, RefreshCw, CheckCircle, FileText, FileSpreadsheet, File, AlertCircle, Table, Lock, Key, CloudUpload, Terminal, ScrollText, Trash2, Globe } from "lucide-react";
+import { Database, Bell, Shield, Download, Upload, Palette, Zap, RefreshCw, CheckCircle, FileText, FileSpreadsheet, File, AlertCircle, Table, Lock, Key, CloudUpload, Terminal, ScrollText, Trash2, Globe, HardDriveDownload, HardDriveUpload } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -790,6 +790,41 @@ export default function Configuracion() {
                 <Upload className="h-4 w-4 mr-2" />
                 {importing ? "Procesando..." : "Importar Datos"}
               </Button>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Respaldo completo de la aplicación</Label>
+              <p className="text-xs text-muted-foreground">
+                Exporta TODOS tus datos (cuentas, journal, módulos, licencia) a un único archivo
+                de respaldo, o restaura desde un respaldo anterior. Guardá el archivo en un lugar
+                seguro (USB, nube, otro disco).
+              </p>
+              <div className="flex gap-2">
+                <Button onClick={() => { import("@/lib/backup").then(m => m.exportBackup()); }} className="flex-1">
+                  <HardDriveDownload className="h-4 w-4 mr-2" />
+                  Crear respaldo
+                </Button>
+                <Label
+                  htmlFor="backup-restore-input"
+                  className="flex-1 inline-flex items-center justify-center rounded-md border border-input bg-background px-3 h-9 text-sm font-medium cursor-pointer hover:bg-accent"
+                >
+                  <HardDriveUpload className="h-4 w-4 mr-2" />
+                  Restaurar respaldo
+                  <input
+                    id="backup-restore-input"
+                    type="file"
+                    accept=".json,application/json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) import("@/lib/backup").then(m => m.importBackup(f));
+                      e.target.value = "";
+                    }}
+                  />
+                </Label>
+              </div>
             </div>
 
             <Separator />
