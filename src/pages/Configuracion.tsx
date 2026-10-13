@@ -742,6 +742,46 @@ export default function Configuracion() {
         </DialogContent>
       </Dialog>
 
+      {/* RESPALDO COMPLETO — primera card del tab, siempre visible sin scroll */}
+      <Card data-tutorial="configuracion-respaldo" className="border-2 border-primary/40">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <HardDriveDownload className="h-5 w-5 text-primary" />
+            Respaldo completo de la aplicación
+          </CardTitle>
+          <CardDescription>
+            Exporta TODOS tus datos (cuentas, journal, módulos, licencia) a un único archivo,
+            o restaura desde un respaldo anterior. Guardá el archivo en un lugar seguro (USB, nube, otro disco).
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button onClick={() => { import("@/lib/backup").then(m => m.exportBackup()); }} size="lg" className="flex-1">
+              <HardDriveDownload className="h-4 w-4 mr-2" />
+              Crear respaldo
+            </Button>
+            <Label
+              htmlFor="backup-restore-input"
+              className="flex-1 inline-flex items-center justify-center rounded-md border border-input bg-background px-3 h-11 text-sm font-medium cursor-pointer hover:bg-accent"
+            >
+              <HardDriveUpload className="h-4 w-4 mr-2" />
+              Restaurar respaldo
+              <input
+                id="backup-restore-input"
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) import("@/lib/backup").then(m => m.importBackup(f));
+                  e.target.value = "";
+                }}
+              />
+            </Label>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* License Settings Section */}
       <LicenseSettings />
 
@@ -790,41 +830,6 @@ export default function Configuracion() {
                 <Upload className="h-4 w-4 mr-2" />
                 {importing ? "Procesando..." : "Importar Datos"}
               </Button>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Respaldo completo de la aplicación</Label>
-              <p className="text-xs text-muted-foreground">
-                Exporta TODOS tus datos (cuentas, journal, módulos, licencia) a un único archivo
-                de respaldo, o restaura desde un respaldo anterior. Guardá el archivo en un lugar
-                seguro (USB, nube, otro disco).
-              </p>
-              <div className="flex gap-2">
-                <Button onClick={() => { import("@/lib/backup").then(m => m.exportBackup()); }} className="flex-1">
-                  <HardDriveDownload className="h-4 w-4 mr-2" />
-                  Crear respaldo
-                </Button>
-                <Label
-                  htmlFor="backup-restore-input"
-                  className="flex-1 inline-flex items-center justify-center rounded-md border border-input bg-background px-3 h-9 text-sm font-medium cursor-pointer hover:bg-accent"
-                >
-                  <HardDriveUpload className="h-4 w-4 mr-2" />
-                  Restaurar respaldo
-                  <input
-                    id="backup-restore-input"
-                    type="file"
-                    accept=".json,application/json"
-                    className="hidden"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) import("@/lib/backup").then(m => m.importBackup(f));
-                      e.target.value = "";
-                    }}
-                  />
-                </Label>
-              </div>
             </div>
 
             <Separator />
