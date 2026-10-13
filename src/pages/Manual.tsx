@@ -1,4 +1,4 @@
-import { Book, ChevronRight, Home, Receipt, Calendar, Target, Globe, Tag, PieChart, BookOpen, FileText, BarChart3, TrendingUp, HelpCircle, Sparkles, User, Settings, Bell, Search, Play, CheckCircle2, RotateCcw, GraduationCap } from "lucide-react";
+import { Book, ChevronRight, Home, Receipt, Calendar, Target, Globe, Tag, PieChart, BookOpen, FileText, BarChart3, TrendingUp, HelpCircle, Sparkles, User, Users, Boxes, Landmark, Briefcase, Rocket, ShoppingCart, Wrench, Shield, ClipboardCheck, HardDriveDownload, Settings, Bell, Search, Play, CheckCircle2, RotateCcw, GraduationCap } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
@@ -17,30 +17,19 @@ const secciones = [
     contenido: [
       {
         subtitulo: "¿Qué es Cap Finanzas?",
-        texto: "Cap Finanzas es una aplicación de finanzas personales diseñada para ayudarte a controlar tus ingresos, gastos y patrimonio de forma sencilla. Está pensada para personas de todas las edades que quieran aprender sobre contabilidad básica y mejorar su salud financiera."
+        texto: "Cap Finanzas es una aplicación de finanzas personales y empresariales que funciona sin internet y guarda tus datos solo en tu PC. Sirve tanto para controlar gastos personales (Modo Simple) como para llevar la contabilidad completa de un negocio (Modo Empresarial), con módulos para facturación, inventario, RRHH y más."
+      },
+      {
+        subtitulo: "Elige tu modo al empezar",
+        texto: "Al abrir la aplicación por primera vez eliges entre:\n• Modo Simple (personas): registro de ingresos y gastos, presupuesto, calendario y resúmenes. Pensado para uso diario sin conocimientos de contabilidad.\n• Modo Empresarial (negocios): todo lo anterior más contabilidad doble entrada, facturación, RRHH, inventario, banca, tesorería y 30 módulos operativos.\nPuedes cambiar de modo cuando quieras desde Ajustes → Cuenta."
       },
       {
         subtitulo: "Panel Principal",
-        texto: "Al abrir la aplicación verás el Panel Principal con un resumen de tu situación financiera: balance total, ingresos y gastos del mes, ahorros, gráficos comparativos y transacciones recientes. Todos estos datos se generan automáticamente desde el Libro Diario."
-      }
-    ]
-  },
-  {
-    id: "libro-diario",
-    titulo: "Libro Diario",
-    icono: BookOpen,
-    contenido: [
-      {
-        subtitulo: "¿Qué es el Libro Diario?",
-        texto: "El Libro Diario es el registro cronológico de todas tus transacciones contables. Es la base de todo el sistema: cada movimiento que registres aquí se reflejará automáticamente en el resto de la aplicación."
+        texto: "Al entrar verás el resumen de tu situación: balance total, ingresos y gastos del mes, ahorros, gráficos comparativos y últimas transacciones. Todo se calcula automáticamente desde el Libro Diario: no hay que cargar nada dos veces."
       },
       {
-        subtitulo: "Cómo agregar una transacción",
-        texto: "1. Haz clic en 'Nueva Transacción'\n2. Selecciona la fecha\n3. Elige la cuenta (Ingresos, Gastos Operativos, Banco, etc.)\n4. Escribe una descripción\n5. Ingresa el monto en 'Debe' para gastos/activos o en 'Haber' para ingresos/pasivos\n6. Guarda la transacción"
-      },
-      {
-        subtitulo: "Sugerencias inteligentes",
-        texto: "El sistema detecta automáticamente si estás registrando un ingreso o gasto basándose en palabras clave y te sugiere correcciones si algo parece incorrecto."
+        subtitulo: "Primer respaldo (recomendado)",
+        texto: "Andá a Ajustes → Configuración → 'Respaldo completo de la aplicación' (primera tarjeta, arriba) y hacé clic en 'Crear respaldo'. Genera un único archivo con TODO (cuentas, movimientos, módulos y licencia). Guardalo en un pendrive o en la nube. Podés restaurarlo en cualquier PC con 'Restaurar respaldo'."
       }
     ]
   },
@@ -51,7 +40,15 @@ const secciones = [
     contenido: [
       {
         subtitulo: "Vista de transacciones",
-        texto: "Esta sección muestra todas las transacciones registradas con filtros para buscar por fecha, tipo o categoría. Puedes ver el historial completo de movimientos."
+        texto: "Es la pantalla de uso diario: listado completo de ingresos y gastos con búsqueda por texto, filtros por categoría, cuenta y fecha, y ordenamiento. En modo Simple los registros se crean acá y se convierten en asientos del Libro Diario automáticamente."
+      },
+      {
+        subtitulo: "Cómo registrar un gasto rápido",
+        texto: "1. Clic en el botón '+' (gasto rápido) abajo a la derecha.\n2. Elegí la categoría (ej. 'Alimentación') y la fecha.\n3. Escribí el monto y una descripción breve.\n4. Guardá. El gasto aparece en el listado, en el presupuesto y en los resúmenes al instante."
+      },
+      {
+        subtitulo: "Edición y borrado",
+        texto: "Cada fila tiene íconos de lápiz (editar) y tacho (borrar). Al editar corregís monto, categoría o descripción; al borrar, el sistema pide confirmación y quita también los asientos contables asociados."
       }
     ]
   },
@@ -62,11 +59,11 @@ const secciones = [
     contenido: [
       {
         subtitulo: "Visualización temporal",
-        texto: "El calendario te permite ver tus transacciones organizadas por fecha. Puedes seleccionar cualquier día para ver los movimientos de esa fecha."
+        texto: "Ves todos los ingresos y gastos sobre un calendario mensual. Los días con movimientos se resaltan; al hacer clic en un día se despliegan sus transacciones. Ideal para detectar de un vistazo los días de mayor gasto."
       },
       {
-        subtitulo: "Próximos eventos",
-        texto: "En esta sección puedes programar pagos recurrentes o eventos financieros futuros para no olvidarte de fechas importantes."
+        subtitulo: "Eventos programados",
+        texto: "Configurá ingresos y gastos recurrentes (salario, alquiler, cuotas) para que aparezcan como próximos eventos y no se te pasen. Cada evento programado puede convertirse en transacción real con un clic."
       }
     ]
   },
@@ -77,137 +74,366 @@ const secciones = [
     contenido: [
       {
         subtitulo: "Crear un presupuesto",
-        texto: "1. Haz clic en 'Nuevo Presupuesto'\n2. Define una categoría (ej: Alquiler, Comida, Transporte)\n3. Establece el monto máximo a gastar\n4. Opcionalmente, indica cuánto ya has gastado"
+        texto: "Definí un monto máximo por categoría (ej. 'Restaurantes: $3.000/mes'). El sistema compara lo presupuestado contra lo realmente gastado según tus transacciones."
       },
       {
-        subtitulo: "Seguimiento",
-        texto: "El sistema compara automáticamente tus gastos reales con el presupuesto y te alerta cuando estás cerca o has excedido el límite."
-      }
-    ]
-  },
-  {
-    id: "categorias",
-    titulo: "Categorías",
-    icono: Tag,
-    contenido: [
-      {
-        subtitulo: "Gestión de categorías",
-        texto: "Las categorías se crean automáticamente desde las cuentas que usas en el Libro Diario. Aquí puedes ver un resumen de cuánto has gastado o ganado por cada categoría."
-      }
-    ]
-  },
-  {
-    id: "resumen",
-    titulo: "Resumen",
-    icono: PieChart,
-    contenido: [
-      {
-        subtitulo: "Vista general",
-        texto: "El Resumen te muestra gráficos de tus finanzas: tendencias mensuales de ingresos y gastos, distribución por categorías y comparativas visuales para entender mejor tu situación."
-      }
-    ]
-  },
-  {
-    id: "libro-mayor",
-    titulo: "Libro Mayor",
-    icono: FileText,
-    contenido: [
-      {
-        subtitulo: "¿Qué es el Libro Mayor?",
-        texto: "El Libro Mayor agrupa todas las transacciones por cuenta. Así puedes ver el historial y balance de cada cuenta individual (Banco, Ingresos, Gastos, etc.)."
-      }
-    ]
-  },
-  {
-    id: "balance",
-    titulo: "Balance General",
-    icono: BarChart3,
-    contenido: [
-      {
-        subtitulo: "Estado patrimonial",
-        texto: "El Balance General muestra tu situación financiera en un momento dado: todos tus Activos (lo que tienes), Pasivos (lo que debes) y el Patrimonio Neto resultante."
-      },
-      {
-        subtitulo: "Ratios financieros",
-        texto: "Incluye indicadores como ratio de liquidez, ratio de endeudamiento y ratio de patrimonio para evaluar tu salud financiera."
-      }
-    ]
-  },
-  {
-    id: "resultados",
-    titulo: "Estado de Resultados",
-    icono: TrendingUp,
-    contenido: [
-      {
-        subtitulo: "Pérdidas y ganancias",
-        texto: "El Estado de Resultados muestra cuánto has ganado y gastado en un período, calculando el resultado neto (ganancia o pérdida). Incluye gráficos de tendencias y estadísticas detalladas."
+        subtitulo: "Seguimiento en vivo",
+        texto: "Barras de progreso muestran el consumo de cada categoría: verde (holgado), ámbar (cerca del límite), rojo (excedido). El Panel Principal te avisa cuántas categorías ya pasaron el límite este mes."
       }
     ]
   },
   {
     id: "monedas",
-    titulo: "Conversor de Monedas",
+    titulo: "Monedas",
     icono: Globe,
     contenido: [
       {
-        subtitulo: "Conversión en tiempo real",
-        texto: "Convierte montos entre diferentes monedas del mundo usando tasas de cambio actualizadas."
+        subtitulo: "Multi-moneda",
+        texto: "Cada transacción puede registrarse en su moneda original (UYU, USD, EUR, ARS, etc.) y el sistema las convierte a tu moneda base para los totales."
+      },
+      {
+        subtitulo: "Actualización de tasas",
+        texto: "El conversor descarga tasas actualizadas cuando hay internet; sin internet usa la última tasa guardada. También podés fijar una tasa manualmente desde esta pantalla."
       }
     ]
   },
   {
-    id: "enciclopedia",
-    titulo: "Enciclopedia",
-    icono: HelpCircle,
+    id: "resumen",
+    titulo: "Resumen y Consolidado",
+    icono: PieChart,
     contenido: [
       {
-        subtitulo: "Conceptos financieros",
-        texto: "Consulta definiciones y explicaciones de términos contables y financieros. Ideal para aprender mientras usas la aplicación."
+        subtitulo: "Vista general",
+        texto: "Resúmenes mensuales y anuales: total de ingresos, gastos, ahorro del período, comparativa vs. mes anterior, y desglose por categoría con gráficos de torta."
+      },
+      {
+        subtitulo: "Consolidado (Empresarial)",
+        texto: "Combina todas las cuentas y perfiles en un solo estado. Útil cuando manejás varios negocios o frelancers: ves la posición global sin exportar nada."
+      }
+    ]
+  },
+  {
+    id: "libro-diario",
+    titulo: "Libro Diario (Contabilidad)",
+    icono: BookOpen,
+    contenido: [
+      {
+        subtitulo: "¿Qué es el Libro Diario?",
+        texto: "Es el registro cronológico de asientos contables con la regla de oro: cada asiento lleva 'Debe' y 'Haber' y SIEMPRE deben sumar lo mismo (asiento balanceado). Es la base de todos los estados financieros de la app."
+      },
+      {
+        subtitulo: "Cómo agregar un asiento manual",
+        texto: "1. Contabilidad → Libro Diario → 'Nueva Transacción'.\n2. Fecha y descripción.\n3. Elegí la cuenta que se carga en 'Debe' (ej. Gastos Operativos) y su monto.\n4. Elegí la cuenta que se abona en 'Haber' (ej. Banco) con el MISMO monto.\n5. Guardá. Si Debe ≠ Haber, el sistema no te deja guardar: es una protección contra errores."
+      },
+      {
+        subtitulo: "Asientos automáticos de los módulos",
+        texto: "No hace falta contabilizar a mano lo que ya registrás en los módulos: cada módulo tiene su botón 'Contabilizar' (ej. Facturación → 'Contabilizar factura', RRHH → 'Contabilizar nómina') que genera el asiento balanceado por vos y marca el documento para no duplicarlo."
+      },
+      {
+        subtitulo: "Descuadre = alerta",
+        texto: "La pantalla Recomendaciones revisa tu libro diario y te avisa si la suma del Debe difiere del Haber (ej. '106.881 de diferencia'). Revisá los asientos del período o restaurá un respaldo anterior si el error viene de lejos."
+      }
+    ]
+  },
+  {
+    id: "libro-mayor",
+    titulo: "Libro Mayor, Balance y Resultados",
+    icono: FileText,
+    contenido: [
+      {
+        subtitulo: "Libro Mayor",
+        texto: "Agrupa todos los asientos por cuenta y muestra el saldo de cada una. Es la vista clásica del contador: '¿cuánto hay en Banco?' o '¿cuánto gasté en Alquileres este año?'."
+      },
+      {
+        subtitulo: "Balance General",
+        texto: "Estado de situación patrimonial: Activos (lo que tenés), Pasivos (lo que debés) y Patrimonio (la diferencia). Se arma solo desde el Libro Mayor."
+      },
+      {
+        subtitulo: "Estado de Resultados",
+        texto: "Ingresos menos gastos del período = ganancia o pérdida. Incluye desglose por tipo de ingreso y gasto. Es el informe para saber si el negocio (o tu bolsillo) ganó o perdió plata en el mes."
+      }
+    ]
+  },
+  {
+    id: "facturacion",
+    titulo: "Facturación",
+    icono: FileText,
+    contenido: [
+      {
+        subtitulo: "Facturas de venta",
+        texto: "Creamos facturas con numeración automática, cliente, líneas de producto/servicio, e impuestos. Al 'Contabilizar factura' se genera el asiento: Debe Clientes / Haber Ingresos por Ventas (+ impuestos si corresponde)."
+      },
+      {
+        subtitulo: "Cuentas corrientes de clientes",
+        texto: "Las facturas pendientes alimentan la pantalla Cuentas Corrientes: ahí ves quién te debe, desde cuándo, y registrás los cobros. Cada cobro genera su asiento (Debe Banco / Haber Clientes)."
+      }
+    ]
+  },
+  {
+    id: "rrhh",
+    titulo: "RRHH — Nómina",
+    icono: Users,
+    contenido: [
+      {
+        subtitulo: "Empleados y nómina",
+        texto: "Cargá empleados con su sueldo nominal. Cada mes generá la nómina: el sistema calcula aportes y deducciones configurables y, con 'Contabilizar nómina', crea el asiento completo (Debe Sueldos y Gastos / Haber Banco y Pasivos por aportes)."
+      },
+      {
+        subtitulo: "Registro histórico",
+        texto: "Cada nómina queda guardada con su período, así podés ver la evolución del costo laboral mes a mes sin planillas externas."
+      }
+    ]
+  },
+  {
+    id: "inventario",
+    titulo: "Inventario",
+    icono: Boxes,
+    contenido: [
+      {
+        subtitulo: "Artículos y stock",
+        texto: "Cargá artículos con su costo unitario, stock actual y mínimo de alerta. Los movimientos de entrada/salida actualizan el stock y el valor del inventario en tiempo real."
+      },
+      {
+        subtitulo: "Valoración y alertas",
+        texto: "El valor del inventario usa el método elegido por artículo (promedio ponderado o ajuste). Cuando un artículo cae por debajo del mínimo, aparece en la lista de 'stock bajo' y en notificaciones."
+      }
+    ]
+  },
+  {
+    id: "tesoreria",
+    titulo: "Tesorería y Banca",
+    icono: Landmark,
+    contenido: [
+      {
+        subtitulo: "Tesorería",
+        texto: "Flujo de caja proyectado: cobros y pagos programados vs. realizados. Ves si los próximos 30/60/90 días cierran en positivo o si vas a necesitar financiarse."
+      },
+      {
+        subtitulo: "Banca",
+        texto: "Conciliación bancaria: cargás los movimientos del resumen del banco y los comparás con los que ya tenés registrados; los que coinciden se marcan conciliados, los que faltan quedan pendientes de revisar."
+      }
+    ]
+  },
+  {
+    id: "activos",
+    titulo: "Activos y Logística",
+    icono: Briefcase,
+    contenido: [
+      {
+        subtitulo: "Activos fijos",
+        texto: "Registrá equipos, vehículos e inmuebles con su valor y vida útil. El módulo calcula la depreciación mensual y, con 'Contabilizar depreciación', genera el asiento (Debe Gasto por Depreciación / Haber Depreciación Acumulada)."
+      },
+      {
+        subtitulo: "Vida útil y venta de activos",
+        texto: "Al vender o dar de baja un activo, el sistema calcula la ganancia/pérdida por la venta comparando precio vs. valor en libros, y arma el asiento de baja."
+      }
+    ]
+  },
+  {
+    id: "proyectos",
+    titulo: "Proyectos y Startups",
+    icono: Rocket,
+    contenido: [
+      {
+        subtitulo: "Proyectos",
+        texto: "Asigná ingresos y costos a proyectos para saber si cada uno gana o pierde dinero. Cada proyecto muestra su rentabilidad acumulada sin exportar nada a Excel."
+      },
+      {
+        subtitulo: "Startups",
+        texto: "Seguí rondas de inversión, MRR (ingreso recurrente mensual) y runway. El botón 'Contabilizar MRR del mes' pasa el ingreso recurrente al libro diario."
+      }
+    ]
+  },
+  {
+    id: "tpv",
+    titulo: "TPV — Punto de Venta",
+    icono: ShoppingCart,
+    contenido: [
+      {
+        subtitulo: "Venta rápida",
+        texto: "Pantalla de mostrador: buscás el producto, sumás líneas, cobrás. Cada venta descuenta stock del inventario y genera el asiento de venta (Debe Caja/Banco / Haber Ingresos)."
+      },
+      {
+        subtitulo: "Cierre de caja",
+        texto: "Al final del día, el cierre compara lo vendido contra lo cobrado en caja. Si hay diferencias, quedan registradas para revisión."
+      }
+    ]
+  },
+  {
+    id: "crm",
+    titulo: "CRM y Ventas",
+    icono: Users,
+    contenido: [
+      {
+        subtitulo: "Clientes y oportunidades",
+        texto: "Listado de clientes con sus datos y estado (activo, inactivo). Las oportunidades de venta siguen etapas (contacto, propuesta, negociación, cerrada) para saber qué tenés en carpeta."
+      },
+      {
+        subtitulo: "Marketing",
+        texto: "Campañas con presupuesto, alcance y resultado. Al 'Finalizar y contabilizar' una campaña, su costo pasa al libro diario como gasto de marketing."
+      }
+    ]
+  },
+  {
+    id: "operaciones",
+    titulo: "Operaciones: Fabricación, Flota, Alquiler, Contratos",
+    icono: Wrench,
+    contenido: [
+      {
+        subtitulo: "Fabricación",
+        texto: "Órdenes de producción con lista de materiales (BOM): consumís materia prima del inventario y registrás mano de obra. El módulo calcula costo estándar vs. real y las variaciones (desvíos) de cada orden."
+      },
+      {
+        subtitulo: "Flota",
+        texto: "Vehículos con kilometraje, combustible y mantenimiento. Cada viaje puede imputarse a un proyecto o cliente para conocer el costo real de reparto."
+      },
+      {
+        subtitulo: "Alquiler (inmobiliario)",
+        texto: "Propiedades con contrato, inquilino y mensualidad. Registrás los cobros de renta y los pagos vencidos se marcan solos. Cobrar una renta genera: Debe Banco / Haber Ingresos por Alquileres."
+      },
+      {
+        subtitulo: "Contratos",
+        texto: "Contratos de servicio con vigencia, montos y facturación periódica. Llegada la fecha, el sistema propone la factura a emitir."
+      }
+    ]
+  },
+  {
+    id: "compliance",
+    titulo: "Auditoría, Calidad y Riesgos",
+    icono: Shield,
+    contenido: [
+      {
+        subtitulo: "Auditoría",
+        texto: "Hallazgos de auditoría con severidad (baja/media/alta). El botón 'Provisionar' calcula la provisión contable del hallazgo y la pasa al libro diario."
+      },
+      {
+        subtitulo: "Calidad",
+        texto: "Controles de calidad con estado (aprobado/rechazado) sobre producción o compras. Los rechazos alimentan el módulo de costos de no calidad."
+      },
+      {
+        subtitulo: "Riesgos",
+        texto: "Matriz de riesgos con probabilidad e impacto; el sistema los prioriza solo. Los riesgos 'alto' aparecen en el Panel Principal."
+      }
+    ]
+  },
+  {
+    id: "aprobaciones",
+    titulo: "Aprobaciones y Finanzas",
+    icono: ClipboardCheck,
+    contenido: [
+      {
+        subtitulo: "Aprobaciones",
+        texto: "Flujo de aprobación de gastos: un pedido de gasto entra 'pendiente', un aprobador lo acepta o rechaza, y solo lo aprobado se contabiliza. Evita que cualquier gasto llegue al libro sin control."
+      },
+      {
+        subtitulo: "Financiamiento",
+        texto: "Préstamos con capital, tasa e intereses. El sistema calcula la cuota y cada pago genera su asiento separando capital e interés."
+      },
+      {
+        subtitulo: "Trading",
+        texto: "Journal de trading para registrar operaciones de compra/venta de activos financieros con precio de entrada, salida y resultado (P&L) por operación."
+      }
+    ]
+  },
+  {
+    id: "analisis",
+    titulo: "Análisis y BI",
+    icono: BarChart3,
+    contenido: [
+      {
+        subtitulo: "Análisis Financiero",
+        texto: "Ratios calculados solos: liquidez, endeudamiento, margen, ROE. Con tus saldos del balance, sin planillas."
+      },
+      {
+        subtitulo: "Contabilidad Analítica",
+        texto: "Asigna costos por centro o departamento para saber cuánto cuesta cada área del negocio."
+      },
+      {
+        subtitulo: "Business Intelligence (BI)",
+        texto: "Indicadores combinados de todos los módulos en un tablero: ventas, cobros, stock, nómina. La vista de mando para el dueño."
       }
     ]
   },
   {
     id: "recomendaciones",
-    titulo: "Recomendaciones",
+    titulo: "Recomendaciones del Asesor",
     icono: Sparkles,
     contenido: [
       {
-        subtitulo: "Tutor Educativo",
-        texto: "Disponible en prueba y en Licencia Única. Haz preguntas sobre finanzas personales y recibe respuestas educativas generadas por IA. Ideal para aprender conceptos como ahorro, presupuesto e interés compuesto."
+        subtitulo: "Asesor contable automático",
+        texto: "En Aprender → Recomendaciones, el asesor revisa TU libro diario y Tus módulos y genera alertas con números reales: descuadres Debe/Haber, meses con pérdida, gastos concentrados en una sola cuenta, presupuesto excedido. Cada recomendación cita el monto exacto para que puedas verificarla."
       },
       {
-        subtitulo: "Chat Financiero",
-        texto: "Disponible en prueba y en Licencia Única ($10). Conversa con la IA sobre mercados, inversiones y estrategias financieras avanzadas."
-      },
-      {
-        subtitulo: "Bolsas en Vivo",
-        texto: "Disponible en prueba y en Licencia Única ($10). Accede a datos del mercado en tiempo real con widgets de bolsas internacionales como NYSE, NASDAQ, BMV y más."
+        subtitulo: "Cómo usar las alertas",
+        texto: "1. Abrí Aprender → Recomendaciones.\n2. Leé cada tarjeta: título, severidad (alta/media/baja) y el número involucrado.\n3. Andá al módulo mencionado y corregí el origen (un asiento mal cargado, una factura sin cobro, un gasto duplicado).\n4. Volvé a Recomendaciones: si corregiste bien, la alerta desaparece."
       }
     ]
   },
   {
-    id: "notificaciones",
-    titulo: "Notificaciones",
-    icono: Bell,
+    id: "respaldo",
+    titulo: "Respaldo Completo y Datos",
+    icono: HardDriveDownload,
     contenido: [
       {
-        subtitulo: "Alertas del sistema",
-        texto: "Recibe avisos sobre presupuestos excedidos, resúmenes mensuales y otras alertas importantes. Puedes configurar cómo recibir las notificaciones."
+        subtitulo: "Respaldo completo (NUEVO)",
+        texto: "Ajustes → Configuración → 'Respaldo completo de la aplicación' (primera tarjeta). Un clic en 'Crear respaldo' genera un archivo único con TODOS tus datos: cuentas, libro diario, todos los módulos, perfiles y licencia. 'Restaurar respaldo' revive todo en la misma PC o en otra."
+      },
+      {
+        subtitulo: "Exportación por módulo",
+        texto: "Además del respaldo completo, cada módulo y el tab Configuración → Gestión de Datos permiten exportar en JSON o CSV solo lo de ese módulo (ej. solo el libro diario). Ideal para llevar a tu contador."
+      },
+      {
+        subtitulo: "Importar",
+        texto: "'Importar' lee un JSON exportado por la misma aplicación. Ojo: importar reemplaza el contenido del módulo correspondiente; si dudás, hacé primero un respaldo completo."
       }
     ]
   },
   {
-    id: "configuracion",
-    titulo: "Configuración",
-    icono: Settings,
+    id: "cuenta",
+    titulo: "Cuenta, Perfiles y Licencia",
+    icono: User,
     contenido: [
       {
-        subtitulo: "Personalización",
-        texto: "Ajusta el tema (claro/oscuro), configura la seguridad con PIN, importa o exporta tus datos, y personaliza otros aspectos de la aplicación."
+        subtitulo: "Perfiles",
+        texto: "Un perfil es una 'bolsa de datos' separada: uno para tu casa, otro para el negocio, otro para un familiar. Cada perfil tiene sus propias cuentas, transacciones y módulos. Cambiás de perfil desde Ajustes → Cuenta sin mezclar datos."
       },
       {
-        subtitulo: "Respaldo de datos",
-        texto: "Puedes exportar todos tus datos en formato JSON o CSV para guardarlos externamente, e importarlos en otra instalación si es necesario."
+        subtitulo: "Licencias",
+        texto: "La app funciona en prueba con todas las funciones por 30 días. Para activarla de por vida: Ajustes → Licencia → ingresá el código de compra. Licencia Simple (personas, USD 20) o Empresarial (USD 100). Sin suscripciones ni pagos recurrentes."
+      },
+      {
+        subtitulo: "Seguridad con PIN",
+        texto: "Configuración → Seguridad → activá 'PIN de Seguridad' para que la app lo pida al abrir. Sin PIN, cualquiera que use tu PC puede ver tus datos."
+      }
+    ]
+  },
+  {
+    id: "aprender",
+    titulo: "Aprender y Enciclopedia",
+    icono: GraduationCap,
+    contenido: [
+      {
+        subtitulo: "Aprender",
+        texto: "Artículos cortos sobre finanzas personales: ahorro, intereses, presupuesto, deuda. Escritos en español simple, sin jerga."
+      },
+      {
+        subtitulo: "Enciclopedia contable",
+        texto: "Diccionario de términos contables (activo, pasivo, amortización, provisión...) con ejemplos. Para cuando un término del balance no te suene."
+      }
+    ]
+  },
+  {
+    id: "atajos",
+    titulo: "Atajos y Consejos",
+    icono: Play,
+    contenido: [
+      {
+        subtitulo: "Atajos de teclado",
+        texto: "Ctrl+K abre la búsqueda global (saltá a cualquier módulo escribiendo su nombre). Los tutoriales interactivos (arriba de esta página) te guían pantalla por pantalla la primera vez."
+      },
+      {
+        subtitulo: "Flujo recomendado para un negocio",
+        texto: "1. Cargá tus cuentas en Contabilidad.\n2. Facturá lo vendido (Facturación o TPV).\n3. Registrá compras y gastos.\n4. Cobrá y pagá desde Cuentas Corrientes/Tesorería.\n5. Fin de mes: contabilizá nómina, depreciación e inventario.\n6. Revisá Recomendaciones y creá tu respaldo completo."
       }
     ]
   }
