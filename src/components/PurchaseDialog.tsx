@@ -45,7 +45,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
   const paypalButtonId = plan === "simple" ? SIMPLE_PAYPAL_ID : FULL_PAYPAL_ID;
   const paypalUrl = `https://www.paypal.com/ncp/payment/${paypalButtonId}`;
   const planLabel = plan === "simple" ? "Simples" : "Empresarial";
-  const planPrice = plan === "simple" ? pricing.simple : pricing.full;
+  const planPrice = plan === "simple" ? pricing.simple : pricing.traditional;
 
   const handleCheckLicense = async () => {
     if (!checkEmail.trim()) return;
@@ -146,7 +146,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
                   Empresarial
                 </Badge>
                 <div className="text-4xl font-bold text-primary">
-                  ${pricing.full}
+                  ${pricing.traditional}
                   <span className="text-base font-normal text-muted-foreground"> USD</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Cada 6 meses · Renovable</p>

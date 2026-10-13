@@ -110,7 +110,7 @@ export function LicenseSettings() {
           {status === "expired" && (
             <div className="bg-destructive/10 text-destructive rounded-lg p-4">
               <p className="font-medium">Tu período de prueba ha terminado</p>
-              <p className="text-sm mt-1">Adquiere tu licencia (Simples ${pricing.simple} / Empresarial ${pricing.full}) para continuar</p>
+              <p className="text-sm mt-1">Adquiere tu licencia (Simples ${pricing.simple} / Empresarial ${pricing.traditional}) para continuar</p>
             </div>
           )}
         </CardContent>
@@ -184,7 +184,7 @@ export function LicenseSettings() {
               Obtener Acceso Completo
             </CardTitle>
             <CardDescription>
-              Simples ${pricing.simple} (permanente) o Empresarial ${pricing.full} (cada 6 meses)
+              Simples ${pricing.simple} (permanente) o Empresarial ${pricing.traditional} (cada 6 meses)
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

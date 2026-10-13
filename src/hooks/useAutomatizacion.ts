@@ -255,5 +255,3 @@ export function useAutomatizacion() {
 
   return { alerts, resumen };
 }
-
-export type { BusinessAlert };

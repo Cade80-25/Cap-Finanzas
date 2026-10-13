@@ -40,7 +40,7 @@ export default function Alquiler() {
   const detailPayments = useMemo(() => detailId ? payments.filter(p => p.propertyId === detailId) : [], [detailId, payments]);
 
   const saveProp = () => { if (!fCode || !fName || !fRent || !fEnd || !fTenant) return; addProperty({ code: fCode, name: fName, address: fAddress, type: fType, area: Number(fArea) || 0, monthlyRent: Number(fRent), currency: "UYU", startDate: fStart, endDate: fEnd, tenant: fTenant, tenantContact: fContact, deposit: Number(fDeposit) || 0, status: "activo", notes: fNotes || undefined }); setFCode(""); setFName(""); setFAddress(""); setFArea(""); setFRent(""); setFEnd(""); setFTenant(""); setFContact(""); setFDeposit(""); setFNotes(""); setPropOpen(false); };
-  const savePay = () => { if (!fPropId || !fAmount || !fDueDate) return; const p = addPayment({ propertyId: fPropId, period: fPeriod, amount: Number(fAmount), dueDate: fDueDate, status: "pendiente", notes: fPayNotes || undefined }); if (p && p.status === "pagada") { /* no asiento en alta */ } setFPropId(""); setFAmount(""); setFDueDate(""); setFPayNotes(""); setPayOpen(false); };
+  const savePay = () => { if (!fPropId || !fAmount || !fDueDate) return; const p = addPayment({ propertyId: fPropId, period: fPeriod, amount: Number(fAmount), dueDate: fDueDate, status: "pendiente", notes: fPayNotes || undefined }); if (p && p.status === "pagado") { /* no asiento en alta */ } setFPropId(""); setFAmount(""); setFDueDate(""); setFPayNotes(""); setPayOpen(false); };
 
   // Cobro de alquiler: Debe Banco / Haber Ingresos
   const handleMarkPaid = (p: (typeof payments)[number]) => {

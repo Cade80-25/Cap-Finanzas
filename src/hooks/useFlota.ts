@@ -59,7 +59,7 @@ export function useFlota() {
 
   const addVehicle = useCallback((data: Omit<Vehicle, "id" | "createdAt">) => {
     const v = { ...data, id: `veh-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, createdAt: new Date().toISOString() };
-    setVehicles(v => [...v, v]);
+    setVehicles(prev => [...prev, v]);
     return v;
   }, [setVehicles]);
 

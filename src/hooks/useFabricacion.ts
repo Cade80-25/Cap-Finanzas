@@ -355,7 +355,7 @@ export function useFabricacion() {
       setOrders((prev) =>
         prev.map((o) => {
           if (o.id !== orderId) return o;
-          const variances = [...o.variances, v.id];
+          const variances = [...o.variances, v];
           return { ...o, variances };
         })
       );

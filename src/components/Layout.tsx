@@ -5,7 +5,7 @@ import { ProfileSelector } from "@/components/ProfileSelector";
 import {
   Home, Receipt, Calendar, Target, Tag, PieChart, Cog, Wallet, Building2,
   BarChart2, BarChart3, DollarSign, FileText, ClipboardCheck, Wrench, Car, Home as HomeIcon,
-  X, Globe, GraduationCap, Calculator, LucideIcon, TrendingUp, Users, Briefcase, Factory, Landmark, Boxes, Shield, AlertTriangle, CheckCircle, DollarSign as DollarIcon, Target, TrendingDown, Rocket, Ship, ShoppingCart, FileText, BarChart3, Megaphone, Activity} from "lucide-react";
+  X, Globe, GraduationCap, Calculator, LucideIcon, TrendingUp, Users, Briefcase, Factory, Landmark, Boxes, Shield, AlertTriangle, CheckCircle, DollarSign as DollarIcon, TrendingDown, Rocket, Ship, ShoppingCart, Megaphone, Activity} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import MenuBar from "@/components/MenuBar";

@@ -42,6 +42,7 @@ import {
   draftsToTransactions,
   nextJournalId,
   type DraftEntry,
+  type PostedRef,
   type PayrollPostInput,
   type ProductionPostInput,
   type InvoicePostInput,
@@ -102,6 +103,9 @@ export function useModuleIntegration() {
       if (result.ok) {
         addNotification({
           type: "info",
+
+          category: "sistema",
+
           title: "Nómina contabilizada",
           message: `${input.employeeName} — ${input.period}: ${result.entries} asientos`,
         });
@@ -121,6 +125,9 @@ export function useModuleIntegration() {
       if (result.ok) {
         addNotification({
           type: "info",
+
+          category: "sistema",
+
           title: "Producción contabilizada",
           message: `${input.orderNumber} — ${input.productName}: ${result.entries} asientos`,
         });
@@ -158,6 +165,9 @@ export function useModuleIntegration() {
       if (result.ok) {
         addNotification({
           type: "info",
+
+          category: "sistema",
+
           title: "Factura contabilizada",
           message: `${input.number} — ${input.clientName}: ${result.entries} asientos`,
         });
@@ -195,6 +205,9 @@ export function useModuleIntegration() {
       if (result.ok) {
         addNotification({
           type: "info",
+
+          category: "sistema",
+
           title: "Venta contabilizada",
           message: `TPV ${input.payment}: ${result.entries} asientos`,
         });
@@ -214,6 +227,9 @@ export function useModuleIntegration() {
       if (result.ok) {
         addNotification({
           type: "info",
+
+          category: "sistema",
+
           title: "Compra contabilizada",
           message: `${reference} — ${supplierName}: ${result.entries} asientos`,
         });

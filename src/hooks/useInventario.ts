@@ -62,7 +62,7 @@ export function useInventario() {
 
   const deleteItem = useCallback((id: string) => {
     setItems(v => v.filter(x => x.id !== id));
-    setMovements(v => filter(m => m.itemId !== id));
+    setMovements(v => v.filter(m => m.itemId !== id));
   }, [setItems, setMovements]);
 
   const addMovement = useCallback((data: Omit<StockMovement, "id" | "createdAt">) => {
@@ -82,7 +82,7 @@ export function useInventario() {
   }, [setMovements, setItems]);
 
   const deleteMovement = useCallback((id: string) => {
-    setMovements(v => filter(m => m.id !== id));
+    setMovements(v => v.filter(m => m.id !== id));
   }, [setMovements]);
 
   const inventoryValue = useMemo(() => items.reduce((sum, i) => sum + i.quantity * i.unitCost, 0), [items]);

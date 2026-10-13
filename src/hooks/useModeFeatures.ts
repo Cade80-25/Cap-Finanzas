@@ -46,6 +46,7 @@ export type FeatureKey =
   | "documentos"
   | "bi"
   | "marketing"
+  | "automatizacion"
   | "journal"
   | "ledger"
   | "balance"
