@@ -27,7 +27,7 @@ import {
   Play,
   Calendar,
   PiggyBank,
-  Eye, Apple, Terminal} from "lucide-react";
+  Eye, Apple, Terminal, Building2} from "lucide-react";
 import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { ActivationDialog } from "@/components/ActivationDialog";
 import { useNavigate, Link } from "react-router-dom";
@@ -279,6 +279,15 @@ export default function LandingPage() {
               >
                 <Play className="h-5 w-5" />
                 Probar con datos de ejemplo
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="gap-2 text-base h-14 px-8"
+                onClick={() => navigate("/?demo=empresarial")}
+              >
+                <Building2 className="h-5 w-5" />
+                Demo empresarial completa
               </Button>
             </div>
             <p className="text-sm">
