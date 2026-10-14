@@ -49,6 +49,14 @@ const secciones = [
       {
         subtitulo: "Edición y borrado",
         texto: "Cada fila tiene íconos de lápiz (editar) y tacho (borrar). Al editar corregís monto, categoría o descripción; al borrar, el sistema pide confirmación y quita también los asientos contables asociados."
+      },
+      {
+        subtitulo: "Gastos (vista rápida)",
+        texto: "Pantalla simplificada solo de gastos: una lista directa de todo lo que salió, con filtros por categoría y mes. Es un atajo para revisar gastos sin entrar al libro diario."
+      },
+      {
+        subtitulo: "Categorías",
+        texto: "Administrás las categorías de ingresos y gastos: crear nuevas, renombrar, elegir icono y color, y organizarlas en subcategorías anidadas. Una buena lista de categorías hace que los resúmenes y el presupuesto sean útiles."
       }
     ]
   },
@@ -436,6 +444,55 @@ const secciones = [
         texto: "1. Cargá tus cuentas en Contabilidad.\n2. Facturá lo vendido (Facturación o TPV).\n3. Registrá compras y gastos.\n4. Cobrá y pagá desde Cuentas Corrientes/Tesorería.\n5. Fin de mes: contabilizá nómina, depreciación e inventario.\n6. Revisá Recomendaciones y creá tu respaldo completo."
       }
     ]
+  },
+  {
+    id: "seguros-mantenimiento",
+    titulo: "Seguros y Mantenimiento",
+    icono: Shield,
+    contenido: [
+      {
+        subtitulo: "Seguros",
+        texto: "Llevá el registro de todas tus pólizas: seguro del auto, del local, de vida, del comercio. Cargás la aseguradora, el monto de la prima, el vencimiento y qué cubre. La app te avisa antes de que venza cada póliza para que no te quedes descubierto, y con 'Contabilizar' pasás la prima al libro diario como gasto del período."
+      },
+      {
+        subtitulo: "Mantenimiento",
+        texto: "Registrá los mantenimientos de equipos, vehículos y propiedades: fecha, qué se hizo, costo y quién lo hizo. El historial queda asociado al activo, así sabés cuánto te cuesta mantener cada cosa y cuándo le toca el próximo servicio. Cada mantenimiento puede contabilizarse como gasto."
+      }
+    ]
+  },
+  {
+    id: "automatizacion-notificaciones",
+    titulo: "Automatización y Notificaciones",
+    icono: Bell,
+    contenido: [
+      {
+        subtitulo: "Reglas automáticas",
+        texto: "Definí reglas del estilo 'si X sucede, entonces Y': por ejemplo, 'si el gasto de una categoría supera $X al mes, avisame' o 'si el stock baja del mínimo, marcar alerta'. Las reglas corren solas sobre tus datos; no tenés que revisar nada a mano. Cada regla tiene una severidad (crítica, alta, media o baja) que decide cómo se muestra la alerta."
+      },
+      {
+        subtitulo: "Centro de notificaciones",
+        texto: "Todas las alertas de todos los módulos caen acá: vencimientos de pólizas, stock bajo, presupuesto excedido, descuadres contables, alertas de reglas. La campana del menú superior muestra el contador de alertas sin leer; desde el panel las marcás como leídas o resueltas."
+      }
+    ]
+  },
+  {
+    id: "comercio-documentos-bolsas",
+    titulo: "Comercio Exterior, Documentos y Bolsas",
+    icono: Globe,
+    contenido: [
+      {
+        subtitulo: "Comercio Exterior",
+        texto: "Importaciones y exportaciones: registrás cada operación con divisa, aranceles, flete y agente. El módulo calcula el costo total desembarcado y con 'Contabilizar' genera el asiento de la operación completa. Ideal si comprás o vendés afuera y necesitás el costo real en tu moneda."
+      },
+      {
+        subtitulo: "Gestión documental",
+        texto: "Guardá y organizá los documentos del negocio: facturas de proveedores, contratos escaneados, pólizas, recibos. Cada documento tiene categoría y vencimiento. Es el archivador digital de la app: encontrás cualquier papel en segundos sin depender de carpetas de Windows."
+      },
+      {
+        subtitulo: "Bolsas en vivo",
+        texto: "Seguí tus inversiones: cotizaciones en vivo de tus activos financieros, valor de tu cartera y ganancia/pérdida flotante. Cargás tus tenencias y la pantalla calcula el resto sola."
+      }
+    ]
   }
 ];
 
@@ -464,6 +521,7 @@ const preguntasFrecuentes = [
 
 const SECTION_ROUTES: Record<string, string> = {
   "dashboard": "/",
+  "inicio": "/",
   "transacciones": "/transacciones",
   "calendario": "/calendario",
   "presupuesto": "/presupuesto",
@@ -477,6 +535,20 @@ const SECTION_ROUTES: Record<string, string> = {
   "recomendaciones": "/recomendaciones",
   "notificaciones": "/notificaciones",
   "configuracion": "/configuracion",
+  "respaldo": "/configuracion?tab=configuracion",
+  "facturacion": "/facturacion",
+  "rrhh": "/rrhh",
+  "inventario": "/inventario",
+  "tesoreria": "/tesoreria",
+  "activos": "/activos",
+  "proyectos": "/proyectos",
+  "tpv": "/tpv",
+  "crm": "/crm",
+  "aprobaciones": "/aprobaciones",
+  "analisis": "/analisis",
+  "seguros-mantenimiento": "/seguros",
+  "automatizacion-notificaciones": "/automatizacion",
+  "comercio-documentos-bolsas": "/comercio",
 };
 
 export default function Manual() {
