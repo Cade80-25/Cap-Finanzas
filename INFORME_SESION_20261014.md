@@ -32,12 +32,16 @@ Publicada la versión **1.1.79** con el **demo empresarial in-app** "Ferretería
 - `muestra-empresarial-cap-finanzas.json` (38 KB) — respaldo de muestra importable desde **Ajustes → Configuración → Restaurar respaldo**.
 - **Le quité la clave `cap-finanzas-license`** que traía incluida: restaurar una licencia ficticia en una muestra pública es un riesgo (alguien podría "restaurar" módulos de pago sin pagar). La muestra quedó en 16 claves puras de datos.
 
-### 2.4 Release v1.1.79
+### 2.4 Release v1.1.79 — CERRADA
 - Bump de versión a 1.1.79 (commit `2e09f69`), tag `v1.1.79` push OK.
 - **CI 3/3 éxito** (Windows, macOS, Linux) — run 38562163177.
 - Instalador local listo: `release/Cap Finanzas Setup 1.1.79.exe` (140 MB) + blockmap.
-- Al igual que en 1.1.77, la carrera de jobs creó **dos drafts**: 412679147 (macOS) y 412679158 (Windows+Linux). Se están fusionando: subiendo los assets del Mac al draft Windows+Linux con `gh release upload --clobber` (en curso al momento de escribir), borrador con Mac+Win+Linux completo se publica y el draft huérfano se elimina.
-- (Ver sección 5: pasos pendientes de cierre de release).
+- La carrera de jobs creó **dos drafts** (412679147 mac / 412679158 win+linux). **Consolidados y publicados**:
+  - El dmg mac (164,9 MB) se descargó del draft origen vía API y se subió al destino vía `uploads.github.com` con el ID del release (nota: `gh release upload <id-numérico>` falla con "release not found" — hay que usar la API de uploads directa o el tag, y el tag resuelve al primer draft, cuidado).
+  - Draft destino quedó con **8/8 assets** (dmg, dmg.blockmap, AppImage, Setup.exe, Setup.exe.blockmap, latest-mac.yml, latest-linux.yml, latest.yml).
+  - Publicada con título y notas: https://github.com/Cade80-25/Cap-Finanzas/releases/tag/v1.1.79
+  - Draft huérfano 412679147 eliminado.
+- Verificado final: `draft: false`, 8 assets, un solo release v1.1.79.
 
 ---
 
@@ -64,12 +68,12 @@ Publicada la versión **1.1.79** con el **demo empresarial in-app** "Ferretería
 
 ## 5. Pendientes para la próxima sesión (marketing, publicidad y demás)
 
-### 5.1 Cierre de release v1.1.79 (inmediato)
-- [ ] Confirmar que la subida de `Cap-Finanzas-1.1.79-arm64.dmg` (164 MB) al draft 412679158 terminó OK.
-- [ ] Verificar que el draft 412679158 tenga los 8 assets: dmg, dmg.blockmap, AppImage, Setup.exe, Setup.exe.blockmap, latest-mac.yml, latest-linux.yml, latest.yml.
-- [ ] Publicar el draft 412679158 como release v1.1.79 definitiva.
-- [ ] Borrar el draft huérfano 412679147.
-- [ ] Instalar v1.1.79 en la PC de Fernando (requiere UAC — Fernando presente).
+### 5.1 Cierre de release v1.1.79 — YA HECHO (referencia)
+- [x] Confirmar que la subida del dmg mac al draft destino terminó OK (vía API de uploads, 164,9 MB íntegro).
+- [x] Verificar 8/8 assets en el draft consolidado.
+- [x] Publicar el draft como release v1.1.79 definitiva.
+- [x] Borrar el draft huérfano mac (412679147).
+- [ ] Instalar v1.1.79 en la PC de Fernando (requiere UAC — Fernando presente). El instalador local está en `release/Cap Finanzas Setup 1.1.79.exe`.
 - [ ] Verificación viva post-instalación: demo empresarial carga desde Landing, banner muestra guía, "Volver a mis datos" restaura.
 
 ### 5.2 Marketing y publicidad
@@ -90,10 +94,11 @@ Publicada la versión **1.1.79** con el **demo empresarial in-app** "Ferretería
 
 ## 6. Estado del repo y credenciales
 
-- Commits del día: `ad2d887` (demo empresarial) + `2e09f69` (bump 1.1.79) — ambos push OK a `main`.
-- Release workflow: `.github/workflows/build.yml` (ID 38562163177 para 1.1.79), `--publish always` a draft, se consolida manualmente.
-- Credenciales Supabase/CI: bakeadas en el workflow como secrets de GitHub Actions (no en el repo).
+- Commits del día: `ad2d887` (demo empresarial) + `2e09f69` (bump 1.1.79) + `81ee021` (informe) — todos push OK a `main`.
+- Release workflow: `.github/workflows/build.yml` (run 38562163177 para 1.1.79), `--publish always` a draft, consolidación manual documentada en 2.4.
+- Credenciales Supabase: bakeadas en el workflow como secrets de GitHub Actions (no en el repo).
 - Los tests E2E (test-demo-emp.js, test-restore.js, test-import.js) fueron borrados tras su uso — no quedan archivos sueltos (regla de Fernando: nada suelto).
+- Temporales de consolidación de release (`Temp/release-merge/`) pendientes de limpiar al cerrar sesión.
 
 ---
 
