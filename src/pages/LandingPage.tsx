@@ -118,7 +118,7 @@ const faqs = [
   },
   {
     question: "¿Hay pagos mensuales o anuales?",
-    answer: "Depende del plan: la licencia Simples es un pago único permanente ($20 USD). La Empresarial cuesta $100 USD y se renueva cada 6 meses.",
+    answer: "Depende del plan: la licencia Simples es un pago único permanente ($20 USD). La Empresarial cuesta $100 USD (pago único, permanente).",
   },
   {
     question: "¿Qué incluye la licencia?",
@@ -396,7 +396,7 @@ export default function LandingPage() {
             <Badge variant="outline" className="mb-4">Precios</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Pago Único, Tuyo Para Siempre</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Prueba de 30 días con acceso completo. Plan Simples $20 permanente, Empresarial $100 cada 6 meses.
+              Prueba de 30 días con acceso completo. Plan Simples $20 USD o Empresarial $100 USD, ambas licencias permanentes (pago único).
             </p>
           </div>
 

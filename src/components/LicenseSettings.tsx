@@ -184,7 +184,7 @@ export function LicenseSettings() {
               Obtener Acceso Completo
             </CardTitle>
             <CardDescription>
-              Simples ${pricing.simple} (permanente) o Empresarial ${pricing.traditional} (cada 6 meses)
+              Simples ${pricing.simple} (permanente) o Empresarial ${pricing.traditional} (permanente)
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

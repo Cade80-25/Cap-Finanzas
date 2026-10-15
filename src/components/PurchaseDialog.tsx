@@ -16,6 +16,7 @@ import { Check, CreditCard, Mail, ArrowRight, Sparkles, Loader2, Search, Copy, C
 import { useLicense } from "@/hooks/useLicense";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { PLANS } from "@/lib/pricing";
 
 interface PurchaseDialogProps {
   open: boolean;
@@ -38,14 +39,13 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
   // Plan elegido: define que boton de PayPal se usa.
   const [plan, setPlan] = useState<"simple" | "full">("full");
 
-  // Un boton de PayPal por plan (crear ambos en paypal.com/ncp).
-  // TODO(Fernando): reemplazar SIMPLE_PAYPAL_ID por el ID del boton de $20.
-  const SIMPLE_PAYPAL_ID = "KZXBA5QRWVQV2"; // $20 - Simples (permanente)
-  const FULL_PAYPAL_ID = "KZXBA5QRWVQV2";   // $100 - Empresarial (6 meses)
-  const paypalButtonId = plan === "simple" ? SIMPLE_PAYPAL_ID : FULL_PAYPAL_ID;
-  const paypalUrl = `https://www.paypal.com/ncp/payment/${paypalButtonId}`;
-  const planLabel = plan === "simple" ? "Simples" : "Empresarial";
-  const planPrice = plan === "simple" ? pricing.simple : pricing.traditional;
+  // Fuente unica de planes/precios/vigencia: src/lib/pricing.ts (ver PLAN.md).
+  // Un boton de PayPal por plan; TODO(Fernando): crear los 2 botones reales en
+  // paypal.com y reemplazar los IDs en src/lib/pricing.ts (hoy ambos apuntan
+  // al mismo boton de prueba KZXBA5QRWVQVQV2).
+  const paypalUrl = `https://www.paypal.com/ncp/payment/${PLANS[plan].paypalButtonId}`;
+  const planLabel = PLANS[plan].name;
+  const planPrice = PLANS[plan].price;
 
   const handleCheckLicense = async () => {
     if (!checkEmail.trim()) return;
@@ -94,7 +94,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
     "Enciclopedia contable integrada",
     "Chat Financiero (IA)",
     "Bolsas en Vivo",
-    "Vigencia de 6 meses, renovable",
+    "Licencia permanente",
   ];
 
   return (
@@ -118,7 +118,7 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
               <div className="text-center">
                 <Badge variant="outline" className="mb-2">Simples</Badge>
                 <div className="text-4xl font-bold text-primary">
-                  ${pricing.simple}
+                  ${PLANS.simple.price}
                   <span className="text-base font-normal text-muted-foreground"> USD</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Pago único · Permanente</p>
@@ -146,10 +146,10 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
                   Empresarial
                 </Badge>
                 <div className="text-4xl font-bold text-primary">
-                  ${pricing.traditional}
+                  ${PLANS.full.price}
                   <span className="text-base font-normal text-muted-foreground"> USD</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Cada 6 meses · Renovable</p>
+                <p className="text-xs text-muted-foreground mt-1">Pago único · Permanente</p>
               </div>
               <ul className="space-y-1.5">
                 {fullFeatures.map((feature, i) => (

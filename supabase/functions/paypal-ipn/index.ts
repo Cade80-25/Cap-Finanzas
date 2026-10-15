@@ -133,11 +133,33 @@ Deno.serve(async (req) => {
       return new Response("OK - not completed", { status: 200 });
     }
 
-    // Single plan: any payment of $10 (or close) generates a full license
-    if (mcGross < 5) {
-      console.error("Payment amount too low:", mcGross);
-      return new Response("Amount too low", { status: 400 });
+    // Plan-aware pricing (ver PLAN.md y src/lib/pricing.ts):
+    //   $20  -> licencia simple (perpetua)
+    //   $100 -> licencia full/traditional (perpetua)
+    //   $80  -> upgrade simple -> full
+    // Cualquier otro monto queda en "review" (revisión manual), sin licencia.
+    const PLAN_AMOUNTS = [
+      { type: "simple", amount: 20, tolerance: 1 },
+      { type: "full", amount: 100, tolerance: 2 },
+      { type: "upgrade", amount: 80, tolerance: 2 },
+    ] as const;
+    const matchedPlan = PLAN_AMOUNTS.find(
+      (p) => Math.abs(mcGross - p.amount) <= p.tolerance,
+    );
+    if (!matchedPlan) {
+      console.error("Payment amount does not match any plan:", mcGross);
+      await supabase.from("orders").insert({
+        customer_email: custom || payerEmail || "",
+        plan_type: "unknown",
+        amount: mcGross,
+        currency: mcCurrency,
+        paypal_txn_id: txnId,
+        paypal_payer_email: payerEmail,
+        status: "review",
+      });
+      return new Response("OK - flagged for manual review", { status: 200 });
     }
+    const licenseType = matchedPlan.type === "upgrade" ? "full" : matchedPlan.type;
 
     const customerEmail = custom || payerEmail || "";
 
@@ -158,7 +180,7 @@ Deno.serve(async (req) => {
       .from("orders")
       .insert({
         customer_email: customerEmail,
-        plan_type: "full",
+        plan_type: licenseType,
         amount: mcGross,
         currency: mcCurrency,
         paypal_txn_id: txnId,
@@ -179,7 +201,7 @@ Deno.serve(async (req) => {
     const { error: licenseError } = await supabase.from("licenses").insert({
       order_id: order.id,
       code: licenseCode,
-      license_type: "full",
+      license_type: licenseType,
       customer_email: customerEmail,
       is_delivered: false,
     });
@@ -204,7 +226,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             from: "Cap Finanzas <noreply@capfinanzas.com>",
             to: [customerEmail],
-            subject: "Tu licencia de Cap Finanzas — Acceso Completo",
+            subject: `Tu licencia de Cap Finanzas — ${licenseType === "simple" ? "Simples" : "Empresarial"}`,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h1 style="color: #2563eb; text-align: center;">¡Gracias por tu compra!</h1>
@@ -214,7 +236,7 @@ Deno.serve(async (req) => {
                     ${licenseCode}
                   </p>
                   <p style="margin: 12px 0 0; color: #64748b; font-size: 14px;">
-                    Acceso Completo — Cap Finanzas
+                    ${licenseType === "simple" ? "Plan Simples" : "Plan Empresarial"} — Cap Finanzas · Licencia permanente (pago único)
                   </p>
                 </div>
                 <h2 style="color: #1e293b;">¿Cómo activar?</h2>

@@ -122,7 +122,7 @@ release/Cap Finanzas Setup X.X.X.exe
    ## Primera versión de Cap Finanzas
    
    ### Incluye:
-   - Modo Finanzas Simples ($5)
+   - Modo Finanzas Simples ($20 USD, permanente)
    - Modo Contabilidad Completa ($10)
    - 30 días de prueba gratis
    - 100% offline
@@ -177,7 +177,7 @@ Cliente activa → ¡Licencia permanente!
 
 2. **Generas el código de licencia**
    - Ve a `/license-generator` en la app (ruta oculta para admin)
-   - Selecciona el tipo de licencia (Simple $5 o Completa $10)
+   - Selecciona el tipo de licencia (Simples $20 o Empresarial $100, ambas permanentes)
    - Genera el código
 
 3. **Envías el código por email**

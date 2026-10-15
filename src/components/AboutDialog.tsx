@@ -48,7 +48,7 @@ const benefits = [
   {
     icon: Sparkles,
     title: "Pago único",
-    desc: "Plan Simples USD 20 (permanente) o Empresarial USD 100 cada 6 meses.",
+    desc: "Plan Simples USD 20 (permanente) o Empresarial USD 100 (permanente).",
   },
 ];
 

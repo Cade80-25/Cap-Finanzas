@@ -76,7 +76,7 @@ Ideal para:
 | Característica | Simples | Empresarial |
 |---|:---:|:---:|
 | **Precio** | **$20 USD** | **$100 USD** |
-| **Vigencia** | Permanente | 6 meses (renovable) |
+| **Vigencia** | Permanente | Permanente |
 | Registro de ingresos y gastos | ✅ | ✅ |
 | Categorías y presupuestos | ✅ | ✅ |
 | Calendario financiero | ✅ | ✅ |

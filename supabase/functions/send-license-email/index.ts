@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     const planName = isSimple ? "Simples" : "Empresarial";
     const planVigencia = isSimple
       ? "Licencia permanente (pago único)"
-      : "Vigencia de 6 meses, renovable";
+      : "Licencia permanente (pago único)";
 
     // Verify code actually exists and belongs to this email (prevents spam relay)
     const supabase = createClient(
