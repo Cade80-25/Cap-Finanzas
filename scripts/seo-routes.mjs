@@ -10,7 +10,7 @@ export const ROUTES = [
     path: "/landing",
     title: "Cap Finanzas — Contabilidad personal offline y privada",
     description:
-      "Software de finanzas personales y contabilidad 100% offline. Gastos, libros contables y tutor IA. Pago único $10 USD. Prueba gratis 30 días.",
+      "Software de finanzas personales y contabilidad 100% offline. Gastos, libros contables y tutor IA. Licencia permanente: Simples $20 USD o Empresarial $100 USD, pago único. Prueba gratis 30 días.",
     image: DEFAULT_IMAGE,
     type: "website",
   },
@@ -18,7 +18,7 @@ export const ROUTES = [
     path: "/instalar",
     title: "Descargar Cap Finanzas — App de escritorio y PWA",
     description:
-      "Descarga Cap Finanzas para Windows o instálala como PWA en móvil y escritorio. 100% offline, pago único $10 USD.",
+      "Descarga Cap Finanzas para Windows o instálala como PWA en móvil y escritorio. 100% offline. Licencia permanente: Simples $20 USD o Empresarial $100 USD, pago único.",
     image: DEFAULT_IMAGE,
     type: "website",
   },
@@ -42,7 +42,7 @@ export const ROUTES = [
     path: "/terminos",
     title: "Términos del Servicio — Cap Finanzas",
     description:
-      "Términos de uso y licencia de Cap Finanzas. Pago único de $10 USD, sin suscripciones.",
+      "Términos de uso y licencia de Cap Finanzas. Licencia permanente: Simples $20 USD o Empresarial $100 USD, pago único, sin suscripciones.",
     image: DEFAULT_IMAGE,
     type: "website",
   },
