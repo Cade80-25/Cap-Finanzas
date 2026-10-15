@@ -1,6 +1,6 @@
 # Cap Finanzas
 
-> Software de finanzas personales y contabilidad 100% offline. Control de gastos, presupuestos, libros contables (partida doble) y tutor financiero con IA. Pago único de $10 USD de por vida, sin suscripciones. Prueba gratis 30 días.
+> Software de finanzas personales y contabilidad 100% offline. Control de gastos, presupuestos, libros contables (partida doble) y tutor financiero con IA. Licencia Simples $20 USD de por vida (pago único) o Empresarial $100 USD cada 6 meses. Prueba gratis 30 días.
 
 Cap Finanzas funciona localmente en el dispositivo del usuario (los datos nunca salen del equipo salvo para licencias y avatares). Tiene dos modos: Finanzas Simples (sin conceptos contables) y Contabilidad Tradicional (partida doble completa con libro diario, mayor, balance y estado de resultados). Disponible como app web (PWA) y aplicación de escritorio para Windows.
 
@@ -22,7 +22,7 @@ Cap Finanzas funciona localmente en el dispositivo del usuario (los datos nunca 
 
 ## Modelo de negocio
 
-- Pago único: $10 USD lifetime vía PayPal.
+- Simples: $20 USD único vía PayPal. Empresarial: $100 USD/6 meses.
 - Sin telemetría, sin anuncios, sin suscripciones.
 
 ## Artículos
