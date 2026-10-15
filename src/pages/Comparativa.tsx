@@ -24,7 +24,7 @@ const ROWS: { label: string; values: Record<CompKey, string | boolean> }[] = [
   {
     label: "Precio",
     values: {
-      cap: "$10 USD único",
+      cap: "$20 USD único (Simples)",
       fintonic: "Suscripción mensual",
       mobills: "Suscripción mensual",
       monefy: "Gratis con anuncios / Pro pago",
@@ -72,7 +72,7 @@ const ROWS: { label: string; values: Record<CompKey, string | boolean> }[] = [
 const FAQ = [
   {
     q: "¿Cap Finanzas es realmente más barato que Fintonic o Mobills?",
-    a: "Sí. Cap Finanzas es un pago único de $10 USD de por vida. Fintonic y Mobills requieren suscripción mensual o anual: en menos de un año ya pagaste más que Cap Finanzas para siempre.",
+    a: "Sí. La licencia Simples de Cap Finanzas es un pago único de $20 USD de por vida. La Empresarial cuesta $100 USD cada 6 meses. Fintonic y Mobills requieren suscripción mensual o anual: en menos de un año ya pagaste más que Cap Finanzas para siempre.",
   },
   {
     q: "¿Qué pasa con mis datos si la empresa cierra?",
@@ -100,11 +100,11 @@ export default function Comparativa() {
     "@type": "Product",
     name: "Cap Finanzas",
     description:
-      "Software de finanzas personales y contabilidad 100% offline. Pago único de $10 USD.",
+      "Software de finanzas personales y contabilidad 100% offline. Licencia Simples $20 USD único o Empresarial $100 USD/6 meses.",
     brand: { "@type": "Brand", name: "Cap Finanzas" },
     offers: {
       "@type": "Offer",
-      price: "10",
+      price: "20",
       priceCurrency: "USD",
       availability: "https://schema.org/InStock",
       url: URL,

@@ -10,7 +10,7 @@ export default function Terminos() {
     <div className="min-h-screen bg-background">
       <SeoHead
         title="Términos del Servicio — Cap Finanzas"
-        description="Términos de uso y licencia de Cap Finanzas. Pago único de $10 USD, sin suscripciones."
+        description="Términos de uso y licencia de Cap Finanzas. Licencia Simples $20 USD (pago único) o Empresarial $100 USD (6 meses)."
         path="/terminos"
       />
       <div className="container mx-auto px-4 py-12 max-w-3xl">
@@ -45,7 +45,7 @@ export default function Terminos() {
             <h2 className="text-xl font-semibold mt-8 mb-3">4. Licencia de Uso</h2>
             <ul className="list-disc pl-6 space-y-2 mt-3">
               <li>Cap Finanzas ofrece un <strong>período de prueba gratuito de 30 días</strong> con funcionalidad limitada.</li>
-              <li>El acceso completo se obtiene mediante un <strong>pago único</strong> de <strong>$10 USD</strong>.</li>
+              <li>El acceso completo se obtiene mediante un <strong>pago único</strong> de <strong>$20 USD</strong> (licencia Simples) o la licencia Empresarial de <strong>$100 USD</strong> cada 6 meses.</li>
               <li>La licencia es <strong>personal, intransferible y perpetua</strong> (sin pagos recurrentes).</li>
               <li>Se concede un derecho limitado, no exclusivo y no transferible para usar el Software dentro de las condiciones de la licencia.</li>
               <li>Queda prohibido redistribuir, revender, modificar, descompilar o realizar ingeniería inversa del Software.</li>

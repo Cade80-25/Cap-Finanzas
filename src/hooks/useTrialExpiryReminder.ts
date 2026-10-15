@@ -29,7 +29,7 @@ export function useTrialExpiryReminder() {
 
     addNotification({
       title: "Tu prueba está por terminar",
-      message: `Vence ${daysLabel}. Conseguí acceso de por vida por $10 USD y seguí sin interrupciones.`,
+      message: `Vence ${daysLabel}. Licencia Simples $20 USD permanente o Empresarial $100 USD cada 6 meses — seguí sin interrupciones.`,
       type: "warning",
       category: "sistema",
     });

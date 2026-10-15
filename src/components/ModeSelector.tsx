@@ -110,7 +110,7 @@ export function ModeSelector({ onPurchaseClick, compact = false }: ModeSelectorP
               onClick={onPurchaseClick}
               className="text-primary font-medium"
             >
-              Adquirir licencia ($10 USD)
+              Adquirir licencia (desde $20 USD)
             </DropdownMenuItem>
           </>
         )}

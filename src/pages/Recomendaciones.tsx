@@ -212,7 +212,7 @@ export default function Recomendaciones() {
                 <Badge variant="default" className="text-[10px]">Todas las funciones</Badge>
               </div>
               <div className="space-y-1">
-                <p className="font-semibold">Licencia Única <span className="text-muted-foreground">($10)</span></p>
+                <p className="font-semibold">Licencia Única <span className="text-muted-foreground">($20)</span></p>
                 <Badge variant="default" className="text-[10px]">Tutor Educativo</Badge>
                 <Badge variant="default" className="text-[10px]">Chat Financiero</Badge>
                 <Badge variant="default" className="text-[10px]">Bolsas en Vivo</Badge>

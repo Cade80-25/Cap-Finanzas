@@ -57,7 +57,7 @@ export function TrialBanner() {
             onClick={() => setPurchaseOpen(true)}
           >
             <ShoppingCart className="h-3 w-3 mr-1" />
-            <span className="hidden sm:inline">$10 USD</span>
+            <span className="hidden sm:inline">$20 USD</span>
           </Button>
           <Button
             size="sm"
