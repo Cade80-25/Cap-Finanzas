@@ -40,9 +40,8 @@ export function PurchaseDialog({ open, onOpenChange, onActivate }: PurchaseDialo
   const [plan, setPlan] = useState<"simple" | "full">("full");
 
   // Fuente unica de planes/precios/vigencia: src/lib/pricing.ts (ver PLAN.md).
-  // Un boton de PayPal por plan; TODO(Fernando): crear los 2 botones reales en
-  // paypal.com y reemplazar los IDs en src/lib/pricing.ts (hoy ambos apuntan
-  // al mismo boton de prueba KZXBA5QRWVQVQV2).
+  // Un boton de PayPal por plan; IDs reales en src/lib/pricing.ts
+  // (Simples: JHMVWLPAW4MKY, $20 — Empresarial: KZXBA5QRWVQV2, $100).
   const paypalUrl = `https://www.paypal.com/ncp/payment/${PLANS[plan].paypalButtonId}`;
   const planLabel = PLANS[plan].name;
   const planPrice = PLANS[plan].price;

@@ -31,7 +31,7 @@ export const PLANS: Record<PlanId, PlanInfo> = {
     duration: 'Permanente',
     badge: 'Simples $20 USD · Permanente',
     description: 'Finanzas personales: presupuestos, calendario, múltiples monedas, Tutor IA. Pago único, permanente.',
-    paypalButtonId: 'KZXBA5QRWVQVQV2', // TODO(Fernando): botón PayPal de $20 — crear en PayPal y reemplazar este ID
+    paypalButtonId: 'JHMVWLPAW4MKY', // Botón PayPal real "Cap Finanzas Simples" $20 USD (creado 2026-10-16)
   },
   full: {
     id: 'full',
@@ -40,7 +40,7 @@ export const PLANS: Record<PlanId, PlanInfo> = {
     duration: 'Permanente',
     badge: 'Empresarial $100 USD · Permanente',
     description: 'Todo lo del Simples + Libro Diario, Mayor, Balance, Estado de Resultados, Enciclopedia, Chat IA, Bolsas en Vivo. Pago único, permanente.',
-    paypalButtonId: 'KZXBA5QRWVQVQV2', // TODO(Fernando): botón PayPal de $100 — crear en PayPal y reemplazar este ID
+    paypalButtonId: 'KZXBA5QRWVQV2', // Botón PayPal real "Contabilidad Tradicional" $100 USD (creado 2026-10-16)
     },
 };
 
