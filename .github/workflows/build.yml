@@ -9,6 +9,50 @@ permissions:
   contents: write
 
 jobs:
+  # rev 15-oct: mac en job separado y APAGADO por defecto (variable de repo
+  # BUILD_MAC=true para reactivarlo). macOS consume el presupuesto de Actions
+  # 10x mas rapido ($0.08/min) y agoto los 2000 min gratis a mitad de octubre,
+  # bloqueando todos los repos privados de la cuenta.
+  build-mac:
+    if: vars.BUILD_MAC == 'true'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate tag matches package version
+        shell: bash
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          echo "Tag: ${TAG_VERSION} | package.json: ${PKG_VERSION}"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "El tag (v${TAG_VERSION}) no coincide con package.json (${PKG_VERSION})."
+            exit 1
+          fi
+
+      - name: Build Vite app
+        run: npm run build
+        env:
+          VITE_SUPABASE_PROJECT_ID: vpxqgxehmealrwbwmicm
+          VITE_SUPABASE_URL: https://vpxqgxehmealrwbwmicm.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: "eyJhbG...Xqw8"
+
+      - name: Build & publish Electron (macOS)
+        run: npx electron-builder --mac --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
   build:
     strategy:
       fail-fast: false
@@ -16,8 +60,6 @@ jobs:
         include:
           - os: windows-latest
             platform: win
-          - os: macos-latest
-            platform: mac
           - os: ubuntu-latest
             platform: linux
 
@@ -60,13 +102,6 @@ jobs:
         run: npx electron-builder --win --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & publish Electron (macOS)
-        if: matrix.platform == 'mac'
-        run: npx electron-builder --mac --publish always
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Build & publish Electron (Linux)
         if: matrix.platform == 'linux'
