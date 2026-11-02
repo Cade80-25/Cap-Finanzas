@@ -97,7 +97,7 @@
     "@vitejs/plugin-react-swc": "^3.11.0",
     "@vitest/ui": "^5.1.0",
     "autoprefixer": "^10.4.21",
-    "electron": "^44.7.0",
+    "electron": "^44.9.1",
     "electron-builder": "^26.17.0",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
