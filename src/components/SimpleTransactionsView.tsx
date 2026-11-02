@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText, Calculator, StickyNote, Search, SlidersHorizontal, FilterX, RotateCcw, Wallet } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText, Calculator, StickyNote, Search, SlidersHorizontal, FilterX, RotateCcw, Wallet, Upload } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ import { suggestCategory } from "@/hooks/useAutoCategory";
 import { toast } from "sonner";
 import QRReceiptScanner from "@/components/QRReceiptScanner";
 import { exportToCSV, exportToExcel, exportToPDF, type ExportTransaction } from "@/lib/export-transactions";
+import { importFromCSV, importFromExcel, type ImportedTransaction } from "@/lib/import-transactions";
 import { parseFlexibleNumber } from "@/lib/parse-flexible-number";
 import { repairMojibake } from "@/lib/repairMojibake";
 import { FullCalculator } from "@/components/FullCalculator";
@@ -669,7 +670,42 @@ export function SimpleTransactionsView() {
     precioTotal: t.amount,
   }));
 
-  return (
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      let rows: ImportedTransaction[] = [];
+      if (file.name.toLowerCase().endsWith(".csv")) {
+        const text = await file.text();
+        rows = await importFromCSV(text);
+      } else {
+        const buf = await file.arrayBuffer();
+        rows = await importFromExcel(buf);
+      }
+      if (rows.length === 0) { toast.error("No se encontraron movimientos válidos"); return; }
+      const now = new Date().toISOString();
+      const imported = rows.map((r, i) => ({
+        id: `imp-${Date.now()}-${i}`,
+        date: r.fecha || now.slice(0, 10),
+        description: r.descripcion || "Importado",
+        category: r.categoria || "otros",
+        type: r.tipo,
+        amount: Math.abs(r.monto),
+        price: r.precioUnitario,
+        quantity: r.cantidad,
+        notes: r.notas,
+        createdAt: now,
+      }));
+      setTransactions(prev => [...imported, ...prev] as any);
+      toast.success(`Importados ${imported.length} movimientos`);
+    } catch (err) {
+      toast.error("Error al importar: " + (err as Error).message);
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+    return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -681,6 +717,10 @@ export function SimpleTransactionsView() {
         </div>
         {transactions.length > 0 && (
           <div className="flex gap-2">
+            <input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleImportFile} />
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="h-4 w-4 mr-2" /> Importar
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -1129,6 +1169,9 @@ export function SimpleTransactionsView() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <p className="mb-2">{search ? "No se encontraron resultados" : "No hay movimientos registrados"}</p>
+              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="h-4 w-4 mr-2" /> Importar CSV/Excel
+              </Button>
               <p className="text-sm">{search ? "Prueba con otros términos de búsqueda" : "Usa los botones de arriba para agregar tu primer ingreso o gasto"}</p>
             </div>
           )}
@@ -1247,6 +1290,7 @@ export function SimpleTransactionsView() {
       </AlertDialog>
 
       {/* Anuncio accesible para lectores de pantalla */}
+      <input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleImportFile} />
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
         {resetAnnouncement}
       </div>
