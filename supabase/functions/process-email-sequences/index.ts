@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
       message_id: messageId,
       run_id: `seq-${seq.id}-step${seq.step}`,
       to: seq.email,
-      from: "Cap Finanzas <noreply@capfinanzas.com>",
+      from: "onboarding@resend.dev",
       sender_domain: "capfinanzas.com",
       subject: template.subject,
       label: `sequence_step_${seq.step}`,

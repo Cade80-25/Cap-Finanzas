@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
         message_id: messageId,
         run_id: `welcome-${leadId}`,
         to: email,
-        from: "Cap Finanzas <noreply@capfinanzas.com>",
+        from: "onboarding@resend.dev",
         sender_domain: "capfinanzas.com",
         subject: "¡Bienvenido a Cap Finanzas! 🎉",
         label: "welcome_newsletter",

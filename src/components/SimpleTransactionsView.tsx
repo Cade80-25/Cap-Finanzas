@@ -71,9 +71,10 @@ interface SimpleTransactionFormProps {
   defaultType?: "income" | "expense";
   editing?: EditingTransaction | null;
   qrPrefill?: QRPrefillData | null;
+  allTransactions?: any[];
 }
 
-function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPrefill }: SimpleTransactionFormProps) {
+function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPrefill, allTransactions = [] }: SimpleTransactionFormProps) {
   const { transactions, setTransactions } = useJournalTransactions();
   const { getCategoryById } = useCategories();
   const [type, setType] = useState<"income" | "expense">(editing?.type ?? qrPrefill?.type ?? defaultType);
@@ -305,7 +306,7 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
           list="desc-suggestions"
         />
         <datalist id="desc-suggestions">
-          {Array.from(new Set(allTransactions.map(t => t.description))).slice(0, 50).map(d => (
+          {Array.from(new Set(transactions.map(t => t.description))).slice(0, 50).map(d => (
             <option key={d} value={d} />
           ))}
         </datalist>
