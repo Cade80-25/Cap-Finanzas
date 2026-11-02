@@ -65,6 +65,11 @@ function normalizeTransaction(raw: any, index: number): JournalTransaction | nul
 
   const id = asNumber(raw.id) || Date.now() + index;
 
+  const priceRaw = raw.price ?? raw.precio ?? raw.precioUnitario ?? raw.unitPrice;
+  const quantityRaw = raw.quantity ?? raw.cantidad ?? raw.qty;
+  const price = priceRaw != null ? asNumber(priceRaw) : undefined;
+  const quantity = quantityRaw != null ? asNumber(quantityRaw) : undefined;
+
   return {
     id,
     date,
@@ -72,6 +77,12 @@ function normalizeTransaction(raw: any, index: number): JournalTransaction | nul
     description: repairMojibake(description || "(sin descripción)"),
     debit,
     credit,
+    price: price && price > 0 ? price : undefined,
+    quantity: quantity && quantity > 0 ? quantity : undefined,
+    creditor: raw.creditor ?? raw.acreedor ?? undefined,
+    notes: raw.notes ?? raw.notas ?? undefined,
+    subcategory: raw.subcategory ?? raw.subcategoria ?? undefined,
+    calcExpression: raw.calcExpression ?? raw.expresion ?? undefined,
   };
 }
 

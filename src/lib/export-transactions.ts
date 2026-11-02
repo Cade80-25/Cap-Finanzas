@@ -6,17 +6,24 @@ export interface ExportTransaction {
   categoria: string;
   tipo: string;
   monto: number;
+  // Precio unitario y precio total discriminados
+  precioUnitario?: number;
+  cantidad?: number;
+  precioTotal?: number;
 }
 
 // ── CSV ──
 export function exportToCSV(transactions: ExportTransaction[], filename?: string) {
   if (transactions.length === 0) return;
-  const headers = ["Fecha", "Descripción", "Categoría", "Tipo", "Monto"];
+  const headers = ["Fecha", "Descripción", "Categoría", "Tipo", "Cantidad", "Precio unitario", "Precio total", "Monto"];
   const rows = transactions.map((t) => [
     csvSafe(t.fecha),
     `"${csvSafe(t.descripcion).replace(/"/g, '""')}"`,
     `"${csvSafe(t.categoria).replace(/"/g, '""')}"`,
     csvSafe(t.tipo),
+    (t.cantidad ?? "").toString(),
+    (t.precioUnitario != null ? t.precioUnitario.toFixed(2) : ""),
+    (t.precioTotal != null ? t.precioTotal.toFixed(2) : (t.monto != null ? Math.abs(t.monto).toFixed(2) : "")),
     t.monto.toFixed(2),
   ]);
   const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
@@ -37,14 +44,14 @@ export async function exportToExcel(transactions: ExportTransaction[], filename?
   const ws = wb.addWorksheet("Transacciones");
 
   // Title row
-  ws.mergeCells("A1:E1");
+  ws.mergeCells("A1:H1");
   const titleCell = ws.getCell("A1");
   titleCell.value = "Reporte de Transacciones";
   titleCell.font = { bold: true, size: 16, color: { argb: "FF1A1A2E" } };
   titleCell.alignment = { horizontal: "center" };
 
   // Date row
-  ws.mergeCells("A2:E2");
+  ws.mergeCells("A2:H2");
   const dateCell = ws.getCell("A2");
   dateCell.value = `Generado el ${new Date().toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" })}`;
   dateCell.font = { size: 10, color: { argb: "FF666666" } };
@@ -54,7 +61,7 @@ export async function exportToExcel(transactions: ExportTransaction[], filename?
   ws.addRow([]);
 
   // Header row
-  const headerRow = ws.addRow(["Fecha", "Descripción", "Categoría", "Tipo", "Monto"]);
+  const headerRow = ws.addRow(["Fecha", "Descripción", "Categoría", "Tipo", "Cantidad", "Precio unitario", "Precio total", "Monto"]);
   headerRow.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1A1A2E" } };
@@ -69,8 +76,11 @@ export async function exportToExcel(transactions: ExportTransaction[], filename?
   let totalGastos = 0;
 
   transactions.forEach((t) => {
-    const row = ws.addRow([csvSafe(t.fecha), csvSafe(t.descripcion), csvSafe(t.categoria), csvSafe(t.tipo), t.monto]);
-    const montoCell = row.getCell(5);
+    const row = ws.addRow([csvSafe(t.fecha), csvSafe(t.descripcion), csvSafe(t.categoria), csvSafe(t.tipo), t.cantidad ?? null, t.precioUnitario ?? null, t.precioTotal != null ? t.precioTotal : Math.abs(t.monto), t.monto]);
+    row.getCell(5).numFmt = '#,##0.###';
+    row.getCell(6).numFmt = '#,##0.00';
+    row.getCell(7).numFmt = '#,##0.00';
+    const montoCell = row.getCell(8);
     montoCell.numFmt = '#,##0.00';
 
     if (t.tipo === "Ingreso") {
@@ -113,6 +123,9 @@ export async function exportToExcel(transactions: ExportTransaction[], filename?
     { width: 35 },
     { width: 20 },
     { width: 12 },
+    { width: 10 },
+    { width: 14 },
+    { width: 14 },
     { width: 15 },
   ];
 
@@ -145,6 +158,9 @@ export function exportToPDF(transactions: ExportTransaction[], filename?: string
       <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">
         <span style="padding:2px 8px;border-radius:12px;font-size:12px;background:${t.tipo === "Ingreso" ? "#dcfce7" : t.tipo === "Gasto" ? "#fee2e2" : "#f3f4f6"};color:${t.tipo === "Ingreso" ? "#16a34a" : t.tipo === "Gasto" ? "#dc2626" : "#333"}">${escapeHtml(t.tipo)}</span>
       </td>
+      <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${t.cantidad != null ? t.cantidad : "—"}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${t.precioUnitario != null ? "$" + t.precioUnitario.toFixed(2) : "—"}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${(t.precioTotal != null ? t.precioTotal : Math.abs(t.monto)).toFixed(2)}</td>
       <td style="padding:8px;border-bottom:1px solid #eee;text-align:right;font-weight:600;color:${t.monto >= 0 ? "#16a34a" : "#dc2626"}">${t.monto >= 0 ? "+" : ""}$${Math.abs(t.monto).toFixed(2)}</td>
     </tr>`
     )
@@ -171,7 +187,7 @@ export function exportToPDF(transactions: ExportTransaction[], filename?: string
   <div class="summary-card" style="background:#fee2e2"><h3>Gastos</h3><p style="color:#dc2626">-$${totalGastos.toFixed(2)}</p></div>
   <div class="summary-card" style="background:${balance >= 0 ? "#dbeafe" : "#fee2e2"}"><h3>Balance</h3><p style="color:${balance >= 0 ? "#2563eb" : "#dc2626"}">$${balance.toFixed(2)}</p></div>
 </div>
-<table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th style="text-align:center">Tipo</th><th style="text-align:right">Monto</th></tr></thead><tbody>${rows}</tbody></table>
+<table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th style="text-align:center">Tipo</th><th style="text-align:right">Cant.</th><th style="text-align:right">P. Unit.</th><th style="text-align:right">P. Total</th><th style="text-align:right">Monto</th></tr></thead><tbody>${rows}</tbody></table>
 <p style="text-align:center;color:#999;font-size:11px">Cap Finanzas — Reporte generado automáticamente</p>
 </body></html>`;
 

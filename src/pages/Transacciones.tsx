@@ -117,6 +117,9 @@ function TraditionalTransactionsView() {
     categoria: t.categoria,
     tipo: t.tipo,
     monto: t.monto,
+    precioUnitario: t.precio,
+    cantidad: t.cantidad,
+    precioTotal: Math.abs(t.monto),
   }));
 
   const handleExport = (format: "csv" | "excel" | "pdf") => {

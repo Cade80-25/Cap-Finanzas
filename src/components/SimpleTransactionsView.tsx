@@ -641,6 +641,9 @@ export function SimpleTransactionsView() {
     categoria: getCategoryLabel(t.category, t.subcategory).label,
     tipo: t.type === "income" ? "Ingreso" : "Gasto",
     monto: t.type === "income" ? t.amount : -t.amount,
+    precioUnitario: t.price,
+    cantidad: t.quantity,
+    precioTotal: t.amount,
   }));
 
   return (
