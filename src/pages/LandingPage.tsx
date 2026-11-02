@@ -3,6 +3,8 @@ import { SeoHead } from "@/components/SeoHead";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Download,
   Check,
@@ -27,10 +29,11 @@ import {
   Play,
   Calendar,
   PiggyBank,
-  Eye, Apple, Terminal, Building2} from "lucide-react";
+  Eye, Apple, Terminal, Building2, Loader2, CheckCircle, AlertCircle} from "lucide-react";
 import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { ActivationDialog } from "@/components/ActivationDialog";
 import { useNavigate, Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 
 const features = [
@@ -170,9 +173,12 @@ function useAnimatedNumber(target: number, duration = 2000) {
 
 export default function LandingPage() {
   const [purchaseOpen, setPurchaseOpen] = useState(false);
-  const [activationOpen, setActivationOpen] = useState(false);
-  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
-  const navigate = useNavigate();
+    const [activationOpen, setActivationOpen] = useState(false);
+    const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+    const [newsletterEmail, setNewsletterEmail] = useState("");
+    const [newsletterStatus, setNewsletterStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+    const [newsletterMessage, setNewsletterMessage] = useState("");
+    const navigate = useNavigate();
 
   // Enlaces de descarga (ver PLAN.md).
   // Mientras R2 no este configurado, apuntan a los binarios alojados.
@@ -202,7 +208,40 @@ export default function LandingPage() {
     const el = document.getElementById("stats-section");
     if (el) observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+      }, []);
+
+      const handleNewsletterSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newsletterEmail || newsletterStatus === "loading") return;
+
+        setNewsletterStatus("loading");
+        setNewsletterMessage("");
+
+        try {
+          const { data, error } = await supabase.functions.invoke("capture-lead", {
+            body: {
+              email: newsletterEmail,
+              source: "landing_newsletter",
+              metadata: { page: window.location.pathname, referrer: document.referrer || "direct" },
+            },
+          });
+
+          if (error) throw error;
+
+          if (data?.is_new) {
+            setNewsletterStatus("success");
+            setNewsletterMessage("¡Suscripción confirmada! Revisa tu email para el mensaje de bienvenida 🎉");
+            setNewsletterEmail("");
+          } else {
+            setNewsletterStatus("success");
+            setNewsletterMessage("Ya estás suscrito. ¡Gracias por seguir con nosotros!");
+          }
+        } catch (err) {
+          setNewsletterStatus("error");
+          setNewsletterMessage("Error al suscribir. Inténtalo de nuevo o escríbenos a pierresshop48@gmail.com");
+          console.error("Newsletter error:", err);
+        }
+      };
 
   const faqJsonLd = {
     "@context": "https://schema.org",
@@ -577,9 +616,88 @@ export default function LandingPage() {
             </Button>
           </div>
         </div>
-      </section>
+              </section>
 
-      {/* Contact */}
+              {/* Newsletter Section */}
+              <section className="py-20 bg-muted/30" id="newsletter">
+                <div className="container mx-auto px-4">
+                  <div className="max-w-xl mx-auto text-center">
+                    <Badge variant="outline" className="mb-4">Newsletter</Badge>
+                    <h2 className="text-3xl md:text-4xl font-bold mb-4">Recibe consejos financieros en tu bandeja</h2>
+                    <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
+                      Únete a +500 usuarios que reciben trucos de ahorro, actualizaciones de la app y contenido exclusivo cada semana. Sin spam, solo valor.
+                    </p>
+                    <form onSubmit={handleNewsletterSubmit} className="w-full max-w-md mx-auto">
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex-1">
+                          <Label htmlFor="newsletter-email" className="sr-only">Email</Label>
+                          <Input
+                            id="newsletter-email"
+                            type="email"
+                            placeholder="tu@email.com"
+                            value={newsletterEmail}
+                            onChange={(e) => setNewsletterEmail(e.target.value)}
+                            disabled={newsletterStatus === "loading" || newsletterStatus === "success"}
+                            className="h-12 text-base"
+                            required
+                            autoComplete="email"
+                          />
+                        </div>
+                        <Button
+                          type="submit"
+                          size="lg"
+                          className="h-12 px-6 gap-2"
+                          disabled={newsletterStatus === "loading" || newsletterStatus === "success" || !newsletterEmail}
+                        >
+                          {newsletterStatus === "loading" ? (
+                            <>
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                              Suscribiendo...
+                            </>
+                          ) : newsletterStatus === "success" ? (
+                            <>
+                              <CheckCircle className="h-5 w-5" />
+                              Suscrito
+                            </>
+                          ) : (
+                            <>
+                              <Mail className="h-5 w-5" />
+                              Suscribirme
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      {newsletterMessage && (
+                        <p
+                          className={`mt-3 text-sm text-center ${newsletterStatus === "error" ? "text-destructive" : "text-primary"}`}
+                          role="status"
+                          aria-live="polite"
+                        >
+                          {newsletterStatus === "error" ? (
+                            <>
+                              <AlertCircle className="h-4 w-4 inline-block mr-1" />
+                              {newsletterMessage}
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="h-4 w-4 inline-block mr-1" />
+                              {newsletterMessage}
+                            </>
+                          )}
+                        </p>
+                      )}
+                      <p className="mt-2 text-xs text-center text-muted-foreground">
+                        Sin spam. Solo 1 email/semana.{" "}
+                        <a href="/privacidad" className="underline hover:text-foreground">Política de privacidad</a>
+                        {" "}·{" "}
+                        <a href="mailto:pierresshop48@gmail.com" className="underline hover:text-foreground">Dar de baja</a>
+                      </p>
+                    </form>
+                  </div>
+                </div>
+              </section>
+
+              {/* Contact */}
       <section className="py-16 bg-muted/30" id="soporte">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl font-bold mb-4">¿Necesitas ayuda?</h2>

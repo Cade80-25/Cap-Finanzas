@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Plus, TrendingUp, TrendingDown, Trash2, Pencil, Calendar, Tag, AlertTriangle, QrCode, Download, FileSpreadsheet, FileText, Calculator, StickyNote, Search, SlidersHorizontal, FilterX, RotateCcw, Wallet, Upload } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -302,7 +302,13 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
             }
           }}
           placeholder="Ej: Juan Pérez, Empresa X, Almuerzo con cliente"
+          list="desc-suggestions"
         />
+        <datalist id="desc-suggestions">
+          {Array.from(new Set(allTransactions.map(t => t.description))).slice(0, 50).map(d => (
+            <option key={d} value={d} />
+          ))}
+        </datalist>
       </div>
 
       {/* Anotaciones */}
@@ -671,6 +677,16 @@ export function SimpleTransactionsView() {
   }));
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.key === "n" || e.key === "N") { e.preventDefault(); setDialogOpen(true); }
+      if (e.key === "/") { e.preventDefault(); const el = document.querySelector<HTMLInputElement>('[data-search-input]'); el?.focus(); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -720,6 +736,17 @@ export function SimpleTransactionsView() {
             <input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleImportFile} />
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
               <Upload className="h-4 w-4 mr-2" /> Importar
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              const now = new Date();
+              const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+              const monthTx = allTransactions.filter(t => t.date.startsWith(ym));
+              const inc = monthTx.filter(t=>t.type==="income").reduce((s,t)=>s+t.amount,0);
+              const exp = monthTx.filter(t=>t.type==="expense").reduce((s,t)=>s+t.amount,0);
+              localStorage.setItem(`cap-finanzas-cierre-${ym}`, JSON.stringify({ym,ingresos:inc,gastos:exp,balance:inc-exp,count:monthTx.length,closedAt:new Date().toISOString()}));
+              toast.success(`Mes ${ym} cerrado: ingresos $${inc.toFixed(2)}, gastos $${exp.toFixed(2)}, balance $${(inc-exp).toFixed(2)}`);
+            }}>
+              📅 Cerrar mes
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -918,6 +945,7 @@ export function SimpleTransactionsView() {
                   placeholder="Buscar por palabra, categoría, fecha, monto..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
+                  data-search-input
                   className="pl-9"
                 />
               </div>
