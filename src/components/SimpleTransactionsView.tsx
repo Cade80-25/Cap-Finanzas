@@ -130,8 +130,8 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
 
     const cat = getCategoryById(category);
     const label = cat?.label || category;
-    const parsedPrice = useCalculator ? parseFlexibleNumber(price) : undefined;
-    const parsedQuantity = useCalculator ? parseFlexibleNumber(quantity, 1) : undefined;
+    const parsedPrice = parseFlexibleNumber(price);
+    const parsedQuantity = parseFlexibleNumber(quantity, 1);
 
     if (editing) {
       setTransactions(transactions.map(tx =>
@@ -141,8 +141,8 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
               description: description || label,
               debit: type === "expense" ? sum : 0,
               credit: type === "income" ? sum : 0,
-              price: useCalculator && parsedPrice ? parsedPrice : undefined,
-              quantity: useCalculator && parsedQuantity !== 1 ? parsedQuantity : undefined,
+              price: parsedPrice && parsedPrice > 0 ? parsedPrice : undefined,
+              quantity: parsedQuantity && parsedQuantity !== 1 ? parsedQuantity : undefined,
               creditor: creditor || undefined,
               notes: notes || undefined,
               calcExpression: calcExpression || undefined,
@@ -160,8 +160,8 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
         description: description || label,
         debit: type === "expense" ? sum : 0,
         credit: type === "income" ? sum : 0,
-        price: useCalculator && parsedPrice ? parsedPrice : undefined,
-        quantity: useCalculator && parsedQuantity !== 1 ? parsedQuantity : undefined,
+        price: parsedPrice && parsedPrice > 0 ? parsedPrice : undefined,
+        quantity: parsedQuantity && parsedQuantity !== 1 ? parsedQuantity : undefined,
         creditor: creditor || undefined,
         notes: notes || undefined,
         calcExpression: calcExpression || undefined,
@@ -239,6 +239,29 @@ function SimpleTransactionForm({ onClose, defaultType = "expense", editing, qrPr
               onChange={e => { setAmount(e.target.value); if (calcExpression) setCalcExpression(""); }}
               placeholder="0.00" className="pl-7 text-lg font-semibold h-12" autoFocus
             />
+          </div>
+        )}
+        {!useCalculator && (
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-xs">Precio unitario (opcional)</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+                <Input type="text" inputMode="decimal" value={price}
+                  onChange={e => setPrice(e.target.value)} placeholder="0.00" className="pl-7" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Cantidad (opcional)</Label>
+              <Input type="text" inputMode="decimal" value={quantity}
+                onChange={e => setQuantity(e.target.value)} placeholder="1" />
+            </div>
+            {price && quantity && parseFlexibleNumber(price) > 0 && parseFlexibleNumber(quantity, 1) > 0 && (
+              <Button type="button" variant="outline" size="sm" className="col-span-2"
+                onClick={() => setAmount(String(parseFlexibleNumber(price) * parseFlexibleNumber(quantity, 1)))}>
+                Calcular importe ({(parseFlexibleNumber(price) * parseFlexibleNumber(quantity, 1)).toFixed(2)})
+              </Button>
+            )}
           </div>
         )}
         {calcExpression && (
@@ -1060,8 +1083,8 @@ export function SimpleTransactionsView() {
                           </p>
                         )}
                         {hasUnitInfo && (
-                          <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">
-                            {tx.price != null ? `P. unit.: $${tx.price.toFixed(2)}` : ''}{tx.price != null && tx.quantity && tx.quantity !== 1 ? ' × ' : ''}{tx.quantity && tx.quantity !== 1 ? `${tx.quantity}` : ''}
+                          <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums font-medium">
+                            {tx.price != null ? `P. unit.: $${tx.price.toFixed(2)}` : ''}{tx.price != null && tx.quantity && tx.quantity !== 1 ? ' × ' : ''}{tx.quantity && tx.quantity !== 1 ? `${tx.quantity}` : ''}{tx.price != null && tx.quantity && tx.quantity !== 1 ? ` = $${(tx.price * tx.quantity).toFixed(2)} (P. total)` : (tx.price != null ? ` (P. total: $${tx.amount.toFixed(2)})` : '')}
                           </p>
                         )}
                       </div>
