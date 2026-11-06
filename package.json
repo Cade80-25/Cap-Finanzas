@@ -7,9 +7,9 @@
   "description": "Aplicación de finanzas personales y contabilidad",
   "author": "Cap Finanzas",
   "scripts": {
-      "test": "vitest run",
-      "test:watch": "vitest",
-      "dev": "vite",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
@@ -62,7 +62,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "concurrently": "^9.2.3",
     "cross-env": "^10.1.0",
     "date-fns": "^3.6.0",
     "electron-updater": "^6.6.2",
@@ -84,8 +83,7 @@
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
     "vaul": "^0.9.9",
-    "wait-on": "^9.5.1",
-    "zod": "^3.25.76"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
@@ -97,7 +95,8 @@
     "@vitejs/plugin-react-swc": "^3.11.0",
     "@vitest/ui": "^5.1.0",
     "autoprefixer": "^10.4.21",
-    "electron": "^44.7.0",
+    "concurrently": "^9.2.3",
+    "electron": "^44.10.2",
     "electron-builder": "^26.17.0",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -109,12 +108,14 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vite": "^7.3.5",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "wait-on": "^9.5.1"
   },
   "overrides": {
     "uuid": "^11.1.1",
     "@electron/get": "^5.1.0",
-    "postcss-selector-parser": "^7.1.6"
+    "postcss-selector-parser": "^7.1.6",
+    "minimatch": "^11.0.1"
   },
   "build": {
     "appId": "com.capfinanzas.app",
