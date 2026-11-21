@@ -3,7 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// La variable de Netlify conserva una JWT legacy rotada (eyJ...), que Supabase
+// rechaza con HTTP 401. La publishable key es publica por diseno: se usa como
+// fallback whenever la env var no tenga formato sb_publishable_.
+const LEGACY_KEY_FALLBACK = 'sb_publishable__SutQjL_GT6tiL8y5zbH4A_fdhP7taQ';
+const envKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_PUBLISHABLE_KEY =
+  envKey && envKey.startsWith('sb_publishable_') ? envKey : LEGACY_KEY_FALLBACK;
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";

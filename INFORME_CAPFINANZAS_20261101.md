@@ -584,4 +584,85 @@ const RESEND_API_KEY=Deno.e...EY') ?? ''
 
 ---
 
-*Informe actualizado por Códice (Hermes Agent) — 2026-11-02 12:XX UTC-3*
+## 20. ESTADO ACTUALIZADO — 2026-11-07 (Sesión DNS + SSL + Resend + Supabase)
+
+### 20.1 Resumen de estado
+
+| Componente | Estado | Detalle |
+|------------|--------|---------|
+| **DNS (Namecheap → Netlify)** | ✅ Propagado | `capfinanzas.com` → 75.2.60.5, 99.83.190.102 |
+| **www CNAME** | ✅ Propagado | `www.capfinanzas.com` → cap-finanzas.netlify.app |
+| **SSL (Netlify Let's Encrypt)** | ❌ No propagado | TLSV1_ALERT_INTERNAL_ERROR — cert provisionado pero no propagado a edge servers |
+| **Resend (mail.capfinanzas.com)** | ✅ Verified | DKIM, SPF (rsend), SPF (send) todos verified |
+| **Supabase capture-lead** | ✅ ACTIVE | Sender: noreply@mail.capfinanzas.com (deployado) |
+| **Supabase process-email-sequences** | ✅ ACTIVE | Sender: noreply@mail.capfinanzas.com (deployado) |
+| **Total funciones Supabase** | ✅ 26 ACTIVE | Todas activas |
+| **Email de prueba** | ✅ OK | Enviado a charonito@gmail.com (ID: 01a1b289-f993-7445-bb84-81a6007b35e9) |
+
+### 20.2 Problema de SSL — Diagnóstico
+
+- **Causa**: El certificado Let's Encrypt está provisionado en Netlify pero **no se propaga** a los edge servers.
+- **DNS**: ✅ Propagado correctamente (verificado con nslookup)
+- **Certificado**: ✅ Provisionado (Netlify dashboard muestra "HTTPS enabled")
+- **Error**: `TLSV1_ALERT_INTERNAL_ERROR` al intentar acceder por HTTPS
+- **Acción tomada**: Presionado "Renew Certificate" en Netlify dashboard
+- **Próximo paso**: Esperar 15-60 minutos para propagación. Si persiste, verificar en Netlify que el dominio diga "Verified" (no "Pending").
+
+### 20.3 Cambios realizados en esta sesión
+
+1. **DNS limpiado en Namecheap**:
+   - Eliminados CNAMEs antiguos de Resend (resend, send)
+   - Agregados registros Netlify: @ A 75.2.60.5, @ A 99.83.190.102, www CNAME cap-finanzas.netlify.app., _dmarc TXT v=DMARC1; p=none
+   - Agregados registros Resend para subdominio mail: resend._domainkey.mail TXT, rsend.mail CNAME, send.mail CNAME
+
+2. **Sender email actualizado**:
+   - `noreply@capfinanzas.com` → `onboarding@resend.dev` → `noreply@mail.capfinanzas.com`
+   - Ambas Edge Functions (capture-lead, process-email-sequences) deployadas con nuevo sender
+
+3. **Dominio Resend verificado**:
+   - `mail.capfinanzas.com` → status: verified (DKIM + SPF + send SPF)
+   - Dominio root `capfinanzas.com` bloqueado (otro equipo de Resend) → workaround con subdominio
+
+4. **Credenciales extraídas** de `API KEY NVIDIA-2.docx`:
+   - Supabase token: sbp_c85634ed... (válido)
+   - Resend API key: re_UsPTc5H3... (válido, full-access)
+
+### 20.4 Próximos pasos
+
+1. **SSL**: ✅ RESUELTO (verificado 2026-11-21)
+2. **PageSpeed**: Test post-SSL contra `https://capfinanzas.com`
+3. **Campañas ads**: Google/Meta con lead magnet como incentivo
+4. **Lead magnet**: Subir `public/lead-magnet-finanzas-personales.pdf` a Netlify
+5. **Secuencias email**: Configurar secuencia de bienvenida + nurturing
+
+---
+
+## 21. SSL RESUELTO — 2026-11-21 (verificado en vivo)
+
+### 21.1 Verificación
+```
+curl https://capfinanzas.com         → HTTP 200 | ssl_verify_result: 0 ✅
+curl https://www.capfinanzas.com     → HTTP 301 → Location: https://capfinanzas.com/ ✅
+openssl s_client capfinanzas.com:443 → subject CN=capfinanzas.com
+                                       issuer Let's Encrypt (CN=YE1)
+                                       notBefore Nov 1 2026 / notAfter Jan 30 2027 ✅
+Headers: Server: Netlify | Strict-Transport-Security: max-age=31536000 ✅
+Cache-Status: "Netlify Edge"; fwd=miss; fwd-status=200; stored ✅
+```
+
+### 21.2 Causa del retraso
+La propagación del certificado Let's Encrypt tardó ~20 días (provisionado 2026-11-01, sirviéndose 2026-11-21). No fue necesario cambiar DNS ni contactar soporte: la configuración externa (Namecheap) era correcta y Netlify terminó sirviendo el certificado por su edge.
+
+### 21.3 Estado de pendientes de configuración
+| # | Pendiente | Estado |
+|---|-----------|--------|
+| 1 | SSL capfinanzas.com | ✅ RESUELTO 2026-11-21 |
+| 2 | PageSpeed test | ⏳ en curso |
+| 3 | Cron (pg_cron / GitHub Actions) | pendiente |
+| 4 | Deploy edge functions via CLI | pendiente |
+| 5 | Lead magnet | pendiente |
+| 6 | Recuperar datos app (LevelDB) | pendiente |
+| 7 | Cap-Finanzas v1.1.79 install | pendiente confirmación |
+
+---
+*Informe actualizado por Códice (Hermes Agent) — 2026-11-21 (UTC-3)*
