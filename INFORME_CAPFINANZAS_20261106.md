@@ -270,7 +270,17 @@ Verificación final de todas las conexiones, con evidencia real (curl). **Todas 
 - **Plataformas:** el CTA y los badges aclaran **Windows · macOS · Linux**. Coherente con los menús de la app (`MenuBar.tsx`) y con el CI (3/3). **Pendiente de verificación:** en disco solo se encontraron instaladores `.exe`; el `.dmg`/`.AppImage` no están en el repo local y el token de GitHub venció (401) → no se pudo confirmar el release. No dar por publicados los 3 hasta verificar `latest-mac.yml` / assets del release.
 - **Nota técnica:** el pipeline Rust (`fframes`) no se puede recompilar en este equipo — no hay Windows SDK (`kernel32.lib` ausente) y `link.exe` resuelve al `link` de MSYS. Por eso el reel v2 se genera en Python.
 
-### 9.3 Punto 3 — Cronjob de arranque al abrir Hermes (VERIFICADO 2026-11-21)
+### 9.3 Reel v3 — precios, dos modos, búho y descarga en capfinanzas.com (HECHO 2026-11-21)
+- **Archivo:** `public/ads/reel_capfinanzas_v3.mp4` (1.18 MB, **30.00 s**, 1080×1920, 30 fps, H.264 + AAC 192 kb/s). Copia en `Desktop/promo_cap/`.
+- **Generador:** `public/ads/generate_reel_v3.py` (Python+PIL+ffmpeg, **sin grabar pantalla**; `fit_font` auto-ajusta cada texto para que entre en su recuadro).
+- **Contenido (6 escenas):** problema → presentación con **búho** + 3 plataformas → **Modo Simple USD 20** → **Modo Negocios USD 100** → diferencial (sin internet, datos en tu PC, sin suscripción, un solo pago) → CTA **capfinanzas.com** (sin mención a GitHub).
+- **Precios:** Simple **USD 20** / Empresarial **USD 100**, **pago único** (coherente con `LandingPage.tsx` y el diálogo de compra).
+- **Búho:** `public/icon-final.png` recortado a transparente (`public/ads/buho.png`) y superpuesto sobre el nombre en las escenas 2 y 6. Verificado: 33 % de píxeles de logo en la región del búho vs 0 % en zona vacía.
+- **Textos dentro de recuadros (OCR + cajas, 2026-11-21):** todos dentro (máx x 952 < 970; badges y 1216-1262 dentro de 1200-1276; items y ≤ 1404 < 1560).
+- **Audio:** voz `es-UY-MateoNeural` (edge-tts) rate +30 % → `atempo=1.0583` para calzar 30.00 s + música a 0.25. Normalización **loudnorm en 2 pasadas** (voz a −16 LUFS) + `amix` + `volume −2.2 dB` + `alimiter`. Resultado: **mean −17.6 dB, integrado −18.6 LUFS, pico −2.7 dBTP** (alta claridad, sin clipping). Nota: `sidechaincompress` degradaba el mix (~6 dB de más bajado) → descartado.
+- **Pendiente:** verificar que los instaladores macOS/Linux estén publicados en capfinanzas.com (en disco local solo hay `.exe`).
+
+### 9.4 Punto 3 — Cronjob de arranque al abrir Hermes (VERIFICADO 2026-11-21)
 
 **Pedido de Fernando:** en lugar de arrancar al encender la PC, levantar los contenedores **cuando se abre Hermes Agent**, con recordatorio.
 
