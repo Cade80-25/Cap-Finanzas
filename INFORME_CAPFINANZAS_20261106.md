@@ -272,6 +272,8 @@ Verificación final de todas las conexiones, con evidencia real (curl). **Todas 
 
 **Verificación real:** 1ª corrida manual emitió el recordatorio con los 3 endpoints UP; 2ª corrida dio salida vacía (correcto); job creado con `gateway_running: true` y disparado en background.
 
+**Cambio posterior (Fernando, 2026-11-21):** el recordatorio además llega a **Telegram** (chat `1121812730`). Implementación: `notify_telegram()` dentro del mismo script, usa `sendMessage` de la API de Telegram con la key del perfil `default` (leída de `~/.hermes/.env`, sin exponerla en el perfil `codigo`). El `deliver` del cron quedó en `origin` para no depender del gateway multiplexado (que parqueaba el adapter de `codigo` por credencial duplicada). Evidencia: `cache/podman_telegram_sends.log` con líneas `ENVIADO` (13:27:39 y 13:28:01) y `gateway status` sin warnings.
+
 ---
 
 *Informe actualizado por Códice (Hermes Agent) — 2026-11-21 UTC-3*
