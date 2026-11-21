@@ -4,6 +4,7 @@ import { AVAILABLE_VOICES, TTSVoice, TTSVoiceInfo } from '../hooks/useTTS';
 interface VoiceSelectorProps {
   selectedVoice: TTSVoice;
   onVoiceChange: (voice: TTSVoice) => void;
+  onTestVoice?: (voiceId: TTSVoice) => Promise<void>;
   language?: 'en-US' | 'en-GB' | 'es-es' | 'all';
   showLanguageFilter?: boolean;
   className?: string;
@@ -120,16 +121,17 @@ export function VoiceSelector({
         </h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {topVoices.map(voice => (
-            <VoiceOption
-                            key={voice.id}
-                            voice={voice}
-                            isSelected={selectedVoice === voice.id}
-                            onSelect={() => onVoiceChange(voice.id)}
-                            getProviderBadge={getProviderBadge}
-                            getLanguageFlag={getLanguageFlag}
-                            getGradeColor={getGradeColor}
-                          />
-          ))}
+                      <VoiceOption
+                                      key={voice.id}
+                                      voice={voice}
+                                      isSelected={selectedVoice === voice.id}
+                                      onSelect={() => onVoiceChange(voice.id)}
+                                      onTestVoice={onTestVoice}
+                                      getProviderBadge={getProviderBadge}
+                                      getLanguageFlag={getLanguageFlag}
+                                      getGradeColor={getGradeColor}
+                                    />
+                    ))}
         </div>
       </div>
 
@@ -167,12 +169,13 @@ interface VoiceOptionProps {
   voice: TTSVoiceInfo;
   isSelected: boolean;
   onSelect: () => void;
+  onTestVoice?: (voiceId: TTSVoice) => Promise<void>;
   getProviderBadge: (provider: string) => { label: string; class: string };
   getLanguageFlag: (lang: string) => string;
   getGradeColor: (grade?: string) => string;
 }
 
-function VoiceOption({ voice, isSelected, onSelect, getProviderBadge, getLanguageFlag, getGradeColor }: VoiceOptionProps) {
+function VoiceOption({ voice, isSelected, onSelect, onTestVoice, getProviderBadge, getLanguageFlag, getGradeColor }: VoiceOptionProps) {
   const gradeColor = 
     !voice.grade ? 'border-gray-300 bg-gray-50' :
     voice.grade.startsWith('A') ? 'border-green-300 bg-green-50' :
@@ -193,11 +196,28 @@ function VoiceOption({ voice, isSelected, onSelect, getProviderBadge, getLanguag
       `}
     >
       <div className="flex items-center justify-between">
-        <div className="font-medium text-gray-900">{voice.name}</div>
-        <span className={`px-2 py-0.5 text-xs rounded font-medium ${providerBadge.class}`}>
-          {providerBadge.label}
-        </span>
-      </div>
+              <div className="font-medium text-gray-900">{voice.name}</div>
+              <div className="flex items-center gap-2">
+                {onTestVoice && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onTestVoice(voice.id);
+                    }}
+                    className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors text-gray-500 hover:text-gray-700"
+                    title={`Probar voz: ${voice.name}`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1zm0 0h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4a1 1 0 011-1zm0-6h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4a1 1 0 011-1z" />
+                    </svg>
+                  </button>
+                )}
+                <span className={`px-2 py-0.5 text-xs rounded font-medium ${providerBadge.class}`}>
+                  {providerBadge.label}
+                </span>
+              </div>
+            </div>
       <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
         <span className="px-1.5 py-0.5 rounded text-white bg-gray-400">
           {flag} {voice.language}

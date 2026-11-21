@@ -5,17 +5,18 @@ import { ElevenLabsConfig } from './ElevenLabsConfig';
 
 export function TTSControlPanel() {
   const { 
-      isLoading, 
-      isPlaying, 
-      error, 
-      loadedVoices, 
-      device, 
-      init, 
-      speak, 
-      stop,
-      availableVoices,
-      currentProvider
-    } = useTTS();
+        isLoading, 
+        isPlaying, 
+        error, 
+        loadedVoices, 
+        device, 
+        init, 
+        speak, 
+        stop,
+        availableVoices,
+        currentProvider,
+        fetchElevenLabsVoices,
+      } = useTTS();
   
   const [selectedVoice, setSelectedVoice] = useState<TTSVoice>('af_heart');
   const [testText, setTestText] = useState('¡Hola! Esta es una prueba de voz local en Cap-Finanzas. Funciona sin internet y sin APIs externas.');
@@ -90,10 +91,11 @@ export function TTSControlPanel() {
           Voz seleccionada: <strong>{availableVoices.find(v => v.id === selectedVoice)?.name || selectedVoice}</strong>
         </label>
         <VoiceSelector
-          selectedVoice={selectedVoice}
-          onVoiceChange={setSelectedVoice}
-          showLanguageFilter={true}
-        />
+                  selectedVoice={selectedVoice}
+                  onVoiceChange={setSelectedVoice}
+                  onTestVoice={speak}
+                  showLanguageFilter={true}
+                />
       </div>
 
       {/* Test Area */}
@@ -147,7 +149,7 @@ export function TTSControlPanel() {
             </details>
 
             {/* ElevenLabs Config */}
-            <ElevenLabsConfig />
+            <ElevenLabsConfig fetchElevenLabsVoices={fetchElevenLabsVoices} />
           </div>
         );
       }

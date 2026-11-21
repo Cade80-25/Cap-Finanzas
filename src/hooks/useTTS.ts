@@ -126,6 +126,7 @@ export interface TTSState {
   device: 'webgpu' | 'wasm' | null;
   currentProvider: TTSProvider;
   webSpeechVoicesLoaded: boolean;
+  elevenLabsVoices: TTSVoiceInfo[];
 }
 
 export function useTTS() {
@@ -133,14 +134,15 @@ export function useTTS() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const webSpeechUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [state, setState] = useState<TTSState>({
-    isLoading: false,
-    isPlaying: false,
-    error: null,
-    loadedVoices: [],
-    device: null,
-    currentProvider: 'kokoro',
-    webSpeechVoicesLoaded: false,
-  });
+      isLoading: false,
+      isPlaying: false,
+      error: null,
+      loadedVoices: [],
+      device: null,
+      currentProvider: 'kokoro',
+      webSpeechVoicesLoaded: false,
+      elevenLabsVoices: [],
+    });
 
   // Load Web Speech voices when available
   useEffect(() => {
@@ -162,12 +164,60 @@ export function useTTS() {
   }, []);
 
   // Get all available voices (including dynamic Web Speech voices)
-  const getAllVoices = useCallback((): TTSVoiceInfo[] => {
-    const webVoices = getWebSpeechVoices();
-    return [...AVAILABLE_VOICES, ...webVoices];
-  }, []);
+    const getAllVoices = useCallback((): TTSVoiceInfo[] => {
+      const webVoices = getWebSpeechVoices();
+      return [...AVAILABLE_VOICES, ...webVoices, ...state.elevenLabsVoices];
+    }, [state.elevenLabsVoices]);
 
-  // Initialize Kokoro worker
+    // Fetch ElevenLabs voices from API
+    const fetchElevenLabsVoices = useCallback(async (apiKey?: string) => {
+      const key = apiKey || import.meta.env.VITE_ELEVENLABS_API_KEY || localStorage.getItem('elevenlabs_api_key');
+    
+      if (!key) {
+        setState(prev => ({ ...prev, elevenLabsVoices: [] }));
+        return;
+      }
+
+      try {
+        const response = await fetch('https://api.elevenlabs.io/v1/voices', {
+          headers: {
+            'Accept': 'application/json',
+            'xi-api-key': key,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`ElevenLabs API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+      
+        const fetchedVoices: TTSVoiceInfo[] = data.voices
+          .filter((v: any) => v.voice_id && v.name)
+          .map((v: any) => ({
+            id: `eleven-${v.voice_id}`,
+            name: `${v.name} ${v.labels?.accent ? `(${v.labels.accent})` : ''}`,
+            language: v.labels?.accent === 'spanish' || v.labels?.language === 'es' ? 'es' : 'en-US',
+            gender: v.labels?.gender === 'female' ? 'Female' : 'Male',
+            grade: 'A',
+            trait: v.description || v.labels?.use_case || 'ElevenLabs voice',
+            provider: 'elevenlabs' as TTSProvider,
+            voiceId: v.voice_id,
+          }));
+
+        setState(prev => ({ ...prev, elevenLabsVoices: fetchedVoices }));
+      } catch (err) {
+        console.error('Failed to fetch ElevenLabs voices:', err);
+        setState(prev => ({ ...prev, elevenLabsVoices: [] }));
+      }
+    }, []);
+
+    // Load ElevenLabs voices on mount if API key is available
+    useEffect(() => {
+      fetchElevenLabsVoices();
+    }, [fetchElevenLabsVoices]);
+
+    // Initialize Kokoro worker
   const initKokoro = useCallback(async () => {
     if (workerRef.current) return;
     
@@ -426,37 +476,39 @@ export function useTTS() {
 
   // Cleanup
   const cleanup = useCallback(() => {
-    if (workerRef.current) {
-      workerRef.current.terminate();
-      workerRef.current = null;
-    }
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
-    }
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-    setState({
-      isLoading: false,
-      isPlaying: false,
-      error: null,
-      loadedVoices: [],
-      device: null,
-      currentProvider: 'kokoro',
-      webSpeechVoicesLoaded: false,
-    });
-  }, []);
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      setState({
+        isLoading: false,
+        isPlaying: false,
+        error: null,
+        loadedVoices: [],
+        device: null,
+        currentProvider: 'kokoro',
+        webSpeechVoicesLoaded: false,
+        elevenLabsVoices: [],
+      });
+    }, []);
 
   return {
-    ...state,
-    init: initKokoro,
-    speak,
-    stop,
-    cleanup,
-    availableVoices: getAllVoices(),
-    getAllVoices,
-  };
+      ...state,
+      init: initKokoro,
+      speak,
+      stop,
+      cleanup,
+      availableVoices: getAllVoices(),
+      getAllVoices,
+      fetchElevenLabsVoices,
+    };
 }
 
 // Helper: play audio buffers sequentially

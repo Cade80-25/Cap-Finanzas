@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 
-export function ElevenLabsConfig() {
+interface ElevenLabsConfigProps {
+  fetchElevenLabsVoices?: (apiKey?: string) => Promise<void>;
+}
+
+export function ElevenLabsConfig({ fetchElevenLabsVoices }: ElevenLabsConfigProps) {
   const [apiKey, setApiKey] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -11,23 +15,26 @@ export function ElevenLabsConfig() {
     if (stored) setApiKey(stored);
   }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!apiKey.trim()) {
       localStorage.removeItem('elevenlabs_api_key');
+      if (fetchElevenLabsVoices) await fetchElevenLabsVoices();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       return;
     }
     setIsSaving(true);
     localStorage.setItem('elevenlabs_api_key', apiKey.trim());
+    if (fetchElevenLabsVoices) await fetchElevenLabsVoices(apiKey.trim());
     setIsSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const handleClear = () => {
+  const handleClear = async () => {
     setApiKey('');
     localStorage.removeItem('elevenlabs_api_key');
+    if (fetchElevenLabsVoices) await fetchElevenLabsVoices();
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -57,7 +64,7 @@ export function ElevenLabsConfig() {
                 type={showKey ? 'text' : 'password'}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder={hasKey ? '••••••••••••••••' : 'sk_xxxxxxxxxxxxxxxxxxxxxxxx'}
+                placeholder={hasKey ? '••••••••••••••••' : '«redacted:sk_…»'}
                 className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
               />
               <button
