@@ -665,4 +665,71 @@ La propagación del certificado Let's Encrypt tardó ~20 días (provisionado 202
 | 7 | Cap-Finanzas v1.1.79 install | pendiente confirmación |
 
 ---
+
+## 22. CONFIGURACIÓN COMPLETADA — 2026-11-21 (verificado en vivo)
+
+### 22.1 SSL — confirmado estable
+```
+curl https://capfinanzas.com  → HTTP 200 (3/3 intentos consecutivos) ✅
+openssl s_client            → CN=capfinanzas.com | Let's Encrypt CN=YE1
+                              notBefore Nov 1 2026 / notAfter Jan 30 2027 ✅
+```
+Nota: se observó una caída intermitente (~30 min) del edge `99.83.190.102` de AWS Global
+Accelerator (Netlify), que dejaba de servir el certificado. Netlify rotó el edge y el
+servicio volvió sin intervención. Acción futura si reaparece: dejar en Namecheap solo el
+registro A `75.2.60.5` (quitar `99.83.190.102`).
+
+### 22.2 Performance landing — causa raíz corregida
+Causa raíz: `App.tsx` inicializaba el TTS al montar y el visitante descargaba el modelo
+**Kokoro-82M-v1.0-ONNX (317 MB)** desde HuggingFace en el landing público.
+
+Fixes aplicados (commit `b6e0b05` / deploy `index-BGM9ABLq.js`):
+| Archivo | Cambio |
+|---------|--------|
+| `src/App.tsx` | eliminada `ttsNotifications.initialize()` del `useEffect` de montaje (TTS perezoso, bajo demanda) |
+| `src/lib/export-transactions.ts` | `exceljs` → `await import("exceljs")` (carga dinámica) |
+| `src/lib/import-transactions.ts` | `exceljs` → `await import("exceljs")` |
+| `src/pages/Configuracion.tsx` | `exceljs` → `await import("exceljs")` en el flujo de importación |
+
+Resultado PageSpeed (antes → después): **payload 319 MB → 0.9 MB** ✅
+
+### 22.3 Cron (pg_cron) — verificado y limpiado
+`pg_cron 1.6.4` + `pg_net 0.20.4` instalados. Jobs activos:
+| jobid | jobname | schedule | estado |
+|-------|---------|----------|--------|
+| 1 | keepalive-capfinanzas | `0 */12 * * *` | ✅ succeeded |
+| 2 | process-email-queue | `*/5 * * * *` | ✅ succeeded |
+| 4 | process-email-sequences-daily | `0 9 * * *` | ✅ activo |
+| ~~3~~ | ~~process-email-queue-every-5min~~ | — | 🗑 eliminado (duplicado roto: usaba `current_setting('app.settings.service_role_key')` inexistente) |
+
+### 22.4 Edge functions — verificadas end-to-end
+26 funciones ACTIVE (las 11 entradas con slug `\` son artefactos del registro de
+despliegues: rechazadas por la API por patrón inválido y no referenciables por id; no
+afectan el funcionamiento).
+
+Prueba real del pipeline de emails:
+```
+POST /functions/v1/capture-lead  → HTTP 200
+  {"success":true,"lead_id":"254c2071-...","is_new":true,"message":"¡Suscripción confirmada! Revisa tu email."}
+email_send_log → template welcome_newsletter | recipient test-verificacion@capfinanzas.com | status: sent ✅
+```
+El lead de prueba fue eliminado.
+
+### 22.5 Tour guiado — quitado (orden de Fernando)
+Quitados los dos disparadores visibles: botón "Tour guiado" (header del Dashboard) y
+botón "Tour completo" (sección "Explora la app"). Texto del landing actualizado. Commit `8905481`.
+
+### 22.6 Pendientes de configuración restantes
+| # | Pendiente | Estado |
+|---|-----------|--------|
+| 1 | SSL capfinanzas.com | ✅ RESUELTO (estable 3/3) |
+| 2 | PageSpeed | ✅ causa raíz corregida (319 MB → 0.9 MB) |
+| 3 | Cron pg_cron | ✅ verificado + duplicado eliminado |
+| 4 | Deploy edge functions | ✅ verificadas end-to-end |
+| 5 | Lead magnet | ⏳ pendiente |
+| 6 | Recuperar datos app (LevelDB) | ⏳ pendiente |
+| 7 | Tour guiado | ✅ quitado |
+| 8 | Cap-Finanzas v1.1.79 install | ⏳ confirmación |
+
+---
 *Informe actualizado por Códice (Hermes Agent) — 2026-11-21 (UTC-3)*
