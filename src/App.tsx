@@ -12,7 +12,6 @@ import { ThemeProvider } from "next-themes";
 import { useNotificationGenerator } from "./hooks/useNotificationGenerator";
 import { usePurchaseIssueNotifications } from "./hooks/usePurchaseIssueNotifications";
 import { useTrialExpiryReminder } from "./hooks/useTrialExpiryReminder";
-import { useTTSNotifications } from "./hooks/useTTSNotifications";
 import { WalletProvider } from "./contexts/WalletContext";
 import { DemoModeBanner } from "./components/DemoModeBanner";
 import { prefetchHotModules } from "./lib/prefetch-hot-modules";
@@ -88,12 +87,10 @@ function NotificationProvider({ children }: { children: React.ReactNode }) {
   useNotificationGenerator();
   usePurchaseIssueNotifications();
   useTrialExpiryReminder();
-  const ttsNotifications = useTTSNotifications();
   
   useEffect(() => {
-    // Inicializar TTS al montar la app
-    ttsNotifications.initialize();
-    
+    // TTS se inicializa BAJO DEMANDA (al usar una notificación con voz),
+    // no al montar: evita descargar el modelo Kokoro (~317 MB) en el landing público.
     // Precalienta las rutas más usadas en idle para reducir TTI percibido.
     prefetchHotModules();
   }, []);
