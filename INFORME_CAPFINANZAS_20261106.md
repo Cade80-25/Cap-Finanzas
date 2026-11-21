@@ -135,7 +135,7 @@ VITE_GA4_ID=G-L3Q1V3FHZ1
 | Componente | Estado | Detalle |
 |------------|--------|---------|
 | Landing page | ✅ Live | `https://cap-finanzas.netlify.app` |
-| Dominio `capfinanzas.com` | ⏳ SSL propagando | Cert provisionado, edge servers pendientes |
+| Dominio `capfinanzas.com` | ✅ HTTPS 200 | Let's Encrypt YE1, válido hasta 2027-01-30 (verificado 2026-11-21) |
 | Dominio `mail.capfinanzas.com` | ✅ Verified | Resend, sender `noreply@mail.capfinanzas.com` |
 | Lead capture | ✅ Funcional | Tabla `leads` + Edge Function deployada |
 | Email automation | ✅ Funcional | Welcome email + secuencias + cron |
@@ -154,4 +154,49 @@ VITE_GA4_ID=G-L3Q1V3FHZ1
 
 ---
 
-*Informe actualizado por Códice (Hermes Agent) — 2026-11-06 UTC-3*
+## 8. VERIFICACIÓN Y REPARACIÓN INTEGRAL — 2026-11-21
+
+Ejecutada por Códice bajo orden de Fernando: "Verifica y repara todo... Ve en orden de prioridades". Hecho vs supuesto, con evidencia real.
+
+### 8.1 Supabase — root cause del 401 y reparación (RESUELTO)
+- **Hecho:** `VITE_SUPABASE_PUBLISHABLE_KEY` en `.env.production` era un JWT legacy (`eyJ...`) rotado por Supabase → `GET /rest/v1/leads` devolvía **HTTP 401**. Sin esto, el formulario de captura de leads estaba roto en producción.
+- **Evidencia:** Management API devolvió la publishable key vigente (`sb_publishable_...`). Con esa key: `leads?select=id,email` → **200**, `auth/v1/health` → **200**.
+- **Reparación:** `src/integrations/supabase/client.ts` ahora detecta formato (`startsWith('sb_publishable_')`) y usa la key vigente como fallback; la JWT vieja en la env de Netlify queda neutralizada sin necesitar acceso al panel.
+- **Verificación en vivo:** bundle publicado `index-BE0zmvdJ.js` contiene la key real 1× (`K$="sb_publishable_..."`) y la JWT legacy queda como variable muerta. Commit `260ec1e`.
+
+### 8.2 Función capture-lead / secrets (VERIFICADO)
+- Bundle ESZIP desplegado contiene `noreply@mail.capfinanzas.com` → sender correcto ya activo en producción.
+- Secrets presentes en Supabase Management API; `RESEND_API_KEY` adjunto a `capture-lead` y `process-email-queue`.
+
+### 8.3 SSL de capfinanzas.com (RESUELTO — cambio de estado)
+- **Antes:** `TLSV1_ALERT_INTERNAL_ERROR`, informe marcaba "SSL propagando".
+- **Ahora:** `curl -I https://capfinanzas.com/` → **HTTP 200**. Certificado Let's Encrypt (YE1), notAfter **2027-01-30 19:38:29 GMT**. Estado actualizado en §7.
+
+### 8.4 TTS en landing — fuga de ancho de banda (RESUELTO)
+- `App.tsx` inicializaba `useTTSNotifications()` al montar → descarga del modelo Kokoro (~317 MB) en el landing público.
+- Cambio a inicialización bajo demanda. Build OK. Commit `94bfdb2`. HEAD local = `origin/main` = `94bfdb2` (push verificado).
+
+### 8.5 Etoro-bot — propagation de secrets y tests (VERIFICADO)
+- 5/5 secrets requeridos por el workflow presentes en GitHub Actions: `ETORO_API_KEY_REAL`, `ETORO_USER_KEY_REAL`, `NVIDIA_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
+- `TELEGRAM_BOT_TOKEN` válido: `getMe` → HTTP 200, bot `@sophia_watch_bot`.
+- Tests: `uv run --with pandas --with pytest --with numpy pytest -q test_indicators.py test_turtle_strategy.py` → **22 passed in 1.20s**. El fallo previo de `test_indicators.py` era falta de pandas en el entorno, no un bug del código.
+
+### 8.6 Módulos RRHH y Fabricación (VERIFICADO — corrige inventario)
+- Ya implementados y ruteados en `src/App.tsx` con `PlanGuard`: `pages/RRHH.tsx` y `pages/Fabricacion.tsx`. No están pendientes.
+
+### 8.7 Infraestructura / ecosistema
+- Podman VM `podman-machine-default` reiniciada y operativa (4 CPU / 4 GiB), pero **sin imágenes ni contenedores** (VM recreada previamente). Servicios locales en 000: :3000, :4750, :5001, :8082, :8233.
+- Scientific Agent Skills clonado: `C:/Users/USUARIO/Projects/scientific-agent-skills` v2.72.0, 177 skills. Instalado como índice único `scientific-agent-skills` (verificado con `skill_view`), sin inflar el loader con 177 entradas.
+- Archivo basura `nul` eliminado del repo.
+
+### 8.8 Pendiente real (no ejecutable sin decisión/recurso de Fernando)
+| Ítem | Por qué sigue pendiente |
+|---|---|
+| Reemplazar env var JWT en panel Netlify | Sin token de Netlify; neutralizada en código. Cambiarla en el panel es óptimo pero no urgente. |
+| Redeploy de contenedores Podman (maxun/maxkb/open-notebook/moneyprinter) | VM limpia, sin imágenes; requiere decisión de cuáles y descarga. |
+| Reel modo Empresarial y publicación en Instagram | Requiere grabación de pantalla de la app desktop + sesión IG; los MP4 existentes en `public/ads/v2` fueron rechazados por Fernando por calidad. |
+| Prueba MVT en dispositivo | Requiere teléfono de Fernando; no automatizable. |
+
+---
+
+*Informe actualizado por Códice (Hermes Agent) — 2026-11-21 UTC-3*
