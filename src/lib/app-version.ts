@@ -15,8 +15,8 @@ export const releaseAssetUrl = (file: string, version: string = APP_VERSION) =>
 
 /** Nombres de los instaladores que produce electron-builder por defecto. */
 export const installerFiles = (version: string = APP_VERSION) => ({
-  windows: `Cap.Finanzas.Setup.${version}.exe`,
-  macArm: `Cap.Finanzas-${version}-arm64.dmg`,
-  macIntel: `Cap.Finanzas-${version}.dmg`,
-  linuxAppImage: `Cap.Finanzas-${version}.AppImage`,
+  windows: `Cap-Finanzas-Setup-${version}.exe`,
+  macArm: `Cap-Finanzas-${version}-arm64.dmg`,
+  macIntel: `Cap-Finanzas-${version}.dmg`,
+  linuxAppImage: `Cap-Finanzas-${version}.AppImage`,
 });
