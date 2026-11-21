@@ -199,6 +199,22 @@ Ejecutada por Códice bajo orden de Fernando: "Verifica y repara todo... Ve en o
 | Reel modo Empresarial y publicación en Instagram | Requiere grabación de pantalla de la app desktop + sesión IG; los MP4 existentes en `public/ads/v2` fueron rechazados por Fernando por calidad. |
 | Prueba MVT en dispositivo | Requiere teléfono de Fernando; no automatizable. |
 
+### 8.9 Punto 1 — Netlify: verificación 2026-11-21 (HECHOS)
+| Comprobación | Resultado |
+|---|---|
+| `https://cap-finanzas.netlify.app/` | **HTTP 200** — despliegues activos. Bundle actual `assets/index-BGM9ABLq.js` (cambió desde `index-BE0zmvdJ.js` → Netlify **sí** está publicando). |
+| Fix de key en bundle | `sb_publishable_` presente (3 oc.), JWT legacy `eyJhbGciOi` 1 oc. (identificador no-key). Sin regresión del fix publishable. |
+| `https://capfinanzas.com/` | **HTTP 000** — `curl` falla con `TLSV1_ALERT_INTERNAL_ERROR` / OpenSSL `alert 80` (handshake). HTTP (80) devuelve `301 → https` con `Server: nginx`. |
+| DNS `capfinanzas.com` | Correcto: A `75.2.60.5`, `99.83.190.102` (IPs de Netlify). El problema no es DNS, es el certificado TLS servido. |
+| API Netlify `GET /api/v1/sites/cap-finanzas` | HTTP 401 sin token → no hay acceso programático. |
+| Token Netlify local | **No existe**: ni CLI configurado, ni `~/.netlify`, ni archivos de config, ni en `.env`, ni en `browser_vault`. |
+| Sesión en navegador Hermes | No comparte la sesión de Brave; la URL del team muestra pantalla de login. |
+| Conclusión | Netlify **no está pausado por créditos** (sigue desplegando). Lo caído es el **dominio propio** por certificado. Sin token no se puede operar el panel. |
+
+**Decisión pendiente del usuario (enseñanza):**Para operar Netlify se necesita un Personal Access Token. Ruta exacta: `app.netlify.com` → avatar (usuario) → **User settings** → **Applications** → **Personal access tokens** → **New access token**. Alternativa $0 sin Netlify: mover el sitio estático a **GitHub Pages** (repo privado → requiere plan de pago para Pages privado; haría falta hacer público el repo) o **Cloudflare Pages** (gratis, pero el `CLOUDFLARE_API_TOKEN` actual ve 0 cuentas/zonas → no autorizado para desplegar). Por ahora no se cambia de plataforma: el servicio de Netlify en `.netlify.app` funciona y es gratuito; se reparará el certificado en cuanto haya token o se decida migrar.
+
+**Nota de herramienta corregida:**`browser_exec` fallaba con `browser is configured to use 'native'`; causa era valor inválido en el config del perfil `codigo`. Corregido a `cloud_provider: local` + `use_real_profile: true`. Navegador operativo verificado.
+
 ---
 
 *Informe actualizado por Códice (Hermes Agent) — 2026-11-21 UTC-3*
