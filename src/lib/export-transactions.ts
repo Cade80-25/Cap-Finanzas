@@ -1,4 +1,4 @@
-import ExcelJS from "exceljs";
+// ExcelJS se carga bajo demanda (247 KB) para no pesar en el landing.
 
 export interface ExportTransaction {
   fecha: string;
@@ -37,6 +37,7 @@ export function exportToCSV(transactions: ExportTransaction[], filename?: string
 export async function exportToExcel(transactions: ExportTransaction[], filename?: string) {
   if (transactions.length === 0) return;
 
+  const { default: ExcelJS } = await import("exceljs");
   const wb = new ExcelJS.Workbook();
   wb.creator = "Cap Finanzas";
   wb.created = new Date();

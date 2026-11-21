@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { useState, useRef } from "react";
 import { useAutoUpdater } from "@/hooks/useAutoUpdater";
-import ExcelJS from "exceljs";
+import ExcelJS from "exceljs"; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { useBudgets } from "@/hooks/useBudgets";
 import { useSecurity } from "@/hooks/useSecurity";

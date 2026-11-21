@@ -1,5 +1,4 @@
-import ExcelJS from "exceljs";
-
+// ExcelJS se carga bajo demanda (247 KB) para no pesar en el landing.
 export interface ImportedTransaction {
   fecha: string;
   descripcion: string;
@@ -65,6 +64,7 @@ export async function importFromCSV(text: string): Promise<ImportedTransaction[]
 }
 
 export async function importFromExcel(buffer: ArrayBuffer): Promise<ImportedTransaction[]> {
+  const { default: ExcelJS } = await import("exceljs");
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buffer);
   const ws = wb.worksheets[0];
