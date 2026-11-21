@@ -174,7 +174,9 @@ Ejecutada por Códice bajo orden de Fernando: "Verifica y repara todo... Ve en o
 
 ### 8.4 TTS en landing — fuga de ancho de banda (RESUELTO)
 - `App.tsx` inicializaba `useTTSNotifications()` al montar → descarga del modelo Kokoro (~317 MB) en el landing público.
-- Cambio a inicialización bajo demanda. Build OK. Commit `94bfdb2`. HEAD local = `origin/main` = `94bfdb2` (push verificado).
+- Cambio a inicialización bajo demanda. Build OK. Commit `94bfdb2`.
+- ExcelJS también pasó a carga bajo demanda (247 KB fuera del bundle del landing). Commit final `79b3995`. Rebase limpio sobre 3 commits de seguridad/dependencias del remoto (`f97cb8c`, `a8d10e6`, `0d05498`).
+- Push verificado: HEAD local = `origin/main` = `79b3995`, `git status` sin pendientes.
 
 ### 8.5 Etoro-bot — propagation de secrets y tests (VERIFICADO)
 - 5/5 secrets requeridos por el workflow presentes en GitHub Actions: `ETORO_API_KEY_REAL`, `ETORO_USER_KEY_REAL`, `NVIDIA_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
