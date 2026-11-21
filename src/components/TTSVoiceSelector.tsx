@@ -147,16 +147,17 @@ export function VoiceSelector({
           {showAdvanced && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 ml-4">
               {otherVoices.map(voice => (
-                <VoiceOption
-                                key={voice.id}
-                                voice={voice}
-                                isSelected={selectedVoice === voice.id}
-                                onSelect={() => onVoiceChange(voice.id)}
-                                getProviderBadge={getProviderBadge}
-                                getLanguageFlag={getLanguageFlag}
-                                getGradeColor={getGradeColor}
-                              />
-              ))}
+                              <VoiceOption
+                                              key={voice.id}
+                                              voice={voice}
+                                              isSelected={selectedVoice === voice.id}
+                                              onSelect={() => onVoiceChange(voice.id)}
+                                              onTestVoice={onTestVoice}
+                                              getProviderBadge={getProviderBadge}
+                                              getLanguageFlag={getLanguageFlag}
+                                              getGradeColor={getGradeColor}
+                                            />
+                            ))}
             </div>
           )}
         </div>
