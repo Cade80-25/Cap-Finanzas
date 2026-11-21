@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTTS, TTSVoice, TTSVoiceInfo } from '../hooks/useTTS';
 import { VoiceSelector } from './TTSVoiceSelector';
+import { ElevenLabsConfig } from './ElevenLabsConfig';
 
 export function TTSControlPanel() {
   const { 
@@ -134,16 +135,19 @@ export function TTSControlPanel() {
       </div>
 
       {/* Info */}
-      <details className="border-t pt-4 text-sm text-gray-500">
-        <summary className="cursor-pointer font-medium text-gray-700">ℹ️ Detalles técnicos</summary>
-        <div className="mt-2 space-y-1">
-          <p>• Modelo: <code>onnx-community/Kokoro-82M-v1.0-ONNX</code> (quantized fp32/q8)</p>
-          <p>• Voces: {availableVoices.length} voces (en-US / en-GB / es-ES)</p>
-          <p>• Backend: {device === 'webgpu' ? 'WebGPU (GPU acelerado)' : device === 'wasm' ? 'WASM (CPU)' : 'Detectando...'}</p>
-          <p>• Caché: Service Worker + Cache API (offline tras primera carga)</p>
-          <p>• Licencia: Apache-2.0 (gratis, comercial, sin atribución requerida)</p>
-        </div>
-      </details>
-    </div>
-  );
-}
+            <details className="border-t pt-4 text-sm text-gray-500">
+              <summary className="cursor-pointer font-medium text-gray-700">ℹ️ Detalles técnicos</summary>
+              <div className="mt-2 space-y-1">
+                <p>• Modelo: <code>onnx-community/Kokoro-82M-v1.0-ONNX</code> (quantized fp32/q8)</p>
+                <p>• Voces: {availableVoices.length} voces (en-US / en-GB / es-ES)</p>
+                <p>• Backend: {device === 'webgpu' ? 'WebGPU (GPU acelerado)' : device === 'wasm' ? 'WASM (CPU)' : 'Detectando...'}</p>
+                <p>• Caché: Service Worker + Cache API (offline tras primera carga)</p>
+                <p>• Licencia: Apache-2.0 (gratis, comercial, sin atribución requerida)</p>
+              </div>
+            </details>
+
+            {/* ElevenLabs Config */}
+            <ElevenLabsConfig />
+          </div>
+        );
+      }

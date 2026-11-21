@@ -86,7 +86,7 @@ function getWebSpeechVoices(): TTSVoiceInfo[] {
 // ============================================================
 
 const ELEVENLABS_DEFAULT_VOICES: TTSVoiceInfo[] = [
-  // These are popular ElevenLabs voices - user can add their own via API key
+  // English voices
   { id: 'eleven-rachel', name: 'Rachel', language: 'en-US', gender: 'Female', grade: 'A', trait: 'Calm, storytelling', provider: 'elevenlabs', voiceId: '21m00Tcm4TlvDq8ikWAM' },
   { id: 'eleven-domi', name: 'Domi', language: 'en-US', gender: 'Female', grade: 'A', trait: 'Strong, confident', provider: 'elevenlabs', voiceId: 'AZnzlk1XvdvUeBnXmlld' },
   { id: 'eleven-bella', name: 'Bella', language: 'en-US', gender: 'Female', grade: 'A', trait: 'Soft, conversational', provider: 'elevenlabs', voiceId: 'EXAVITQu4vr4xnSDxMaL' },
@@ -96,6 +96,13 @@ const ELEVENLABS_DEFAULT_VOICES: TTSVoiceInfo[] = [
   { id: 'eleven-arnold', name: 'Arnold', language: 'en-US', gender: 'Male', grade: 'A', trait: 'Crisp, authoritative', provider: 'elevenlabs', voiceId: 'VR6AewLTigWG4xSOukaG' },
   { id: 'eleven-adam', name: 'Adam', language: 'en-US', gender: 'Male', grade: 'A', trait: 'Deep, narrator', provider: 'elevenlabs', voiceId: 'pNInz6obpgDQGcFmaJgB' },
   { id: 'eleven-sam', name: 'Sam', language: 'en-US', gender: 'Male', grade: 'A', trait: 'Raspy, conversational', provider: 'elevenlabs', voiceId: 'yoZ06aMxZJJ28mfd3POQ' },
+  // Spanish voices (multilingual_v2 model)
+  { id: 'eleven-daniel-es', name: 'Daniel (ES)', language: 'es-ES', gender: 'Male', grade: 'A', trait: 'Natural, neutral Spanish', provider: 'elevenlabs', voiceId: 'onwK4e9ZLuTAKqWW03F9' },
+  { id: 'eleven-elena-es', name: 'Elena (ES)', language: 'es-ES', gender: 'Female', grade: 'A', trait: 'Warm, conversational Spanish', provider: 'elevenlabs', voiceId: 'mtsI9qC75D42Rvb2pYIa' },
+  { id: 'eleven-santiago-es', name: 'Santiago (ES)', language: 'es-MX', gender: 'Male', grade: 'A', trait: 'Mexican Spanish, professional', provider: 'elevenlabs', voiceId: 'XqmlW0gYvB5pFnLOpTHq' },
+  { id: 'eleven-valentina-es', name: 'Valentina (ES)', language: 'es-MX', gender: 'Female', grade: 'A', trait: 'Mexican Spanish, friendly', provider: 'elevenlabs', voiceId: 'FGY2WhTYpPnrIDTdsKH5' },
+  { id: 'eleven-lucia-es', name: 'Lucía (ES)', language: 'es-ES', gender: 'Female', grade: 'A', trait: 'Spanish from Spain, clear', provider: 'elevenlabs', voiceId: '9v7Kq3KOV15RjwNzWjDh' },
+  { id: 'eleven-carlos-es', name: 'Carlos (ES)', language: 'es-ES', gender: 'Male', grade: 'A', trait: 'Spanish from Spain, deep', provider: 'elevenlabs', voiceId: 'TX3LPaxmHKxFdv7VOQHJ' },
 ];
 
 // ============================================================
