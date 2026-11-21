@@ -204,7 +204,7 @@ Ejecutada por Códice bajo orden de Fernando: "Verifica y repara todo... Ve en o
 |---|---|
 | `https://cap-finanzas.netlify.app/` | **HTTP 200** — despliegues activos. Bundle actual `assets/index-BGM9ABLq.js` (cambió desde `index-BE0zmvdJ.js` → Netlify **sí** está publicando). |
 | Fix de key en bundle | `sb_publishable_` presente (3 oc.), JWT legacy `eyJhbGciOi` 1 oc. (identificador no-key). Sin regresión del fix publishable. |
-| `https://capfinanzas.com/` | **HTTP 000** — `curl` falla con `TLSV1_ALERT_INTERNAL_ERROR` / OpenSSL `alert 80` (handshake). HTTP (80) devuelve `301 → https` con `Server: nginx`. |
+| `https://capfinanzas.com/` | **HTTP 000** — `curl` falla con `TLSV1_ALERT_INTERNAL_ERROR` / OpenSSL `alert 80` (handshake). HTTP (80) devuelve `301 → https` con `Server: nginx`. **(SUPERADO — ver §9: el 2026-11-21 da HTTP 200)** |
 | DNS `capfinanzas.com` | Correcto: A `75.2.60.5`, `99.83.190.102` (IPs de Netlify). El problema no es DNS, es el certificado TLS servido. |
 | API Netlify `GET /api/v1/sites/cap-finanzas` | HTTP 401 sin token → no hay acceso programático. |
 | Token Netlify local | **No existe**: ni CLI configurado, ni `~/.netlify`, ni archivos de config, ni en `.env`, ni en `browser_vault`. |
@@ -228,6 +228,31 @@ Ejecutada por Códice bajo orden de Fernando: "Verifica y repara todo... Ve en o
 **Causa raíz del fallo (y fix permanente):** la VM recreada arrancó con kernel WSL2 6.18 + Fedora 44 donde `cgroup.controllers` no propaga `pids` a los scopes de crun → `OCI runtime error: controller pids is not available`. Se escribió `/etc/containers/containers.conf` con `[engine] cgroup_manager = "cgroupfs"` **dentro de la VM** (persiste en disco; verificado tras `wsl --shutdown` + `machine start`). Rootless se mantuvo (rootful rompía el port forwarding a Windows).
 
 **Dos tropiezos corregidos (documentados para no repetir):** (1) `moneyprinterturbo` con `docker-compose.yml` falla en build por paquetes Debian bullseye 404 → usar `docker-compose.release.yml` (imagen publicada). (2) matar `wslrelay.exe` huérfano puede derribar el socket de la VM activa → si `podman ps` da "Cannot connect", hacer `wsl --shutdown` + `podman machine start`, NO matar relays a ciegas.
+
+---
+
+## 9. CIERRE DE CONEXIONES — 2026-11-21 (VERIFICADO EN VIVO)
+
+Verificación final de todas las conexiones, con evidencia real (curl). **Todas activas y funcionando.**
+
+| Conexión | Comprobación | Resultado |
+|---|---|---|
+| Netlify (sitio) | `https://cap-finanzas.netlify.app/` | **HTTP 200** ✅ |
+| Dominio propio | `https://capfinanzas.com/` | **HTTP 200** ✅ (corrige §8.9: antes 000/TLS) |
+| DNS `capfinanzas.com` | A → `75.2.60.5`, `99.83.190.102` | Correcto ✅ |
+| DNS `www.capfinanzas.com` | CNAME → `cap-finanzas.netlify.app` | Correcto ✅ |
+| Supabase REST | `GET /rest/v1/leads?select=count` con publishable key | **200** `[{"count":0}]` ✅ |
+| Edge Function | `POST /functions/v1/capture-lead` | **200** ✅ |
+| `.env.production` | URL + publishable key + PayPal token | Presentes ✅ |
+
+**Estado:** SSL de `capfinanzas.com` ya propaga (HTTP 200 real). Conexiones de captura de leads operativas de punta a punta.
+
+### 9.1 Video de la app para materiales de marketing (HECHO — CORREGIDO)
+- **Archivo:** `public/ads/demo_app_20261121.mp4` (94 KB, 11.4 s, 15 fps, **1488×802**, H.264).
+- **Método:** `ShowWindow(SW_RESTORE)` + `SW_MAXIMIZE` + `SetForegroundWindow` sobre la ventana real de la app, captura nativa con `PIL.ImageGrab` y compilado con ffmpeg. Sin interacción DOM.
+- **Contenido verificado con OCR** (RapidOCR, score ≥0.94): menú `Archivo / Vista / Herramientas / Ayuda`, `Licencia`, `Descargar`, `Monedas y Conversiones`, `Conversor de Monedas`, `Tasas de Cambio`, `Panel Principal`, `Transacciones`, `Cantidad`, `Calendario`, `Moneda`, `Presupuesto`, `USD`. Es la app real, no una terminal.
+- **Lección (causa raíz del primer intento fallido):** la ventana principal tiene **título vacío** y `HWND=000100b2` (área 1475×40) pertenece a **explorer.exe**, no a la app; por eso la selección por área capturó una franja de terminal (`Ejecutando echo ===DOCKER CONTEXT===`). La ventana de la app es `HWND=003b056e`, **PID 19616** (`Cap Finanzas.exe`), que estaba **minimizada** (159×27). Para re-capturar: buscar por PID 19616 o restaurar con `ShowWindow` antes de medir el área.
+- **Pendiente de calidad:** el video crudo es material base (sin voz, sin música, sin CTA). Para el reel final: grabar con interacción (recorrer secciones) + voz + música. Requiere sesión IG para publicar.
 
 ---
 
