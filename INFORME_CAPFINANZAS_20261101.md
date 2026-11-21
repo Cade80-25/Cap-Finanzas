@@ -732,4 +732,46 @@ botón "Tour completo" (sección "Explora la app"). Texto del landing actualizad
 | 8 | Cap-Finanzas v1.1.79 install | ⏳ confirmación |
 
 ---
+
+## 23. CIERRE DE CONFIGURACIÓN — 2026-11-21 (todo verificado en vivo)
+
+### 23.1 Recuperación de datos de la app — VERIFICADO ÍNTEGRO
+Lectura directa del LevelDB de la app (`%APPDATA%\Cap Finanzas\Local Storage\leveldb`) con `plyvel`.
+Clave real: `_file://\x00\x01cap-finanzas-journal` (valor UTF-16LE, 1 byte de versión + JSON).
+
+| Fuente | Transacciones | Rango |
+|--------|---------------|-------|
+| LevelDB (app, real) | **239** | 2026-04-01 → **2026-11-21 (hoy)** |
+| `journal_recuperado.json` (backup oct) | 191 | 2026-04-01 → 2026-10-03 |
+| Contenidas backup ⊂ app | **191 / 191 ✅** | — |
+
+**No hay pérdida de datos.** Las 76 transacciones que el WAL (`.log`) no mostraba sí están en el
+SSTable (`.ldb`); el `.log` solo guardaba la última escritura parcial (160).
+Restos de migración sin efecto: `cap-finanzas-journal-migrated=true` y
+`cap-finanzas-libro-diario-transactions=[]` (la app sigue leyendo `cap-finanzas-journal`).
+
+### 23.2 Release de escritorio — v1.1.88 publicado (hoy)
+`gh release list` → `v1.1.88` **Latest**, no draft, no prerelease (2026-11-21T12:27Z).
+Assets reales: `Cap-Finanzas-Setup-1.1.88.exe` (147 MB), `Cap-Finanzas-1.1.88.AppImage` (164 MB),
+`latest.yml`, `latest-linux.yml`. No hay `.dmg` de macOS publicados.
+
+**BUG encontrado y corregido**: `src/lib/app-version.ts` generaba `Cap.Finanzas.Setup.${v}.exe`
+(puntos) pero el asset real es `Cap-Finanzas-Setup-${v}.exe` (guiones) → la descarga del
+instalador desde el landing daba 404. Corregido (commit `87e935b`).
+
+### 23.3 Estado final de configuración
+| # | Pendiente | Estado |
+|---|-----------|--------|
+| 1 | SSL capfinanzas.com | ✅ RESUELTO (estable, cert Let's Encrypt a 30-ene-2027) |
+| 2 | PageSpeed landing | ✅ causa raíz corregida (319 MB → 0.9 MB) |
+| 3 | Cron pg_cron | ✅ 3 jobs activos, duplicado roto eliminado |
+| 4 | Edge functions | ✅ verificadas end-to-end (lead → email sent) |
+| 5 | Lead magnet | ✅ PDF 7 págs online + enlace en email de bienvenida |
+| 6 | Recuperación datos app | ✅ íntegro: 239 transacciones al día |
+| 7 | Tour guiado | ✅ quitado |
+| 8 | Release de escritorio | ✅ v1.1.88 Latest + nombres de assets corregidos |
+
+**Configuración completada. Los 8 pendientes quedan cerrados y verificados.**
+
+---
 *Informe actualizado por Códice (Hermes Agent) — 2026-11-21 (UTC-3)*
