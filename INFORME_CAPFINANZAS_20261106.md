@@ -215,6 +215,20 @@ Ejecutada por Códice bajo orden de Fernando: "Verifica y repara todo... Ve en o
 
 **Nota de herramienta corregida:**`browser_exec` fallaba con `browser is configured to use 'native'`; causa era valor inválido en el config del perfil `codigo`. Corregido a `cloud_provider: local` + `use_real_profile: true`. Navegador operativo verificado.
 
+### 8.10 Punto 2 — Contenedores Podman redeployados (VERIFICADO 2026-11-21)
+
+**Decisión ejecutada:** se redeployaron los 3 con datos/valor real; **maxun se descartó** (repo ausente + volúmenes `maxun_postgres_data` 4 KB / `maxun_minio_data` 152 KB, prácticamente vacíos).
+
+| Servicio | Estado | Endpoint verificado |
+|---|---|---|
+| open-notebook (surrealdb + app) | UP | UI 8502=307, API 5055=200, DB 8000=200/307 — **90 archivos de libros intactos** (bind mounts `surreal_data` + `notebook_data` sobrevivieron) |
+| moneyprinterturbo (api + webui) | UP | 8501=200, 8085=200 — vía `docker-compose.release.yml` (imagen `ghcr.io/harry0703/moneyprinterturbo:latest`) |
+| MaxKB | UP | 8082=302 (login), log "MaxKB started" — volumen `maxkb_data` conservado |
+
+**Causa raíz del fallo (y fix permanente):** la VM recreada arrancó con kernel WSL2 6.18 + Fedora 44 donde `cgroup.controllers` no propaga `pids` a los scopes de crun → `OCI runtime error: controller pids is not available`. Se escribió `/etc/containers/containers.conf` con `[engine] cgroup_manager = "cgroupfs"` **dentro de la VM** (persiste en disco; verificado tras `wsl --shutdown` + `machine start`). Rootless se mantuvo (rootful rompía el port forwarding a Windows).
+
+**Dos tropiezos corregidos (documentados para no repetir):** (1) `moneyprinterturbo` con `docker-compose.yml` falla en build por paquetes Debian bullseye 404 → usar `docker-compose.release.yml` (imagen publicada). (2) matar `wslrelay.exe` huérfano puede derribar el socket de la VM activa → si `podman ps` da "Cannot connect", hacer `wsl --shutdown` + `podman machine start`, NO matar relays a ciegas.
+
 ---
 
 *Informe actualizado por Códice (Hermes Agent) — 2026-11-21 UTC-3*
