@@ -4,7 +4,7 @@
   "version": "1.1.87",
   "type": "module",
   "main": "electron/main.cjs",
-  "description": "Aplicación de finanzas personales y contabilidad",
+  "description": "Aplicaci\u00f3n de finanzas personales y contabilidad",
   "author": "Cap Finanzas",
   "scripts": {
     "test": "vitest run",
@@ -115,7 +115,10 @@
     "uuid": "^11.1.1",
     "@electron/get": "^5.1.0",
     "postcss-selector-parser": "^7.1.6",
-    "minimatch": "^11.0.1"
+    "minimatch": "^11.0.1",
+    "shell-quote": "^1.8.2",
+    "tar": "^7.4.3",
+    "glob": "^11.0.1"
   },
   "build": {
     "appId": "com.capfinanzas.app",
