@@ -262,7 +262,15 @@ Verificación final de todas las conexiones, con evidencia real (curl). **Todas 
 | Netlify (`/ads/demo_app_20261121.mp4`) | ⏳ **aún no** — el sitio sirve el bundle viejo `index-BGM9ABLq.js`; el deploy de los commits nuevos queda pendiente de que Netlify buildee. No se da por publicado hasta ver `Content-Type: video/mp4`. |
 | Referencia | El video anterior `ads/cap_finanzas_ad_15s.mp4` sí está vivo (`video/mp4`, 203 317 bytes), lo que confirma que la ruta `public/ads/` es correcta. |
 
-### 9.2 Punto 3 — Cronjob de arranque al abrir Hermes (VERIFICADO 2026-11-21)
+### 9.2 Reel animado sin grabar pantalla (HECHO 2026-11-21, reel v2)
+- **Archivo:** `public/ads/reel_capfinanzas_v2.mp4` (988 KB, **30.00 s**, 1080×1920, 30 fps, H.264 + AAC 192 kb/s).
+- **Método:** generado por código (Python+PIL → ffmpeg), **sin grabación de pantalla**. Reimplementa el diseño de `fframes-videos/cap-finanzas/src/lib.rs` (5 escenas: problema → qué es → cómo funciona → la prueba → CTA). Generador: `public/ads/generate_reel_fframes.py`.
+- **Audio:** voz en off `es-UY-MateoNeural` (edge-tts, sin key) + música `public/ads/v3/background_music.wav` con *ducking* (sidechaincompress). mean −23.9 dB / max −7.2 dB, sin clipping.
+- **Textos dentro de los recuadros (verificado con OCR + cajas, 2026-11-21):** función `fit_font` que reduce el tamaño hasta entrar; medición por escena: escena 2 badges `Modo Simple`/`Partida Doble`/`Windows`/`macOS`/`Linux` → DENTRO; escena 3 subtítulos (x máx 908 < 970) → DENTRO; escena 4 filas (x máx 906 < 970) → DENTRO; escena 5 URL (196-887 dentro de 150-930) → DENTRO.
+- **Plataformas:** el CTA y los badges aclaran **Windows · macOS · Linux**. Coherente con los menús de la app (`MenuBar.tsx`) y con el CI (3/3). **Pendiente de verificación:** en disco solo se encontraron instaladores `.exe`; el `.dmg`/`.AppImage` no están en el repo local y el token de GitHub venció (401) → no se pudo confirmar el release. No dar por publicados los 3 hasta verificar `latest-mac.yml` / assets del release.
+- **Nota técnica:** el pipeline Rust (`fframes`) no se puede recompilar en este equipo — no hay Windows SDK (`kernel32.lib` ausente) y `link.exe` resuelve al `link` de MSYS. Por eso el reel v2 se genera en Python.
+
+### 9.3 Punto 3 — Cronjob de arranque al abrir Hermes (VERIFICADO 2026-11-21)
 
 **Pedido de Fernando:** en lugar de arrancar al encender la PC, levantar los contenedores **cuando se abre Hermes Agent**, con recordatorio.
 
