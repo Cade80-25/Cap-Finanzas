@@ -408,7 +408,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {[
               { step: "1", title: "Descarga e instala", desc: "Solo descarga el archivo .exe y ábrelo. No necesitas instalar nada más.", icon: Download },
-              { step: "2", title: "Registra tus movimientos", desc: "Agrega tus ingresos y gastos con categorías. El tour guiado te ayuda desde el inicio.", icon: PiggyBank },
+              { step: "2", title: "Registra tus movimientos", desc: "Agrega tus ingresos y gastos con categorías. La interfaz te guía desde el inicio.", icon: PiggyBank },
               { step: "3", title: "Visualiza tu progreso", desc: "Gráficos, resúmenes y reportes te muestran exactamente cómo va tu dinero.", icon: TrendingUp },
             ].map((item) => (
               <div key={item.step} className="text-center group">

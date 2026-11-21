@@ -1,4 +1,4 @@
-import { Wallet, TrendingUp, TrendingDown, PiggyBank, LayoutDashboard, Sparkles, Navigation, PieChart, Target, Receipt, Globe, ArrowRight } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, PiggyBank, LayoutDashboard, Sparkles, PieChart, Target, Receipt, Globe } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,10 +68,6 @@ export default function Dashboard() {
   const addTransactionRoute = isSimpleMode ? "/transacciones" : "/libro-diario";
   const addTransactionLabel = isSimpleMode ? "Agregar Movimiento" : "Ir al Libro Diario";
 
-  const startTour = () => {
-    window.dispatchEvent(new CustomEvent("start-app-tour"));
-  };
-
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-in fade-in duration-500">
       <div data-tutorial="dashboard-title" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -83,10 +79,6 @@ export default function Dashboard() {
               : "Resumen general de tus finanzas"}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={startTour} className="self-start">
-          <Navigation className="h-4 w-4 mr-1" />
-          Tour guiado
-        </Button>
       </div>
 
       <WeeklySummaryCard />
@@ -208,10 +200,6 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <span>🧭</span> Explora la app
           </h2>
-          <Button variant="ghost" size="sm" onClick={startTour} className="text-xs text-muted-foreground">
-            Tour completo
-            <ArrowRight className="h-3 w-3 ml-1" />
-          </Button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {exploreCards.map((card) => (
