@@ -254,7 +254,15 @@ Verificación final de todas las conexiones, con evidencia real (curl). **Todas 
 - **Lección (causa raíz del primer intento fallido):** la ventana principal tiene **título vacío** y `HWND=000100b2` (área 1475×40) pertenece a **explorer.exe**, no a la app; por eso la selección por área capturó una franja de terminal (`Ejecutando echo ===DOCKER CONTEXT===`). La ventana de la app es `HWND=003b056e`, **PID 19616** (`Cap Finanzas.exe`), que estaba **minimizada** (159×27). Para re-capturar: buscar por PID 19616 o restaurar con `ShowWindow` antes de medir el área.
 - **Pendiente de calidad:** el video crudo es material base (sin voz, sin música, sin CTA). Para el reel final: grabar con interacción (recorrer secciones) + voz + música. Requiere sesión IG para publicar.
 
-### 8.11 Punto 3 — Cronjob de arranque al abrir Hermes (VERIFICADO 2026-11-21)
+**Estado de publicación (verificado 2026-11-21 ~13:05):**
+| Soporte | Estado |
+|---|---|
+| Repo git (`public/ads/demo_app_20261121.mp4`) | ✅ trackeado, `origin/main` |
+| Build local (`dist/ads/demo_app_20261121.mp4`) | ✅ 94 861 bytes |
+| Netlify (`/ads/demo_app_20261121.mp4`) | ⏳ **aún no** — el sitio sirve el bundle viejo `index-BGM9ABLq.js`; el deploy de los commits nuevos queda pendiente de que Netlify buildee. No se da por publicado hasta ver `Content-Type: video/mp4`. |
+| Referencia | El video anterior `ads/cap_finanzas_ad_15s.mp4` sí está vivo (`video/mp4`, 203 317 bytes), lo que confirma que la ruta `public/ads/` es correcta. |
+
+### 9.2 Punto 3 — Cronjob de arranque al abrir Hermes (VERIFICADO 2026-11-21)
 
 **Pedido de Fernando:** en lugar de arrancar al encender la PC, levantar los contenedores **cuando se abre Hermes Agent**, con recordatorio.
 
