@@ -254,6 +254,16 @@ Verificación final de todas las conexiones, con evidencia real (curl). **Todas 
 - **Lección (causa raíz del primer intento fallido):** la ventana principal tiene **título vacío** y `HWND=000100b2` (área 1475×40) pertenece a **explorer.exe**, no a la app; por eso la selección por área capturó una franja de terminal (`Ejecutando echo ===DOCKER CONTEXT===`). La ventana de la app es `HWND=003b056e`, **PID 19616** (`Cap Finanzas.exe`), que estaba **minimizada** (159×27). Para re-capturar: buscar por PID 19616 o restaurar con `ShowWindow` antes de medir el área.
 - **Pendiente de calidad:** el video crudo es material base (sin voz, sin música, sin CTA). Para el reel final: grabar con interacción (recorrer secciones) + voz + música. Requiere sesión IG para publicar.
 
+### 8.11 Punto 3 — Cronjob de arranque al abrir Hermes (VERIFICADO 2026-11-21)
+
+**Pedido de Fernando:** en lugar de arrancar al encender la PC, levantar los contenedores **cuando se abre Hermes Agent**, con recordatorio.
+
+**Implementación:** cronjob `podman-on-hermes-open` (job_id `4d8803dd164f`), `schedule: every 2m`, `no_agent: true` (sin LLM, costo $0), `deliver: origin`. Script: `C:/Users/USUARIO/AppData/Local/hermes/profiles/codigo/scripts/podman_on_hermes_open.py`.
+
+**Mecánica (por qué funciona):** el cron corre dentro de Hermes, así que al abrirlo el job dispara y compara el `StartTime` del proceso Hermes con el estado guardado en `cache/podman_hermes_open_state.json`. Si cambió (Hermes se reabrió) → levanta VM + 3 contenedores, verifica puertos y emite: *"Hermes Agent abierto HH:MM. Contenedores Podman levantados: open-notebook=UP | moneyprinterturbo=UP | maxkb=UP"*. Si no cambió y todo está UP → stdout vacío, **sin ruido**. Si algún puerto cayó → recupera y avisa.
+
+**Verificación real:** 1ª corrida manual emitió el recordatorio con los 3 endpoints UP; 2ª corrida dio salida vacía (correcto); job creado con `gateway_running: true` y disparado en background.
+
 ---
 
 *Informe actualizado por Códice (Hermes Agent) — 2026-11-21 UTC-3*
