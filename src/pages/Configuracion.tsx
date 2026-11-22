@@ -30,6 +30,8 @@ import { useJournalTransactions } from "@/hooks/useJournalTransactions";
 import { useBudgets } from "@/hooks/useBudgets";
 import { useSecurity } from "@/hooks/useSecurity";
 import { useAdvancedFeatures } from "@/hooks/useAdvancedFeatures";
+import { useTTS } from "@/hooks/useTTS";
+import { Mic, Volume2, Key, Check, AlertCircle, Loader2, Play } from "lucide-react";
 import { ChangePinDialog, BackupDialog, TwoFactorDialog } from "@/components/SecurityDialogs";
 import { LogsDialog, SyncDialog, ResetDialog } from "@/components/AdvancedFeaturesDialogs";
 import { LicenseSettings } from "@/components/LicenseSettings";
@@ -54,6 +56,10 @@ interface ConfigData {
   advancedFeatures: boolean;
   autoUpdates: boolean;
   exportFormat: string;
+  // TTS / Voz
+  ttsProvider: "kokoro" | "web-speech" | "elevenlabs";
+  ttsVoiceId: string;
+  elevenlabsApiKey: string;
 }
 
 const defaultConfig: ConfigData = {
@@ -72,6 +78,10 @@ const defaultConfig: ConfigData = {
   advancedFeatures: false,
   autoUpdates: true,
   exportFormat: "json",
+  // TTS defaults
+  ttsProvider: "web-speech",
+  ttsVoiceId: "",
+  elevenlabsApiKey: "",
 };
 
 const loadConfig = (): ConfigData => {
@@ -81,6 +91,200 @@ const loadConfig = (): ConfigData => {
   } catch {
     return defaultConfig;
   }
+};
+
+const TTSConfig: React.FC<{
+  config: ConfigData;
+  updateConfig: (updates: Partial<ConfigData>) => void;
+  ttsProvider: "kokoro" | "web-speech" | "elevenlabs";
+  ttsVoiceId: string;
+  elevenlabsApiKey: string;
+}> = ({ config, updateConfig, ttsProvider, ttsVoiceId, elevenlabsApiKey }) => {
+  const { availableVoices, getAllVoices, fetchElevenLabsVoices, speak, isLoading, isPlaying, error, elevenLabsVoices } = useTTS();
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [testText, setTestText] = useState("Hola, esta es una prueba de voz de Cap Finanzas.");
+  const [fetchingVoices, setFetchingVoices] = useState(false);
+
+  // Filtrar voces por proveedor
+  const filteredVoices = availableVoices.filter((v) => {
+    if (ttsProvider === "kokoro") return v.provider === "kokoro";
+    if (ttsProvider === "web-speech") return v.provider === "web-speech";
+    if (ttsProvider === "elevenlabs") return v.provider === "elevenlabs";
+    return false;
+  });
+
+  const handleProviderChange = (provider: "kokoro" | "web-speech" | "elevenlabs") => {
+    updateConfig({ ttsProvider: provider, ttsVoiceId: "" });
+    if (provider === "elevenlabs" && elevenlabsApiKey && elevenLabsVoices.length === 0) {
+      handleFetchElevenLabsVoices();
+    }
+  };
+
+  const handleFetchElevenLabsVoices = async () => {
+    if (!elevenlabsApiKey) return;
+    setFetchingVoices(true);
+    try {
+      await fetchElevenLabsVoices(elevenlabsApiKey);
+      toast.success(`${elevenLabsVoices.length} voces de ElevenLabs cargadas`);
+    } catch (err) {
+      toast.error("Error al cargar voces de ElevenLabs");
+      console.error(err);
+    } finally {
+      setFetchingVoices(false);
+    }
+  };
+
+  const handleVoiceChange = (voiceId: string) => {
+    updateConfig({ ttsVoiceId: voiceId });
+  };
+
+  const handleElevenLabsApiKeyChange = (key: string) => {
+    updateConfig({ elevenlabsApiKey: key });
+  };
+
+  const handleTestVoice = () => {
+    if (ttsVoiceId) {
+      speak(testText, ttsVoiceId);
+    } else if (filteredVoices.length > 0) {
+      speak(testText, filteredVoices[0].id);
+    } else {
+      toast.error("No hay voces disponibles para este proveedor");
+    }
+  };
+
+  const providerLabels: Record<string, string> = {
+    kokoro: "Kokoro (Offline, Inglés)",
+    "web-speech": "Navegador / Sistema (Multilingüe, Gratis)",
+    elevenlabs: "ElevenLabs (Cloud, Multilingüe, Requiere API Key)",
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Selector de Proveedor */}
+      <div className="space-y-2">
+        <Label>Proveedor de TTS</Label>
+        <Select value={ttsProvider} onValueChange={handleProviderChange as any}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecciona un proveedor" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="kokoro">{providerLabels.kokoro}</SelectItem>
+            <SelectItem value="web-speech">{providerLabels["web-speech"]}</SelectItem>
+            <SelectItem value="elevenlabs">{providerLabels.elevenlabs}</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          {ttsProvider === "kokoro" && "Funciona sin internet. Solo voces en inglés."}
+          {ttsProvider === "web-speech" && "Usa voces del navegador/SO. Incluye español. Gratis."}
+          {ttsProvider === "elevenlabs" && "Mejor calidad, multilingüe. Requiere API Key de ElevenLabs."}
+        </p>
+      </div>
+
+      {/* API Key de ElevenLabs */}
+      {ttsProvider === "elevenlabs" && (
+        <div className="space-y-2">
+          <Label>API Key de ElevenLabs</Label>
+          <div className="flex gap-2">
+            <input
+              type={showApiKey ? "text" : "password"}
+              value={elevenlabsApiKey}
+              onChange={(e) => handleElevenLabsApiKeyChange(e.target.value)}
+              placeholder="sk_... o tu API key"
+              className="flex-1 px-3 py-2 border border-input bg-background rounded-md text-sm"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowApiKey(!showApiKey)}
+              disabled={fetchingVoices}
+            >
+              {showApiKey ? <AlertCircle className="h-4 w-4" /> : <Key className="h-4 w-4" />}
+            </Button>
+            {elevenlabsApiKey && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleFetchElevenLabsVoices}
+                disabled={fetchingVoices || elevenLabsVoices.length > 0}
+              >
+                {fetchingVoices ? <Loader2 className="h-4 w-4 animate-spin" /> : <CloudUpload className="h-4 w-4" />}
+                {fetchingVoices ? "Cargando..." : elevenLabsVoices.length > 0 ? "✓ Cargadas" : "Cargar voces"}
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Obtén tu API Key en <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" rel="noopener noreferrer" className="underline">elevenlabs.io/app/settings/api-keys</a>
+            {elevenLabsVoices.length > 0 && <span className="ml-2 text-green-600">({elevenLabsVoices.length} voces personalizadas disponibles)</span>}
+          </p>
+        </div>
+      )}
+
+      {/* Selector de Voz */}
+      <div className="space-y-2">
+        <Label>Voz</Label>
+        {filteredVoices.length === 0 ? (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <AlertCircle className="h-4 w-4" />
+            <span>No hay voces disponibles para este proveedor</span>
+          </div>
+        ) : (
+          <Select value={ttsVoiceId || filteredVoices[0].id} onValueChange={handleVoiceChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona una voz" />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredVoices.map((voice) => (
+                <SelectItem key={voice.id} value={voice.id}>
+                  {voice.name} {voice.language && `(${voice.language})`} {voice.gender && `[${voice.gender}]`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <p className="text-xs text-muted-foreground">
+          {filteredVoices.length > 0 ? `${filteredVoices.length} voces disponibles` : "Ninguna"}
+        </p>
+      </div>
+
+      {/* Probar Voz */}
+      <div className="space-y-2">
+        <Label>Probar voz seleccionada</Label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={testText}
+            onChange={(e) => setTestText(e.target.value)}
+            placeholder="Texto a leer..."
+            className="flex-1 px-3 py-2 border border-input bg-background rounded-md text-sm"
+          />
+          <Button
+            onClick={handleTestVoice}
+            disabled={isPlaying || isLoading || !ttsVoiceId && filteredVoices.length === 0}
+            className="gap-2"
+          >
+            {isPlaying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+            {isPlaying ? "Reproduciendo..." : "Probar"}
+          </Button>
+          {isPlaying && (
+            <Button variant="outline" size="sm" onClick={() => speak("")}>
+              <Volume2 className="h-4 w-4" />
+              Parar
+            </Button>
+          )}
+        </div>
+        {error && <p className="text-xs text-red-600">{error}</p>}
+      </div>
+
+      {/* Estado actual */}
+      <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
+        <p><strong>Proveedor actual:</strong> {providerLabels[ttsProvider]}</p>
+        <p><strong>Voz seleccionada:</strong> {ttsVoiceId || (filteredVoices[0]?.name || "Ninguna (se usará la primera disponible)")}</p>
+        {ttsProvider === "elevenlabs" && elevenlabsApiKey && <p><strong>API Key:</strong> Configurada</p>}
+      </div>
+    </div>
+  );
 };
 
 type Transaction = {
@@ -1339,14 +1543,37 @@ export default function Configuracion() {
                 </div>
               <Switch checked={config.autoUpdates} onCheckedChange={(checked) => {
                 updateConfig({ autoUpdates: checked });
+                window.electron.setAutoUpdateConfig({ autoUpdates: checked });
                 toast.success(checked ? "Actualizaciones automáticas activadas" : "Actualizaciones automáticas desactivadas");
-              }} />
+              }} /> 
               </div>
             </CardContent>
           </Card>
         )}
 
-        <Card className="lg:col-span-2">
+                {/* Sección de Voz / Texto a Voz */}
+                <Card className="lg:col-span-2">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Mic className="h-5 w-5" />
+                      Voz / Texto a Voz
+                    </CardTitle>
+                    <CardDescription>
+                      Configura la síntesis de voz para notificaciones y lecturas
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <TTSConfig 
+                      config={config} 
+                      updateConfig={updateConfig}
+                      ttsProvider={config.ttsProvider}
+                      ttsVoiceId={config.ttsVoiceId}
+                      elevenlabsApiKey={config.elevenlabsApiKey}
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="h-5 w-5" />

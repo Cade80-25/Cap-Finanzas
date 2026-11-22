@@ -7,6 +7,24 @@ const fs = require('fs');
 const os = require('os');
 const crypto = require('crypto');
 
+// Config file path for auto-updater settings (persisted across restarts)
+const CONFIG_FILE = path.join(app.getPath('userData'), 'autoupdate-config.json');
+
+function readAutoUpdateConfig() {
+  try {
+    if (fs.existsSync(CONFIG_FILE)) {
+      return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+    }
+  } catch (_) {}
+  return { autoUpdates: false };
+}
+
+function writeAutoUpdateConfig(config) {
+  try {
+    fs.writeFileSync(CONFIG_FILE, JSON.stringify(config), 'utf8');
+  } catch (_) {}
+}
+
 // ─── Proxy de Yahoo Finance (evita CORS desde el renderer) ───
 // Usa https nativo de Node.js (siempre disponible en Electron)
 const https = require('https');
@@ -165,7 +183,8 @@ app.on('window-all-closed', () => {
 });
 
 // Auto-updater configuration
-autoUpdater.autoDownload = false;
+const autoUpdateConfig = readAutoUpdateConfig();
+autoUpdater.autoDownload = autoUpdateConfig.autoUpdates;
 autoUpdater.autoInstallOnAppQuit = true;
 
 // Auto-updater events
@@ -208,6 +227,16 @@ ipcMain.on('install-update', () => {
   autoUpdater.quitAndInstall();
 });
 
+// IPC handler to receive auto-updater config from renderer
+ipcMain.on('set-auto-update-config', (_event, config) => {
+  writeAutoUpdateConfig(config);
+  autoUpdater.autoDownload = config.autoUpdates;
+  // If autoUpdates is enabled, check for updates immediately
+  if (config.autoUpdates && process.env.NODE_ENV !== 'development') {
+    autoUpdater.checkForUpdates();
+  }
+});
+
 // Native menu controls
 function setNativeMenuVisible(visible) {
   const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
@@ -227,11 +256,14 @@ ipcMain.on('toggle-native-menu', () => {
   setNativeMenuVisible(nextVisible);
 });
 
-// Check for updates on app start (only in production)
+// Check for updates on app start (only in production and if autoUpdates is enabled)
 app.on('ready', () => {
   if (process.env.NODE_ENV !== 'development') {
-    setTimeout(() => {
-      autoUpdater.checkForUpdates();
-    }, 3000);
+    const config = readAutoUpdateConfig();
+    if (config.autoUpdates) {
+      setTimeout(() => {
+        autoUpdater.checkForUpdates();
+      }, 3000);
+    }
   }
 });

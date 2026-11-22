@@ -28,5 +28,8 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.removeAllListeners('update-error');
     ipcRenderer.removeAllListeners('download-progress');
     ipcRenderer.removeAllListeners('update-downloaded');
-  }
+  },
+
+  // Auto-updater config
+  setAutoUpdateConfig: (config) => ipcRenderer.send('set-auto-update-config', config),
 });
