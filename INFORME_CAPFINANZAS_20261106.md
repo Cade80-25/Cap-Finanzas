@@ -280,6 +280,17 @@ Verificación final de todas las conexiones, con evidencia real (curl). **Todas 
 - **Audio:** voz `es-UY-MateoNeural` (edge-tts) rate +30 % → `atempo=1.0583` para calzar 30.00 s + música a 0.25. Normalización **loudnorm en 2 pasadas** (voz a −16 LUFS) + `amix` + `volume −2.2 dB` + `alimiter`. Resultado: **mean −17.6 dB, integrado −18.6 LUFS, pico −2.7 dBTP** (alta claridad, sin clipping). Nota: `sidechaincompress` degradaba el mix (~6 dB de más bajado) → descartado.
 - **Pendiente:** verificar que los instaladores macOS/Linux estén publicados en capfinanzas.com (en disco local solo hay `.exe`).
 
+### 9.3.1 Reel v4 — voz neuronal local, guion sincronizado y capturas reales por modo (HECHO 2026-11-22)
+- **Archivo:** `public/ads/reel_capfinanzas_v4.mp4` (**2.34 MB, 31.67 s**, 1080×1920, 30 fps, H.264 + AAC 192 kb/s). Copia en `Desktop/promo_cap/`.
+- **Voz neuronal local ($0):** **Piper** (TTS neuronal ONNX) con el modelo `es_MX-claude-high` (español de México, voz femenina), `length_scale=0.72`. Motivo: ElevenLabs devolvió **HTTP 401** (key inválida) y `text_to_speech` de Hermes dio **timeout 420 s**. Modelo descargado de `rhasspy/piper-voices` (**63,122,309 bytes**, verificado contra `content-length` del servidor); corre con el `piper.exe` del venv de `ebook2audiobook`.
+- **Generador de voz:** `public/ads/generar_voz_v4.py` (variable `PIPER_RATE`).
+- **Guion exacto y tiempos reales:** `public/ads/GUION_REEL_V4.md`. Las 6 frases: 3.47 / 5.15 / 7.38 / 7.05 / 5.84 / 2.17 s = **31.07 s de voz** + 5 pausas de 0.12 s = **31.67 s**.
+- **Sincronía verificada (no asumida):** los 5 silencios de la pista de voz medidos con `silencedetect` caen en **3.45 / 8.75 / 16.25 / 23.42 / 29.38 s**, exactamente los límites de escena del video (el vídeo se construye con esas mismas duraciones). Se corrigió un bug del `concat` (índices de entrada mal mapeados) que inflaba la pista a **51.6 s** y desalineaba todo el reel.
+- **Capturas reales de la app (2 por modo):** `public/ads/capturas/limpia_01_personal_dashboard.png`, `limpia_02_personal_transacciones.png`, `limpia_04_empresarial_dashboard.png`, `limpia_05_empresarial_libro_diario.png` (recortadas con PIL para sacar el banner superior de 118 px; originales en `capturas_originales/`). En la escena 3 cambian a los 4 s; en la 4 igual.
+- **Tipografía de marca:** `DMSans-Medium.ttf` (la usa la app) copiada a `public/ads/` (antes caía a Arial por una ruta relativa mal resuelta).
+- **Audio final:** voz con **loudnorm en 2 pasadas** (−16 LUFS) + música a 0.25 + `volume −2.2 dB` + `alimiter` → **mean −17.1 dB, integrado −17.7 LUFS, pico −2.7 dBTP**.
+- **Verificación OCR en 7 frames:** escena 1 (titular), 2 (búho + 3 plataformas), 3 (Modo Simple + USD 20 + captura real con “Panel Principal”, “Gastaste $1,840.00”), 4 (Modo Negocios + USD 100 + captura), 5 (4 diferenciales), 6 (CTA `capfinanzas.com`). Todos los textos dentro de recuadro.
+
 ### 9.4 Punto 3 — Cronjob de arranque al abrir Hermes (VERIFICADO 2026-11-21)
 
 **Pedido de Fernando:** en lugar de arrancar al encender la PC, levantar los contenedores **cuando se abre Hermes Agent**, con recordatorio.
