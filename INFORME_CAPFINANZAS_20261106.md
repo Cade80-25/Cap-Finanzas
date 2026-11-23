@@ -291,6 +291,17 @@ Verificación final de todas las conexiones, con evidencia real (curl). **Todas 
 - **Audio final:** voz con **loudnorm en 2 pasadas** (−16 LUFS) + música a 0.25 + `volume −2.2 dB` + `alimiter` → **mean −17.1 dB, integrado −17.7 LUFS, pico −2.7 dBTP**.
 - **Verificación OCR en 7 frames:** escena 1 (titular), 2 (búho + 3 plataformas), 3 (Modo Simple + USD 20 + captura real con “Panel Principal”, “Gastaste $1,840.00”), 4 (Modo Negocios + USD 100 + captura), 5 (4 diferenciales), 6 (CTA `capfinanzas.com`). Todos los textos dentro de recuadro.
 
+### 9.3.2 Reel v5 — voz edge-tts, explicación del precio y 7 escenas (HECHO 2026-11-22)
+- **Archivo:** `public/ads/reel_capfinanzas_v5.mp4` (**3.19 MB, 64.32 s**, 1080×1920, 30 fps, H.264 + AAC 192 kb/s). Copia en `Desktop/promo_cap/`.
+- **Pedido de Fernando:** la voz del v4 seguía «algo robótica»; quería además una **explicación precisa de la diferencia de precio** entre modos; el tiempo deja de ser tope (admite hasta 1:30) y manda la claridad y la explicación.
+- **Voz:** **edge-tts** (Microsoft, $0) `es-MX-DaliaNeural`, `rate +30%`, elegida por Fernando entre 4 hablantes tras oírlas. Venv propio en `cache/scratch/venv_etts`. Motivo del cambio: Piper es **un solo hablante** — las tres muestras comparadas eran el mismo modelo, por eso «sonaban iguales»; edge-tts tiene prosodia más rica. ElevenLabs sigue descartado (**401, key inválida**).
+- **7 escenas:** gancho / presentación / Modo Simple / Modo Negocios / **«¿Cuál elegir?»** / beneficios / CTA. Duraciones reales de frase: **4.99 / 7.75 / 9.67 / 13.30 / 13.25 / 9.34 / 5.30 s** = 63.60 s + 6 pausas de 0.12 s = **64.32 s**.
+- **Escena nueva «¿Cuál elegir?»:** dos tarjetas enfrentadas — **SIMPLE USD 20** (ingresos y gastos en 1 paso, categorías automáticas, presupuestos) vs **NEGOCIOS USD 100** (partida doble, libro diario y mayor, balance) — con el cierre *«la diferencia es el doble registro contable: el Negocios anota cada operación dos veces y te da el balance»*.
+- **Sincronía verificada (no asumida):** `silencedetect` de la pista de voz da los silencios de escena en **5.27 / 13.12 / 22.93 / 36.35 / 49.71 / 59.17 s**, coincidiendo con los límites reales (desfase <0.3 s).
+- **OCR de 7 frames:** gancho, presentación, Simple, Negocios, «¿Cuál elegir?» (ambas tarjetas con precios y cierre), beneficios y CTA. Todo dentro de recuadro.
+- **Audio final:** voz con **loudnorm en 2 pasadas** + música a 0.25 + `volume −2.2 dB` + `alimiter` → **integrado −17.8 LUFS, pico −2.5 dBTP**.
+- **Scripts:** `generar_voz_v5.py`, `generate_reel_v5.py`, `mezclar_v5.py`, `reintentar_voz_v5.py`; guion `GUION_REEL_V5.md`. Commit **5f15fc4**.
+
 ### 9.4 Punto 3 — Cronjob de arranque al abrir Hermes (VERIFICADO 2026-11-21)
 
 **Pedido de Fernando:** en lugar de arrancar al encender la PC, levantar los contenedores **cuando se abre Hermes Agent**, con recordatorio.
