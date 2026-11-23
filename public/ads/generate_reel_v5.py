@@ -236,7 +236,7 @@ def escena_2(d, t, t0, t1):
 SIMPLE_BULLETS = ["Ingresos y gastos en 1 paso", "Categorías automáticas",
                   "Presupuestos y gráficos"]
 NEGOCIOS_BULLETS = ["Partida doble: Debe y Haber", "Libro Diario y Libro Mayor",
-                    "Balance y Estado de Resultados"]
+                    "Balance y Estado de Resultados", "Inventarios · Personal · Banca"]
 
 
 def escena_modo(d, t, t0, t1, titulo, precio, bullets, modo, color_titulo=WHITE):
@@ -417,7 +417,7 @@ SUBS = [
     "¿Cuadrar tus cuentas te quita horas?",
     "Cap-Finanzas ordena tus finanzas en minutos.",
     "Modo Simple: ingresos y gastos en un paso. USD 20.",
-    "Modo Negocios: contabilidad completa, partida doble. USD 100.",
+    "Modo Negocios: partida doble, inventarios, personal y banca. USD 100.",
     "¿Cuál elegir? El Negocios anota cada operación dos veces.",
     "Sin mensualidades. Sin internet. Tus datos quedan tuyos.",
     "Descargalo hoy en capfinanzas.com",
