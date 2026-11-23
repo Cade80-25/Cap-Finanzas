@@ -41,7 +41,7 @@ def loudnorm_json(path):
     return json.loads(m.group(0)) if m else None
 
 
-def extender_musica(total, crossfade=2.0):
+def extender_musica(total, crossfade=2.0, vol=None):
     """La pista base dura 30 s: la repite con crossfade y la recorta al total.
 
     Sin esto, `amix=duration=first` toma la duracion de la musica (30 s) y corta
@@ -50,6 +50,7 @@ def extender_musica(total, crossfade=2.0):
     salida = os.path.join(HERE, "audio", "_musica_ext.wav")
     if not os.path.exists(MUSIC):
         return None
+    vol = MUSIC_VOL if vol is None else vol
     n = max(3, int(total / 28) + 1)
     cmd = [FFMPEG, "-y", "-loglevel", "error"]
     for _ in range(n):
@@ -61,7 +62,7 @@ def extender_musica(total, crossfade=2.0):
         cadena += (f";[{prev}][{i}:a]acrossfade=d={crossfade}:c1=tri:c2=tri[{cur}]")
         prev = cur
     out = prev
-    cadena += (f";[{out}]atrim=duration={total:.3f},volume={MUSIC_VOL},"
+    cadena += (f";[{out}]atrim=duration={total:.3f},volume={vol},"
                f"afade=t=out:st={max(total - 2.5, 0):.3f}:d=2.5[m]")
     cmd += ["-filter_complex", cadena, "-map", "[m]", "-c:a", "pcm_s16le", salida]
     r = run(cmd)
