@@ -305,6 +305,18 @@ Verificación final de todas las conexiones, con evidencia real (curl). **Todas 
 - **Scripts:** `generar_voz_v5.py`, `generate_reel_v5.py`, `mezclar_v5.py`, `reintentar_voz_v5.py`; guion `GUION_REEL_V5.md`. Commit **5f15fc4**.
 - **BUG encontrado y corregido** (reportado por Fernando: «se cortó la voz en mitad del video»): el stream de audio del MP4 duraba **30.000 s** contra 64.33 s de video. **Causa:** `amix=duration=first` toma la duración del **primer input del subgrafo**, que era la pista de música (`v3/background_music.wav`, **30.000 s** exactos), no la del video. **Fix:** `extender_musica()` repite la pista con `acrossfade` (fundido de 2 s) hasta la duración real + `amix=duration=longest`. **Verificado:** audio **64.32 s** = video **64.33 s**, y la voz suena de punta a punta (por tramos: t=10 −18.5 dB, t=29 −18.0, t=45 −17.5, t=62 −19.8 dB). El **v4 tenía el mismo defecto** (mismo filtro) y fue corregido de igual forma. Commit **22cb215**.
 
+### 9.3.3 Mejoras aplicadas al v5 (2026-11-23)
+
+Fernando aprobó el reel y pidió mejoras. Se aplicaron tres:
+
+1. **Subtítulos quemados por escena**: la mayoría reproduce reels **sin sonido**, así que el mensaje textual deja de depender de la voz. Texto abajo, fondo semitransparente, sincronizado con cada escena (`subtitulo()` + `SUBS[]` en `generate_reel_v5.py`). Verificado por OCR sobre frames reales del MP4 en las **7 escenas**.
+2. **Audio a −13.3 LUFS** (antes −18.3): rango en el que compite Instagram/TikTok; pico −0.1 dB (sin clip digital). Cambios en `mezclar_v5.py`: `loudnorm=I=-14`, se eliminó la atenuación posterior de −2.2 dB, `alimiter=limit=0.92`.
+3. **`public/ads/CAPTION_REEL.md`**: caption listo para copiar y pegar + hashtags + el comentario fijado que responde la objeción de precio.
+
+Resultado verificado: video **64.33 s** / audio **64.32 s**, 4.22 MB, 1080×1920, 30 fps. Commit **1adec80**.
+
+**Pendiente de decisión:** el CTA usa `capfinanzas.com`; verificado el 2026-11-23 respondiendo **HTTP 200** con HTTPS (ya no hay conflicto Netlify DNS).
+
 ### 9.4 Punto 3 — Cronjob de arranque al abrir Hermes (VERIFICADO 2026-11-21)
 
 **Pedido de Fernando:** en lugar de arrancar al encender la PC, levantar los contenedores **cuando se abre Hermes Agent**, con recordatorio.
