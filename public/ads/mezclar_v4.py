@@ -41,6 +41,36 @@ def loudnorm_json(path):
     return json.loads(m.group(0)) if m else None
 
 
+def extender_musica(total, crossfade=2.0):
+    """La pista base dura 30 s: la repite con crossfade y la recorta al total.
+
+    Sin esto, `amix=duration=first` toma la duracion de la musica (30 s) y corta
+    la voz a la mitad del reel (bug real del v3/v4/v5).
+    """
+    salida = os.path.join(HERE, "audio", "_musica_ext_v4.wav")
+    if not os.path.exists(MUSIC):
+        return None
+    n = max(3, int(total / 28) + 1)
+    cmd = [FFMPEG, "-y", "-loglevel", "error"]
+    for _ in range(n):
+        cmd += ["-i", MUSIC]
+    cadena = f"[0:a][1:a]acrossfade=d={crossfade}:c1=tri:c2=tri[a0]"
+    prev = "a0"
+    for i in range(2, n):
+        cur = f"a{i}"
+        cadena += (f";[{prev}][{i}:a]acrossfade=d={crossfade}:c1=tri:c2=tri[{cur}]")
+        prev = cur
+    out = prev
+    cadena += (f";[{out}]atrim=duration={total:.3f},volume={MUSIC_VOL},"
+               f"afade=t=out:st={max(total - 2.5, 0):.3f}:d=2.5[m]")
+    cmd += ["-filter_complex", cadena, "-map", "[m]", "-c:a", "pcm_s16le", salida]
+    r = run(cmd)
+    if r.returncode != 0:
+        print("fallo extender musica:", r.stderr[-300:])
+        return None
+    return salida
+
+
 def main():
     voces = [os.path.join(HERE, "audio", f"s{i:02d}.wav") for i in range(1, 7)]
     durs = [dur(v) for v in voces]
@@ -77,10 +107,12 @@ def main():
     run([FFMPEG, "-y", "-loglevel", "error", "-i", voz_bruta, "-af", ln,
          "-c:a", "pcm_s16le", voz_norm])
 
-    mix = (f"[2:a]volume={MUSIC_VOL}[m];[m][1:a]amix=inputs=2:duration=first:normalize=0[a];"
+    musica = extender_musica(total) or MUSIC
+    print("musica:", round(dur(musica), 3), "s |", musica)
+    mix = (f"[1:a][2:a]amix=inputs=2:duration=longest:normalize=0[a];"
            f"[a]volume=-2.2dB,alimiter=limit=0.98[aout]")
     r = run([FFMPEG, "-y", "-loglevel", "error",
-             "-i", VIDEO, "-i", voz_norm, "-i", MUSIC,
+             "-i", VIDEO, "-i", voz_norm, "-i", musica,
              "-filter_complex", mix,
              "-map", "0:v", "-map", "[aout]",
              "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "44100",
