@@ -397,6 +397,33 @@ def escena_cta(d, t, t0, t1):
     return put_alpha(layer, v)
 
 
+def subtitulo(layer, t, t0, t1, txt):
+    """Subtitulo quemado abajo: la mayoria reproduce reels sin sonido."""
+    fin = 0.35
+    a = anim(t, t0, t0 + fin) * (1 - anim(t, t1 - fin, t1))
+    if a <= 0.01:
+        return
+    d = ImageDraw.Draw(layer)
+    f = fit_font(d, txt, WIDTH - 150, 46, min_size=28)
+    cx, cy = WIDTH // 2, HEIGHT - 240
+    bb = d.textbbox((cx, cy), txt, font=f, anchor="mm")
+    d.global_alpha = int(205 * a)
+    rrect(d, (bb[0] - 20, bb[1] - 8, bb[2] + 20, bb[3] + 8), radius=16, fill=(0, 0, 0))
+    d.global_alpha = int(255 * a)
+    d.text((cx, cy), txt, font=f, fill=WHITE, anchor="mm")
+
+
+SUBS = [
+    "¿Cuadrar tus cuentas te quita horas?",
+    "Cap-Finanzas ordena tus finanzas en minutos.",
+    "Modo Simple: ingresos y gastos en un paso. USD 20.",
+    "Modo Negocios: contabilidad completa, partida doble. USD 100.",
+    "¿Cuál elegir? El Negocios anota cada operación dos veces.",
+    "Sin mensualidades. Sin internet. Tus datos quedan tuyos.",
+    "Descargalo hoy en capfinanzas.com",
+]
+
+
 SCENES = [escena_1, escena_2, escena_3, escena_4,
           escena_comparativa, escena_beneficios, escena_cta]
 
@@ -445,6 +472,7 @@ def main():
             lay = sc(None, ft, t0, t1)
             if lay is not None:
                 base.alpha_composite(lay)
+            subtitulo(base, ft, t0, t1, SUBS[idx])
         img = Image.alpha_composite(img.convert("RGBA"), base).convert("RGB")
         d = ImageDraw.Draw(img)
         prog = max(int(WIDTH * min(ft / total, 1.0)), 1)
