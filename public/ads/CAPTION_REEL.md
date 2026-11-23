@@ -10,7 +10,7 @@ Cap-Finanzas lo hace por vos: cargás tus ingresos y gastos y la app te deja la 
 Ingresos y gastos en un paso, categorías automáticas, presupuestos claros.
 
 📊 **Modo Negocios — USD 100 (pago único)**
-Contabilidad completa con partida doble: anota cada operación dos veces y te da el balance.
+Contabilidad completa con partida doble, más **inventarios, personal y cuentas bancarias** en el mismo programa.
 
 Sin suscripciones. Sin internet obligatorio. Tus datos quedan en tu máquina, siempre tuyos.
 
