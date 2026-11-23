@@ -291,6 +291,8 @@ Verificación final de todas las conexiones, con evidencia real (curl). **Todas 
 - **Audio final:** voz con **loudnorm en 2 pasadas** (−16 LUFS) + música a 0.25 + `volume −2.2 dB` + `alimiter` → **mean −17.1 dB, integrado −17.7 LUFS, pico −2.7 dBTP**.
 - **Verificación OCR en 7 frames:** escena 1 (titular), 2 (búho + 3 plataformas), 3 (Modo Simple + USD 20 + captura real con “Panel Principal”, “Gastaste $1,840.00”), 4 (Modo Negocios + USD 100 + captura), 5 (4 diferenciales), 6 (CTA `capfinanzas.com`). Todos los textos dentro de recuadro.
 
+- **CORREGIDO 2026-11-22:** el audio de este reel también quedaba cortado a **30 s** (mismo `amix=duration=first`); se regeneró con la música extendida. Ahora **audio 31.668 s = video 31.667 s** y la voz suena hasta el final. Causa y detalle en 9.3.2. Commit **9c867aa**.
+
 ### 9.3.2 Reel v5 — voz edge-tts, explicación del precio y 7 escenas (HECHO 2026-11-22)
 - **Archivo:** `public/ads/reel_capfinanzas_v5.mp4` (**3.19 MB, 64.32 s**, 1080×1920, 30 fps, H.264 + AAC 192 kb/s). Copia en `Desktop/promo_cap/`.
 - **Pedido de Fernando:** la voz del v4 seguía «algo robótica»; quería además una **explicación precisa de la diferencia de precio** entre modos; el tiempo deja de ser tope (admite hasta 1:30) y manda la claridad y la explicación.
@@ -301,6 +303,7 @@ Verificación final de todas las conexiones, con evidencia real (curl). **Todas 
 - **OCR de 7 frames:** gancho, presentación, Simple, Negocios, «¿Cuál elegir?» (ambas tarjetas con precios y cierre), beneficios y CTA. Todo dentro de recuadro.
 - **Audio final:** voz con **loudnorm en 2 pasadas** + música a 0.25 + `volume −2.2 dB` + `alimiter` → **integrado −17.8 LUFS, pico −2.5 dBTP**.
 - **Scripts:** `generar_voz_v5.py`, `generate_reel_v5.py`, `mezclar_v5.py`, `reintentar_voz_v5.py`; guion `GUION_REEL_V5.md`. Commit **5f15fc4**.
+- **BUG encontrado y corregido** (reportado por Fernando: «se cortó la voz en mitad del video»): el stream de audio del MP4 duraba **30.000 s** contra 64.33 s de video. **Causa:** `amix=duration=first` toma la duración del **primer input del subgrafo**, que era la pista de música (`v3/background_music.wav`, **30.000 s** exactos), no la del video. **Fix:** `extender_musica()` repite la pista con `acrossfade` (fundido de 2 s) hasta la duración real + `amix=duration=longest`. **Verificado:** audio **64.32 s** = video **64.33 s**, y la voz suena de punta a punta (por tramos: t=10 −18.5 dB, t=29 −18.0, t=45 −17.5, t=62 −19.8 dB). El **v4 tenía el mismo defecto** (mismo filtro) y fue corregido de igual forma. Commit **22cb215**.
 
 ### 9.4 Punto 3 — Cronjob de arranque al abrir Hermes (VERIFICADO 2026-11-21)
 
