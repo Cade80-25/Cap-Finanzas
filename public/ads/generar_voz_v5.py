@@ -30,8 +30,8 @@ FRASES = [
     "Categorías automáticas, presupuestos claros y un panel que te muestra "
     "en qué se va tu plata.",
     "El Negocios es contabilidad completa. Cada operación registra dos "
-    "partidas: el debe y el haber. Libro diario, libro mayor y balance de "
-    "resultados. Facturas, stock, cuentas corrientes y tu equipo, en el "
+    "partidas: el debe y el haber. Libro diario, libro mayor y balance. "
+    "Además maneja inventarios, personal y cuentas bancarias, todo en el "
     "mismo lugar.",
     "¿Y por qué dos precios? Porque el Negocios hace el doble registro "
     "contable: anota cada operación dos veces y te devuelve el balance. Si "
