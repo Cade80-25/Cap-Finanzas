@@ -36,7 +36,7 @@ def dur(path):
 
 def loudnorm_json(path):
     p = run([FFMPEG, "-hide_banner", "-i", path, "-af",
-             "loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json", "-f", "null", "-"])
+             "loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json", "-f", "null", "-"])
     m = re.search(r"\{[^{}]*\"input_i\"[^{}]*\}", p.stderr, re.S)
     return json.loads(m.group(0)) if m else None
 
@@ -99,7 +99,7 @@ def main():
 
     med = loudnorm_json(voz_bruta)
     print("medicion:", {k: med[k] for k in ("input_i", "input_tp", "input_lra", "input_thresh", "target_offset")} if med else None)
-    ln = (f"loudnorm=I=-16:TP=-1.5:LRA=11:measured_I={med['input_i']}:"
+    ln = (f"loudnorm=I=-14:TP=-1.5:LRA=11:measured_I={med['input_i']}:"
           f"measured_TP={med['input_tp']}:measured_LRA={med['input_lra']}:"
           f"measured_thresh={med['input_thresh']}:offset={med['target_offset']}:linear=true")
     voz_norm = os.path.join(HERE, "audio", "_voz_norm.wav")
@@ -109,7 +109,7 @@ def main():
     musica = extender_musica(total) or MUSIC
     print("musica:", round(dur(musica), 3), "s |", musica)
     mix = (f"[1:a][2:a]amix=inputs=2:duration=longest:normalize=0[a];"
-           f"[a]volume=-2.2dB,alimiter=limit=0.98[aout]")
+           f"[a]alimiter=limit=0.92[aout]")
     r = run([FFMPEG, "-y", "-loglevel", "error",
              "-i", VIDEO, "-i", voz_norm, "-i", musica,
              "-filter_complex", mix,
