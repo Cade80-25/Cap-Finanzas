@@ -317,6 +317,24 @@ Resultado verificado: video **64.33 s** / audio **64.32 s**, 4.22 MB, 1080×1920
 
 **Pendiente de decisión:** el CTA usa `capfinanzas.com`; verificado el 2026-11-23 respondiendo **HTTP 200** con HTTPS (ya no hay conflicto Netlify DNS).
 
+### 9.3.4 Variantes (2026‑11‑23)
+
+| Variante | Archivo | Duración | Audio |
+|---|---|---|---|
+| Largo con voz | `reel_capfinanzas_v5.mp4` | 64.07 s | voz + música, −13.3 LUFS |
+| **Sin narración** | `reel_capfinanzas_v5_sinvoz.mp4` | 64.07 s | solo música + subtítulos |
+| **Corto** | `reel_capfinanzas_corto.mp4` | 29.13 s | voz + música, −13.5 LUFS |
+
+- El largo nombra los módulos reales del modo Negocios en pantalla y en voz:
+  **partida doble, inventarios, personal y cuentas bancarias**
+  (tarjeta «Inventario · Personal · Banca»), verificados contra
+  `src/hooks/useModeFeatures.ts`: en modo Simple no están RRHH ni Inventario;
+  en `traditionalMode` sí (junto a Banca, Tesorería, CRM, TPV, Fabricación…).
+- El corto comprime el mismo mensaje en 5 escenas (~29 s) para rotarlo como aviso
+  barato. Guion: `public/ads/GUION_REEL_CORTO.md`.
+- Scripts nuevos: `generate_reel_corto.py`, `generar_voz_corto.py`,
+  `mezclar_corto.py`, `mezclar_v5_sinvoz.py`.
+
 ### 9.4 Punto 3 — Cronjob de arranque al abrir Hermes (VERIFICADO 2026-11-21)
 
 **Pedido de Fernando:** en lugar de arrancar al encender la PC, levantar los contenedores **cuando se abre Hermes Agent**, con recordatorio.
